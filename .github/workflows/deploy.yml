@@ -1,0 +1,51 @@
+name: Deploy via SFTP - Hostinger
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
+
+      - name: 📥 Install Dependencies (Composer)
+        run: |
+          cd app
+          composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: 🏗️ Install Dependencies (NPM)
+        run: |
+          cd app
+          npm install
+          npm run build
+
+      - name: 📂 Sync files via SFTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: public_html/ # Ajustar se o diretório na Hostinger for diferente
+          local-dir: ./app/ # Sincroniza apenas a pasta da aplicação Laravel
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            **/storage/framework/cache/**
+            **/storage/framework/sessions/**
+            **/storage/framework/views/**
+            .env
+            .env.example
