@@ -37,7 +37,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: public_html/ # Ajustar se o diretório na Hostinger for diferente
+          server-dir: /venda/ # Ajustar se o diretório na Hostinger for diferente
           local-dir: ./app/ # Sincroniza apenas a pasta da aplicação Laravel
           exclude: |
             **/.git*
