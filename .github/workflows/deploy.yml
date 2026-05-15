@@ -1,4 +1,4 @@
-name: Deploy via SFTP - Hostinger
+name: Deploy via FTP - Hostinger
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
       - name: 🛠️ Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.3'
           extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
 
       - name: 📥 Install Dependencies (Composer)
@@ -31,21 +31,18 @@ jobs:
           npm install
           npm run build
 
-      - name: 📂 Sync files via SFTP
+      - name: 📂 Sync files via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /venda/ # Ajustar se o diretório na Hostinger for diferente
-          local-dir: ./app/ # Sincroniza apenas a pasta da aplicação Laravel
+          port: 21
+          protocol: ftp
+          server-dir: /venda/
+          local-dir: app/
+          dangerous-clean-slate: false
           exclude: |
             **/.git*
-            **/.git*/**
+            **/.github/**
             **/node_modules/**
-            **/tests/**
-            **/storage/framework/cache/**
-            **/storage/framework/sessions/**
-            **/storage/framework/views/**
-            .env
-            .env.example
