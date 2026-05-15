@@ -1,0 +1,65 @@
+name: Semgrep Security Scan
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - staging
+      - production
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+      - staging
+      - production
+  schedule:
+    - cron: "0 10 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+concurrency:
+  group: semgrep-scan-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    name: Scan code with Semgrep
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Semgrep
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install semgrep
+
+      - name: Run Semgrep scan
+        continue-on-error: true
+        run: |
+          semgrep scan \
+            --config=auto \
+            --sarif \
+            --output=semgrep-results.sarif \
+            --metrics=off \
+            .
+
+      - name: Upload Semgrep SARIF result
+        if: always() && hashFiles('semgrep-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif

@@ -1,0 +1,18 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Dúvidas e discussões
+    url: https://github.com/
+    about: Use este canal para perguntas gerais, ideias iniciais e discussões que ainda não estão prontas para virar issue.
+
+  - name: Relatar vulnerabilidade de segurança
+    url: https://github.com/
+    about: Não abra issues públicas para vulnerabilidades. Consulte o arquivo SECURITY.md e siga o processo de reporte seguro.
+
+  - name: Documentação do projeto
+    url: https://github.com/
+    about: Consulte a documentação antes de abrir uma nova issue.
+
+  - name: Código de Conduta
+    url: https://github.com/
+    about: Consulte o CODE_OF_CONDUCT.md para entender as regras de convivência e colaboração do projeto.

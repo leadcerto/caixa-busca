@@ -1,0 +1,98 @@
+# =========================================================
+# Projeto PHP / Composer
+# =========================================================
+
+# Dependências do PHP
+/vendor/
+
+# Dependências do Node, caso use frontend futuramente
+/node_modules/
+
+# Arquivos de ambiente com senhas e configurações locais
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Cache
+*.cache
+.phpunit.result.cache
+
+# Arquivos temporários
+/tmp/
+/temp/
+*.tmp
+*.swp
+*.swo
+
+# Builds, cobertura de testes e distribuição
+/build/
+/dist/
+/coverage/
+
+# Banco de dados local
+*.sqlite
+*.sqlite3
+*.db
+
+# Backups, dumps e arquivos compactados
+*.bak
+*.backup
+*.old
+*.orig
+*.dump
+*.sql
+*.tar
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Editor / IDE
+.vscode/
+.idea/
+*.iml
+*.sublime-workspace
+*.sublime-project
+
+# Sistema operacional
+.DS_Store
+.LSOverride
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Arquivos do npm/yarn/pnpm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+
+# Ambientes locais/deploy
+.deploy/
+.releases/
+shared/
+.local/
+.localhost/
+
+# Chaves, certificados e credenciais
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+id_dsa
+id_dsa.pub
+
+# Relatórios e arquivos automáticos
+reports/
+*.report
+*.html.tmp

@@ -1,0 +1,317 @@
+# Dependabot
+#
+# Este arquivo configura atualizações automáticas de dependências no GitHub.
+#
+# Mantemos ativo por padrão:
+# - GitHub Actions
+#
+# Ative outros ecossistemas somente se o projeto realmente possuir os arquivos correspondentes.
+#
+# Documentação oficial:
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # GitHub Actions
+  #
+  # Atualiza versões de actions usadas em:
+  # .github/workflows/*.yml
+  # .github/workflows/*.yaml
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "security"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # npm / Node.js
+  #
+  # Ative este bloco se o projeto possuir:
+  # package.json
+  # package-lock.json
+  # yarn.lock
+  # pnpm-lock.yaml
+  #
+  # - package-ecosystem: "npm"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "09:30"
+  #     timezone: "America/Sao_Paulo"
+  #   open-pull-requests-limit: 10
+  #   labels:
+  #     - "dependencies"
+  #     - "javascript"
+  #     - "node"
+  #     - "security"
+  #   commit-message:
+  #     prefix: "chore"
+  #     include: "scope"
+  #   versioning-strategy: "increase"
+  #   groups:
+  #     npm-production:
+  #       dependency-type: "production"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
+  #     npm-development:
+  #       dependency-type: "development"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
+
+  # Docker
+  #
+  # Ative este bloco se o projeto possuir:
+  # Dockerfile
+  # docker-compose.yml
+  # docker-compose.yaml
+  #
+  # - package-ecosystem: "docker"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "10:00"
+  #     timezone: "America/Sao_Paulo"
+  #   open-pull-requests-limit: 5
+  #   labels:
+  #     - "dependencies"
+  #     - "docker"
+  #     - "security"
+  #   commit-message:
+  #     prefix: "chore"
+  #     include: "scope"
+
+  # Python / pip / Poetry
+  #
+  # Ative este bloco se o projeto possuir:
+  # requirements.txt
+  # requirements-dev.txt
+  # pyproject.toml
+  # poetry.lock
+  # setup.py
+  #
+  # Observação:
+  # Não crie dois blocos "pip" apontando para o mesmo diretório "/".
+  # Um bloco é suficiente para projetos Python na raiz.
+  #
+  # - package-ecosystem: "pip"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "10:30"
+  #     timezone: "America/Sao_Paulo"
+  #   open-pull-requests-limit: 5
+  #   labels:
+  #     - "dependencies"
+  #     - "python"
+  #     - "security"
+  #   commit-message:
+  #     prefix: "chore"
+  #     include: "scope"
+  #   groups:
+  #     python-dependencies:
+  #       patterns:
+  #         - "*"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
+
+  # Composer / PHP
+  #
+  # Ative este bloco se o projeto possuir:
+  # composer.json
+  # composer.lock
+  #
+  # - package-ecosystem: "composer"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "11:30"
+  #     timezone: "America/Sao_Paulo"
+  #   open-pull-requests-limit: 5
+  #   labels:
+  #     - "dependencies"
+  #     - "php"
+  #     - "composer"
+  #     - "security"
+  #   commit-message:
+  #     prefix: "chore"
+  #     include: "scope"
+  #   groups:
+  #     composer-dependencies:
+  #       patterns:
+  #         - "*"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
+
+  # Maven / Java
+  #
+  # Ative este bloco se o projeto possuir:
+  # pom.xml
+  #
+  # - package-ecosystem: "maven"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "12:00"
+  #     timezone: "America/Sao_Paulo"
+  #   open-pull-requests-limit: 5
+  #   labels:
+  #     - "dependencies"
+  #     - "java"
+  #     - "maven"
+  #     - "security"
+  #   commit-message:
+  #     prefix: "chore"
+  #     include: "scope"
+  #   groups:
+  #     maven-dependencies:
+  #       patterns:
+  #         - "*"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
+
+  # Gradle / Java, Kotlin, Android
+  #
+  # Ative este bloco se o projeto possuir:
+  # build.gradle
+  # build.gradle.kts
+  # settings.gradle
+  # settings.gradle.kts
+  #
+  # - package-ecosystem: "gradle"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "12:30"
+  #     timezone: "America/Sao_Paulo"
+  #   open-pull-requests-limit: 5
+  #   labels:
+  #     - "dependencies"
+  #     - "java"
+  #     - "gradle"
+  #     - "security"
+  #   commit-message:
+  #     prefix: "chore"
+  #     include: "scope"
+  #   groups:
+  #     gradle-dependencies:
+  #       patterns:
+  #         - "*"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
+
+  # NuGet / .NET
+  #
+  # Ative este bloco se o projeto possuir:
+  # *.csproj
+  # *.fsproj
+  # *.vbproj
+  # packages.config
+  #
+  # - package-ecosystem: "nuget"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "13:00"
+  #     timezone: "America/Sao_Paulo"
+  #   open-pull-requests-limit: 5
+  #   labels:
+  #     - "dependencies"
+  #     - "dotnet"
+  #     - "nuget"
+  #     - "security"
+  #   commit-message:
+  #     prefix: "chore"
+  #     include: "scope"
+  #   groups:
+  #     nuget-dependencies:
+  #       patterns:
+  #         - "*"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
+
+  # Go Modules
+  #
+  # Ative este bloco se o projeto possuir:
+  # go.mod
+  # go.sum
+  #
+  # - package-ecosystem: "gomod"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "13:30"
+  #     timezone: "America/Sao_Paulo"
+  #   open-pull-requests-limit: 5
+  #   labels:
+  #     - "dependencies"
+  #     - "go"
+  #     - "security"
+  #   commit-message:
+  #     prefix: "chore"
+  #     include: "scope"
+  #   groups:
+  #     go-dependencies:
+  #       patterns:
+  #         - "*"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
+
+  # Cargo / Rust
+  #
+  # Ative este bloco se o projeto possuir:
+  # Cargo.toml
+  # Cargo.lock
+  #
+  # - package-ecosystem: "cargo"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "monday"
+  #     time: "14:00"
+  #     timezone: "America/Sao_Paulo"
+  #   open-pull-requests-limit: 5
+  #   labels:
+  #     - "dependencies"
+  #     - "rust"
+  #     - "cargo"
+  #     - "security"
+  #   commit-message:
+  #     prefix: "chore"
+  #     include: "scope"
+  #   groups:
+  #     cargo-dependencies:
+  #       patterns:
+  #         - "*"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"

@@ -1,0 +1,18 @@
+No entanto, para que eu possa iniciar a criação do projeto (código) da melhor maneira possível e garantir que a base seja construída exatamente como você precisa, faltam algumas definições técnicas.
+
+Aqui está o que eu preciso para ser orientado da melhor forma nesta próxima etapa:
+
+1. Stack Tecnológica (As ferramentas que vamos usar)
+Backend: O documento menciona "extração via PHP". Vamos utilizar PHP com algum framework (ex: Laravel) ou prefere que seja feito em Node.js / Python?
+Frontend: Vamos utilizar qual tecnologia para a interface? (ex: Next.js, React, Vue.js, ou HTML/JS Vanilla?)
+Banco de Dados: MySQL (Hospedado na Hostinger).
+Estilização: Como vamos estilizar a plataforma? (ex: TailwindCSS, CSS puro, Bootstrap?)
+2. Integrações de Terceiros
+Disparos de Mensagens: O sistema enviará E-mail e WhatsApp para as imobiliárias. Já tem em mente quais serviços usar para isso? (ex: SendGrid/Resend para e-mail; Evolution API/Z-API/Twilio para WhatsApp?)
+Hospedagem de Imagens: As imagens de destaque (Open Graph) serão salvas no próprio servidor ou em um serviço externo como AWS S3 / Cloudflare R2?
+3. Design e Identidade Visual (UI/UX)
+Existe algum protótipo no Figma, referência visual de outro site, ou um guia de estilos (cores, fontes) que eu deva seguir para a interface pública e para os painéis (Admin/Imobiliária)?
+4. Arquitetura do Repositório
+Vamos estruturar isso como um Monorepo (Backend e Frontend no mesmo projeto) ou repositórios separados?
+Você planeja hospedar usando o Coolify na Hostinger (como sugerido nos seus workflows globais) ou em outra plataforma (Vercel, AWS)?
+Assim que você me confirmar essas escolhas tecnológicas (especialmente a Stack), eu poderei criar a estrutura inicial de pastas, configurar o ambiente, inicializar o banco de dados e começar a implementar as entidades e o layout! Como prefere seguir?

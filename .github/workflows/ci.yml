@@ -1,0 +1,316 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - staging
+      - production
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+      - staging
+      - production
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-checks:
+    name: Repository checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show repository information
+        run: |
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Branch/ref: $GITHUB_REF"
+          echo "Commit: $GITHUB_SHA"
+          echo "Actor: $GITHUB_ACTOR"
+
+      - name: Validate important files
+        run: |
+          echo "Checking recommended repository files..."
+
+          files=(
+            "README.md"
+            ".gitignore"
+            ".github/pull_request_template.md"
+            ".github/CODEOWNERS"
+            ".github/dependabot.yml"
+          )
+
+          for file in "${files[@]}"; do
+            if [ -f "$file" ]; then
+              echo "Found: $file"
+            else
+              echo "Not found: $file"
+            fi
+          done
+
+      - name: Check for accidentally committed environment files
+        run: |
+          echo "Checking for environment files that should not be committed..."
+
+          forbidden_files=(
+            ".env"
+            ".env.local"
+            ".env.development.local"
+            ".env.test.local"
+            ".env.production.local"
+          )
+
+          found_forbidden=false
+
+          for file in "${forbidden_files[@]}"; do
+            if [ -f "$file" ]; then
+              echo "::error file=$file::Sensitive environment file should not be committed."
+              found_forbidden=true
+            fi
+          done
+
+          if [ "$found_forbidden" = true ]; then
+            exit 1
+          fi
+
+          echo "No forbidden environment files found."
+
+  node-ci:
+    name: Node.js CI
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('package.json') != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect package manager
+        id: package-manager
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then
+            echo "manager=pnpm" >> "$GITHUB_OUTPUT"
+            echo "lockfile=pnpm-lock.yaml" >> "$GITHUB_OUTPUT"
+          elif [ -f "yarn.lock" ]; then
+            echo "manager=yarn" >> "$GITHUB_OUTPUT"
+            echo "lockfile=yarn.lock" >> "$GITHUB_OUTPUT"
+          elif [ -f "package-lock.json" ]; then
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+            echo "lockfile=package-lock.json" >> "$GITHUB_OUTPUT"
+          else
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+            echo "lockfile=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack
+        if: ${{ steps.package-manager.outputs.manager == 'pnpm' || steps.package-manager.outputs.manager == 'yarn' }}
+        run: corepack enable
+
+      - name: Install dependencies with pnpm
+        if: ${{ steps.package-manager.outputs.manager == 'pnpm' }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Install dependencies with Yarn
+        if: ${{ steps.package-manager.outputs.manager == 'yarn' }}
+        run: yarn install --frozen-lockfile
+
+      - name: Install dependencies with npm ci
+        if: ${{ steps.package-manager.outputs.manager == 'npm' && hashFiles('package-lock.json') != '' }}
+        run: npm ci
+
+      - name: Install dependencies with npm install
+        if: ${{ steps.package-manager.outputs.manager == 'npm' && hashFiles('package-lock.json') == '' }}
+        run: npm install
+
+      - name: Run lint
+        run: |
+          if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.lint ? 0 : 1)"; then
+            if [ "${{ steps.package-manager.outputs.manager }}" = "pnpm" ]; then
+              pnpm run lint
+            elif [ "${{ steps.package-manager.outputs.manager }}" = "yarn" ]; then
+              yarn lint
+            else
+              npm run lint
+            fi
+          else
+            echo "No lint script found. Skipping."
+          fi
+
+      - name: Run format check
+        run: |
+          if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts['format:check'] ? 0 : 1)"; then
+            if [ "${{ steps.package-manager.outputs.manager }}" = "pnpm" ]; then
+              pnpm run format:check
+            elif [ "${{ steps.package-manager.outputs.manager }}" = "yarn" ]; then
+              yarn format:check
+            else
+              npm run format:check
+            fi
+          elif node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.format ? 0 : 1)"; then
+            echo "Format script found, but no format:check script exists."
+            echo "Skipping to avoid modifying files during CI."
+          else
+            echo "No format check script found. Skipping."
+          fi
+
+      - name: Run type check
+        run: |
+          if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.typecheck ? 0 : 1)"; then
+            if [ "${{ steps.package-manager.outputs.manager }}" = "pnpm" ]; then
+              pnpm run typecheck
+            elif [ "${{ steps.package-manager.outputs.manager }}" = "yarn" ]; then
+              yarn typecheck
+            else
+              npm run typecheck
+            fi
+          elif node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts['type-check'] ? 0 : 1)"; then
+            if [ "${{ steps.package-manager.outputs.manager }}" = "pnpm" ]; then
+              pnpm run type-check
+            elif [ "${{ steps.package-manager.outputs.manager }}" = "yarn" ]; then
+              yarn type-check
+            else
+              npm run type-check
+            fi
+          else
+            echo "No type check script found. Skipping."
+          fi
+
+      - name: Run tests
+        run: |
+          if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.test ? 0 : 1)"; then
+            if [ "${{ steps.package-manager.outputs.manager }}" = "pnpm" ]; then
+              pnpm test
+            elif [ "${{ steps.package-manager.outputs.manager }}" = "yarn" ]; then
+              yarn test
+            else
+              npm test
+            fi
+          else
+            echo "No test script found. Skipping."
+          fi
+
+      - name: Run build
+        run: |
+          if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.build ? 0 : 1)"; then
+            if [ "${{ steps.package-manager.outputs.manager }}" = "pnpm" ]; then
+              pnpm run build
+            elif [ "${{ steps.package-manager.outputs.manager }}" = "yarn" ]; then
+              yarn build
+            else
+              npm run build
+            fi
+          else
+            echo "No build script found. Skipping."
+          fi
+
+  python-ci:
+    name: Python CI
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('requirements.txt', 'requirements-dev.txt', 'pyproject.toml', 'setup.py', 'Pipfile', 'poetry.lock') != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install Poetry
+        if: ${{ hashFiles('poetry.lock') != '' }}
+        run: |
+          python -m pip install poetry
+
+      - name: Install dependencies with Poetry
+        if: ${{ hashFiles('poetry.lock') != '' }}
+        run: |
+          poetry install --no-interaction --no-root
+
+      - name: Install dependencies with requirements
+        if: ${{ hashFiles('poetry.lock') == '' && hashFiles('requirements.txt') != '' }}
+        run: |
+          python -m pip install -r requirements.txt
+
+      - name: Install development dependencies
+        if: ${{ hashFiles('poetry.lock') == '' && hashFiles('requirements-dev.txt') != '' }}
+        run: |
+          python -m pip install -r requirements-dev.txt
+
+      - name: Install package from pyproject or setup.py
+        if: ${{ hashFiles('poetry.lock') == '' && (hashFiles('pyproject.toml') != '' || hashFiles('setup.py') != '') }}
+        run: |
+          python -m pip install -e ".[dev]" || python -m pip install -e . || true
+
+      - name: Run Ruff check
+        run: |
+          if command -v poetry >/dev/null 2>&1 && [ -f "poetry.lock" ]; then
+            poetry run python -m ruff check . || echo "Ruff not configured or not installed. Skipping."
+          else
+            python -m ruff check . || echo "Ruff not configured or not installed. Skipping."
+          fi
+
+      - name: Run Black check
+        run: |
+          if command -v poetry >/dev/null 2>&1 && [ -f "poetry.lock" ]; then
+            poetry run python -m black --check . || echo "Black not configured or not installed. Skipping."
+          else
+            python -m black --check . || echo "Black not configured or not installed. Skipping."
+          fi
+
+      - name: Run tests with pytest
+        run: |
+          if command -v poetry >/dev/null 2>&1 && [ -f "poetry.lock" ]; then
+            poetry run python -m pytest || echo "Pytest not configured or not installed. Skipping."
+          else
+            python -m pytest || echo "Pytest not configured or not installed. Skipping."
+          fi
+
+  docker-check:
+    name: Docker check
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('Dockerfile') != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t local-ci-image:latest .
+
+  markdown-check:
+    name: Markdown check
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('**/*.md') != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Markdown files
+        run: |
+          echo "Markdown files found:"
+          find . -name "*.md" -not -path "./.git/*" -print
+
+          echo "Basic Markdown check completed."

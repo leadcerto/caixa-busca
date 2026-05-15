@@ -1,0 +1,45 @@
+name: Gitleaks Secret Scan
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - staging
+      - production
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+      - staging
+      - production
+  schedule:
+    - cron: "30 10 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: gitleaks-scan-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gitleaks:
+    name: Scan secrets with Gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

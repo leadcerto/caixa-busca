@@ -1,0 +1,136 @@
+# CODEOWNERS
+#
+# Este arquivo define responsáveis por revisão de código no GitHub.
+# Quando um Pull Request alterar arquivos cobertos por uma regra abaixo,
+# os responsáveis definidos serão solicitados automaticamente para revisão.
+#
+# Documentação oficial:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Como usar:
+# - Substitua os exemplos de usuários e times pelos responsáveis reais do projeto.
+# - Usuários devem ser informados como @usuario.
+# - Times devem ser informados como @organizacao/time.
+# - A última regra correspondente ao arquivo alterado prevalece.
+#
+# Exemplo:
+# * @usuario-responsavel
+# /src/ @organizacao/time-backend
+# /docs/ @organizacao/time-documentacao
+
+# Responsável padrão por todo o repositório.
+# Substitua pelo usuário ou time principal do projeto.
+* @usuario-responsavel
+
+# GitHub e governança do repositório.
+/.github/ @usuario-responsavel
+/.github/CODEOWNERS @usuario-responsavel
+/.github/pull_request_template.md @usuario-responsavel
+/.github/ISSUE_TEMPLATE/ @usuario-responsavel
+
+# Documentação.
+/README.md @usuario-responsavel
+/CONTRIBUTING.md @usuario-responsavel
+/CODE_OF_CONDUCT.md @usuario-responsavel
+/SECURITY.md @usuario-responsavel
+/CHANGELOG.md @usuario-responsavel
+/LICENSE @usuario-responsavel
+/docs/ @usuario-responsavel
+
+# Configurações gerais do projeto.
+/.editorconfig @usuario-responsavel
+/.gitignore @usuario-responsavel
+/.gitattributes @usuario-responsavel
+/.env.example @usuario-responsavel
+
+# Dependências e configuração de pacotes.
+/package.json @usuario-responsavel
+/package-lock.json @usuario-responsavel
+/yarn.lock @usuario-responsavel
+/pnpm-lock.yaml @usuario-responsavel
+/requirements.txt @usuario-responsavel
+/pyproject.toml @usuario-responsavel
+/poetry.lock @usuario-responsavel
+/Pipfile @usuario-responsavel
+/Pipfile.lock @usuario-responsavel
+/Gemfile @usuario-responsavel
+/Gemfile.lock @usuario-responsavel
+/go.mod @usuario-responsavel
+/go.sum @usuario-responsavel
+/Cargo.toml @usuario-responsavel
+/Cargo.lock @usuario-responsavel
+
+# Build, containers e infraestrutura.
+/Dockerfile @usuario-responsavel
+/docker-compose.yml @usuario-responsavel
+/docker-compose.yaml @usuario-responsavel
+/.dockerignore @usuario-responsavel
+/k8s/ @usuario-responsavel
+/kubernetes/ @usuario-responsavel
+/helm/ @usuario-responsavel
+/terraform/ @usuario-responsavel
+/infra/ @usuario-responsavel
+
+# Integração contínua e automações.
+/.github/workflows/ @usuario-responsavel
+/.github/actions/ @usuario-responsavel
+
+# Código-fonte principal.
+/src/ @usuario-responsavel
+/app/ @usuario-responsavel
+/lib/ @usuario-responsavel
+/server/ @usuario-responsavel
+/client/ @usuario-responsavel
+/frontend/ @usuario-responsavel
+/backend/ @usuario-responsavel
+
+# Testes.
+/test/ @usuario-responsavel
+/tests/ @usuario-responsavel
+/__tests__/ @usuario-responsavel
+/spec/ @usuario-responsavel
+/e2e/ @usuario-responsavel
+
+# Scripts.
+/scripts/ @usuario-responsavel
+/bin/ @usuario-responsavel
+
+# Banco de dados e migrações.
+/migrations/ @usuario-responsavel
+/database/ @usuario-responsavel
+/db/ @usuario-responsavel
+/prisma/ @usuario-responsavel
+/supabase/ @usuario-responsavel
+
+# Arquivos públicos e assets.
+/public/ @usuario-responsavel
+/assets/ @usuario-responsavel
+/static/ @usuario-responsavel
+
+# Segurança.
+# Recomenda-se que alterações nesses arquivos tenham revisão cuidadosa.
+/SECURITY.md @usuario-responsavel
+/.github/dependabot.yml @usuario-responsavel
+/.github/codeql/ @usuario-responsavel
+/security/ @usuario-responsavel
+
+# Configurações de lint, formatação e qualidade.
+/.eslintrc @usuario-responsavel
+/.eslintrc.json @usuario-responsavel
+/.eslintrc.js @usuario-responsavel
+/eslint.config.js @usuario-responsavel
+/.prettierrc @usuario-responsavel
+/.prettierrc.json @usuario-responsavel
+/.prettierrc.js @usuario-responsavel
+/prettier.config.js @usuario-responsavel
+/.stylelintrc @usuario-responsavel
+/.stylelintrc.json @usuario-responsavel
+/tsconfig.json @usuario-responsavel
+/jest.config.js @usuario-responsavel
+/vitest.config.js @usuario-responsavel
+/playwright.config.js @usuario-responsavel
+/cypress.config.js @usuario-responsavel
+
+# Observação:
+# Depois de colar este arquivo, substitua todos os exemplos "@usuario-responsavel"
+# pelo usuário ou time correto do GitHub.

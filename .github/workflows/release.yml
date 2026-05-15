@@ -1,0 +1,161 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+      - "*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag da release. Exemplo: v1.0.0"
+        required: true
+        type: string
+      release_name:
+        description: "Nome da release. Se vazio, usa a tag."
+        required: false
+        type: string
+      prerelease:
+        description: "Marcar como pré-release"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref_name || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Resolve release information
+        id: release-info
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+            RELEASE_NAME="${{ inputs.release_name }}"
+            PRERELEASE="${{ inputs.prerelease }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            RELEASE_NAME=""
+            PRERELEASE="false"
+          fi
+
+          if [ -z "$TAG" ]; then
+            echo "::error::Release tag is required."
+            exit 1
+          fi
+
+          if [ -z "$RELEASE_NAME" ]; then
+            RELEASE_NAME="$TAG"
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "release_name=$RELEASE_NAME" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
+          echo "Release tag: $TAG"
+          echo "Release name: $RELEASE_NAME"
+          echo "Prerelease: $PRERELEASE"
+
+      - name: Create tag when manually triggered
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          TAG="${{ steps.release-info.outputs.tag }}"
+
+          git fetch --tags
+
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag already exists: $TAG"
+          else
+            echo "Creating tag: $TAG"
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          TAG="${{ steps.release-info.outputs.tag }}"
+
+          git fetch --tags
+
+          echo "# Release $TAG" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+
+          PREVIOUS_TAG="$(git tag --sort=-creatordate | grep -v "^${TAG}$" | head -n 1 || true)"
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "## Changes since $PREVIOUS_TAG" >> RELEASE_NOTES.md
+            echo "" >> RELEASE_NOTES.md
+            git log "${PREVIOUS_TAG}..${TAG}" --pretty=format:"- %s (%h)" >> RELEASE_NOTES.md || true
+            echo "" >> RELEASE_NOTES.md
+          else
+            echo "## Changes" >> RELEASE_NOTES.md
+            echo "" >> RELEASE_NOTES.md
+            git log "$TAG" --pretty=format:"- %s (%h)" >> RELEASE_NOTES.md || true
+            echo "" >> RELEASE_NOTES.md
+          fi
+
+          echo "" >> RELEASE_NOTES.md
+          echo "---" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "Generated automatically by GitHub Actions." >> RELEASE_NOTES.md
+
+          echo "Generated release notes:"
+          cat RELEASE_NOTES.md
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.release-info.outputs.tag }}"
+          RELEASE_NAME="${{ steps.release-info.outputs.release_name }}"
+          PRERELEASE="${{ steps.release-info.outputs.prerelease }}"
+
+          PRERELEASE_FLAG=""
+
+          if [ "$PRERELEASE" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release already exists. Updating release: $TAG"
+
+            gh release edit "$TAG" \
+              --title "$RELEASE_NAME" \
+              --notes-file RELEASE_NOTES.md
+          else
+            echo "Creating release: $TAG"
+
+            gh release create "$TAG" \
+              --title "$RELEASE_NAME" \
+              --notes-file RELEASE_NOTES.md \
+              $PRERELEASE_FLAG
+          fi
+
+      - name: Show release URL
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.release-info.outputs.tag }}"
+          RELEASE_URL="$(gh release view "$TAG" --json url --jq '.url')"
+
+          echo "Release created or updated successfully:"
+          echo "$RELEASE_URL"

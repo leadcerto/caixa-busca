@@ -1,0 +1,79 @@
+/* ------------------------------------------------------------------------------
+ *  # Funções
+ * ---------------------------------------------------------------------------- */
+
+var Functions = function() {
+	var _componentFunctions = function() {
+		// Tooltip
+		$('[data-toggle="tooltip"]').tooltip();
+
+		// Popover
+		$('[data-toggle="popover"]').popover();
+
+		// Validate
+		$('.form-validate').validate();
+
+		// Scroll
+		$('.scroll').hide();
+		$(window).scroll(function(){
+			if ( $(this).scrollTop() > 150 ) {
+				$('.scroll').removeClass('bounceOutDown').addClass('zoomInUp').show();
+				$('header').addClass('scrolled-nav');
+			} else {
+				$('.scroll').removeClass('zoomInUp').addClass('bounceOutDown').hide(1000);
+				$('header').removeClass('scrolled-nav');
+			}
+		});
+		$('.scroll').click(function(event){
+			event.preventDefault();
+			$('html,body').animate({scrollTop:$(this.hash).offset().top}, 800);
+		});
+
+		// Hamburger
+		var $hamburger = $('.hamburger');
+		$hamburger.on('click', function(e) {
+			$hamburger.toggleClass('is-active');
+		});
+
+		// Select2
+		$('.select2').select2({
+			theme: 'real',
+			language: 'pt-BR'
+		});
+
+		// Máscaras
+		var masks = ['(00) 00000-0000', '(00) 0000-00009'], maskBehavior = function(val, e, field, options) {
+			return val.length > 14 ? masks[0] : masks[1];
+		}
+
+		$('.phone').mask(maskBehavior, {
+			onKeyPress: function(val, e, field, options) {
+				field.mask(maskBehavior(val, e, field, options), options);
+			}
+		});
+		$('.money').mask('#.##0,00', {reverse: true});
+
+		// Política de privacidade
+		$(document).on('click', '.accept-privacy-policy', function() {
+			let url = $(this).attr('data-url');
+			$.ajax({
+				method: 'GET',
+				url: url + '/_inc/_acceptPrivacyPolicy.php',
+				success: function(data) {
+					$('.privacy-policy').fadeOut(1200);
+				}
+			});
+		});
+	};
+
+	return {
+		init: function() {
+			_componentFunctions();
+		}
+	}
+}();
+
+// Inicializar módulo
+document.addEventListener('DOMContentLoaded', function() {
+	Functions.init();
+});

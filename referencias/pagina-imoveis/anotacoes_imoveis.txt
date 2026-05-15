@@ -1,0 +1,266 @@
+Como o link de acesso deve ficar depois de publicado
+/casa-vista-alegre-rio-de-janeiro-rj-1444402960230/
+
+/tipo do imóvel + bairro + cidade + estado + numero do imóvel
+
+
+[post_titulo]
+Casa à venda em Vista Alegre, São Gonçalo RJ 1444402960230
+[post_palavra_chave]
+R$
+[atualizacao_desconto_valor]
+ Lucro Imediato
+ Valor de Avaliação: [atualizacao_avaliacao]
+ Valor de Venda: [atualizacao_venda]
+ Desconto: [atualizacao_desconto_percentual]%
+Iniciar Convera
+[selo_oportunidade]
+[post_palavra_chave]
+Endereço:
+[imovel_caixa_endereco_original]
+[imovel_caixa_endereco_bairro], [imovel_caixa_endereco_cidade] – [imovel_caixa_endereco_uf ]
+
+Descrição:
+[imovel_caixa_descricao_original]
+
+Formas de Pagamento:
+Recursos Próprios: [atualizacao_recurso_proprio]
+Aceita FGTS: [atualizacao_fgts]
+Aceita Financiamento MCMV: [atualizacao_financiamento_mcmv]
+Aceita Financiamento SBPE: [atualizacao_financiamento_sbpe]
+Imóveis da Caixa
+Imobiliária credenciada CAIXA; Atendimento exclusivo sobre os imóveis de leilão da Caixa. Fale  conosco para retirar suas dúvidas !
+
+[post_palavra_chave]
+Número do imóvel: [imovel_caixa_numero]
+Tipo de imóvel: [imovel_caixa_descricao_tipo]
+Bairro: [imovel_caixa_endereco_bairro]
+Cidade: [imovel_caixa_endereco_cidade]
+Estado: [imovel_caixa_endereco_uf ]
+CEP: [cep_formatado]
+
+Matrícula: [cartorio_matricula]
+Comarca: [cartorio_comarca]
+Ofício: [cartorio_oficio]
+Inscrição imobiliária: [cartorio_inscricao_imobiliaria]
+Averbação dos leilões negativos: 
+[cartorio_averbacao]
+
+Área do Terreno:[descricao_area_do_terreno]
+Área Privativa:[descricao_area_privativa]
+Área total: [descricao_area_total]
+
+Cozinha: [descricao_cozinha]
+Garagem: [descricao_garagem]
+Quartos: [descricao_quartos]
+Sala: [descricao_sala]
+Banheiro: [descricao_wc_banheiro]
+
+Área de Serviço: [descricao_area_servico]
+Varanda/Sacada:[descricao_varanda]
+Terraço: [descricao_terraco]
+Churrasqueira: [descricao_churrasqueira]
+Piscina: [descricao_piscina]
+Sauna: [descricao_sauna]
+Playground: [descricao_playgroud]
+Estacionamento: [descricao_estacionamento]
+Salão de Festa: [descricao_salao_festa]
+Quadra esportiva: [descricao_quadra_esportiva]
+
+FORMAS DE PAGAMENTO ACEITAS:
+ Exclusivamente à vista (somente recursos próprios).
+
+REGRAS PARA PAGAMENTO DAS DESPESAS (caso existam):
+ Condomínio: Sob responsabilidade do comprador, até o limite de 10% em relação ao valor de avaliação do imóvel. A CAIXA realizará o pagamento apenas do valor que exceder o limite de 10% do valor de avaliação.
+ Tributos: Sob responsabilidade do comprador.
+
+ Existe área não averbada.
+
+Análise da Oportunidade
+[post_palavra_chave]
+Hoje este Imóvel da Caixa está avaliado pela equipe técnica da CAIXA pelo preço de mercado de R$[atualizacao_valor_avaliacao] e estás sendo vendido hoje pelo valor de R$[atualizacao_valor_venda] o que é uma grande oportunidade para o comprador que vai economizar o valor de R$[atualizacao_desconto_valor] este percentual de [atualizacao_desconto_percentual]% de desconto na compra deste imóvel só é possível, porque ESTE IMÓVEL NÃO ESTÁ EM LEILÃO, este imóvel está sendo vendido hoje nas modalidades de venda da CAIXA e por isso o banco consegue oferecer descontos que não seriam possíveis casa este imóvel ainda estivesse “preso” a Lei de Alienação Fiduciária.
+
+CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFOMAÇÕES
+
+📌 MODALIDADE X BENEFÍCIOS:
+📌 VALOR DE MERCADO:
+📌 COMISSÃO DE VENDA:
+Análise do Comprador
+[post_palavra_chave]
+Neste conteúdo estamos trazendo a maneira de se pensar de acordo com cada finalidade de compra do seu imóvel e para te ajudar nesta reflexão também vamos te dar uma visão geral das despesas, do lucro, e como nós fazemos estas formas distintas de processo de compra. Você terá acesso aos cálculos já prontos para quer você tenha clareza do retorno financeiro que esta compra pode te trazer. São valores criados com base em experiências anteriores que servem para nos ajudar na tomada de decisão de compra.
+
+⚠️ ESTE CONTEÚDO AINDA É GRATUITO ⚠️
+MAS SÓ ESTÁ DISPONÍVEL PARA PESSOAS CADASTRADAS
+Fazer Login – Novo Cadastro
+
+CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFOMAÇÕES
+
+👤COMPRAR PARA MORAR 🏠
+📌 DESPESAS DE COMPRA:
+📌 DESPESAS QUE PODEM NÃO EXISTIR:
+📌 COMPRA FINANCIADA
+👤COMPRAR PARA REVENDER💲
+📌CÁLCULOS DE REVENDA 🚀🚀
+👤 COMPRAR PARA ALUGAR 💰
+📌 CÁLCULOS DE LOCAÇÃO
+Nossos Serviços
+[post_palavra_chave]
+CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFOMAÇÕES
+
+🚀 ASSESSORIA 360º
+Segurança e Transparência 🛡️
+Como funciona ⚙️
+Para quem é este serviço? 🎯
+🎓 FORMAÇÃO DE CONSULTORES
+Os 7 segredos desta profissão ♾️
+O Fim do Medo 🤝
+🎁 TREINAMENTO GRATUITO
+Fale Conosco
+Precisa falar com a gente? 💬 Para um atendimento mais rápido, chame nossa equipe direto no WhatsApp. Se preferir, você também pode preencher nosso formulário para agendar um atendimento ou nos ligar durante o horário comercial. Escolha a melhor opção para você!
+
+✉️ Agendamento por E-mail
+🚀 WhatsApp
+➡️ Telefone
+FAQ 1 = Perguntas frequentes sobre os Imóveis Caixa
+[post_palavra_chave]
+CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFOMAÇÕES
+
+📌 Imóveis da CAIXA
+📌 Formas de Pagamento
+📌 Comissão de Venda
+📌 Serviços Opcionais
+📌 Pagamento de Despesas
+Mapa da região do Imóvel
+[post_palavra_chave]
+
+imovel_caixa_descricao_tipo, imovel_caixa_endereco_bairro
+imovel_caixa_endereco_logradouro
+imovel_caixa_endereco_cidade – imovel_caixa_endereco_uf
+
+FAQ 2 = Perguntas Freguentes sobre o Bairro
+[post_palavra_chave]
+CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFOMAÇÕES
+
+🔖 Vizinhança e Localização
+🔖 Benefícios
+🔖 Acessos & Transporte
+🔖 Comércio & Conveniência
+🔖 Supermercado & Shoppings
+🔖 Educação
+🔖 Saúde
+🔖 Lazer & Cultura
+🔖 Localização
+🔖 Transporte
+Histórico de Atualizações
+[post_palavra_chave]
+Atualização
+Data:
+[atualizacao_data]
+Modalidade:
+[atualizacao_modalidade]
+
+Valores Aplicados
+Avaliação:
+R$[atualizacao_avaliacao]
+Venda:R$[atualizacao_venda]
+Desconto:
+atualizacao_desconto_percentual]%
+Desconto:
+R$[atualizacao_desconto_valor]
+
+Formas de Pagamentos
+Recursos próprios: [atualizacao_recurso_proprio]
+Financiamento SBPE: [atualizacao_financiamento_sbpe]
+Financiamento MCMV: [atualizacao_financiamento_mcmv]
+Aceita FGTS: [atualizacao_pagamento_fgts]
+
+Atualização
+Data:
+[atualizacao_data]
+Modalidade:
+[atualizacao_modalidade]
+
+Valores Aplicados
+Avaliação:
+R$[atualizacao_avaliacao]
+Venda:R$[atualizacao_venda]
+Desconto:
+atualizacao_desconto_percentual]%
+Desconto:
+R$[atualizacao_desconto_valor]
+
+Formas de Pagamentos
+Recursos próprios: [atualizacao_recurso_proprio]
+Financiamento SBPE: [atualizacao_financiamento_sbpe]
+Financiamento MCMV: [atualizacao_financiamento_mcmv]
+Aceita FGTS: [atualizacao_pagamento_fgts]
+
+Atualização
+Data:
+[atualizacao_data]
+Modalidade:
+[atualizacao_modalidade]
+
+Valores Aplicados
+Avaliação:
+R$[atualizacao_avaliacao]
+Venda:R$[atualizacao_venda]
+Desconto:
+atualizacao_desconto_percentual]%
+Desconto:
+R$[atualizacao_desconto_valor]
+
+Formas de Pagamentos
+Recursos próprios: [atualizacao_recurso_proprio]
+Financiamento SBPE: [atualizacao_financiamento_sbpe]
+Financiamento MCMV: [atualizacao_financiamento_mcmv]
+Aceita FGTS: [atualizacao_pagamento_fgts]
+
+Links de Referência
+Treinamento – Caixa – FGTS – SBPE – Alienação Fiduciária – 
+
+ACESSO RESTRITO
+Somente os Gestores do sistema podem visualizar o conteúdo abaixo
+
+Regras de SEO
+Segue os campos que estamos utilizando para facilitar nossa indexação nos sites de busca
+
+Link Permanente:
+post_link_permanente
+Palavra Chave:
+post_palavra_chave
+Descrição:
+post_descricao
+Título:
+post_titulo
+
+Imagem destaque:
+Link da Imagem destaque dentro do nosso site:
+post_imagem_destaque
+Tag ALT da imagem destaque:
+post_imagem_destaque_tag-alt
+
+Imagem do post:
+Link da imagem que está no site da CAIXA:
+post_link_imagem
+Tag ALT: post_imagem_tag_alt
+Tag TITLE: post_imagem_tag_title
+
+Relatório de Desempenho
+
+Visitas Totais: 500
+WhatsApp: 300
+Formulários: 50
+Cliques na página: 1500
+Novos Cadastros: 25
+📝LEGENDA:
+
+Visitas Totais: número total de visitantes
+WhatsApp: clicaram no botão de WhatsApp para falar com o atendimento
+Formulários: número de formulários enviados pedindo informação sobre este imóvel.
+Cliques na página: número de interações feitas pelos visitantes, seja clicar nas sanfonas para ver conteúdo, seja o clique nos botões.
+Novos Cadastros: número de novos cadastros que foram realizados apartir desta página.
+
+ 
+
+FaleComigo-LeoLeao

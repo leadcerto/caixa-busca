@@ -1,0 +1,52 @@
+name: CodeQL Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - staging
+      - production
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+      - staging
+      - production
+  schedule:
+    - cron: "30 12 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+concurrency:
+  group: codeql-analysis-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql-analysis:
+    name: Analyze code with CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          queries: security-extended,security-and-quality
+
+      - name: Autobuild project
+        uses: github/codeql-action/autobuild@v4
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:auto"

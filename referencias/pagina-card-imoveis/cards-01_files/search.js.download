@@ -1,0 +1,244 @@
+/* ------------------------------------------------------------------------------
+ *  # Search
+ * ---------------------------------------------------------------------------- */
+
+var Search = function() {
+	var _componentSearch = function() {
+		// Máscaras
+		$('.money').mask('#.##0,00', {reverse: true});
+		$(document).on('input', '.decimal-input', function() {
+			var value = $(this).val();
+			if (isNaN(value) || parseFloat(value) < 0) {
+				$(this).val('');
+			}
+		});
+
+		// Variáveis
+		let url = $('form').attr('data-url');
+		let typeSearch = $('form').attr('data-search');
+
+		// Condicional de exibição da modalidade
+		$(document).on('change', '#b_finalidade', function(){
+            const finalidadesSelecionadas = $(this).val();
+            alertModalidade = '<div id="div_modalidade" class="form-group">'+
+									'<label for="b_modalidade"><strong>Modalidade</strong></label>'+
+									'<select class="custom-select select2" id="b_modalidade" name="b_modalidade[]" multiple="" tabindex="-1" aria-hidden="true">'+
+										'<option value="leilao-sfi-unico">Leilão SFI - Único (1º e 2º Leilão)</option>'+
+										'<option value="licitacao-aberta">Licitação aberta (3º Leilão)</option>'+
+										'<option value="venda-online">Venda Online (4º Leilão)</option>'+
+										'<option value="venda-direta-online">Venda Direta Online (5º Leilão)</option>'+
+									'</select>'+
+								'</div>';
+            if ( finalidadesSelecionadas.length > 0 && !finalidadesSelecionadas.includes('Imóveis da Caixa') ) {
+                alertModalidade = '<div id="div_modalidade" class="form-group">'+
+									'<label for="b_modalidade"><strong>Modalidade</strong></label>'+
+									'<div class="alert alert-info px-2" role="alert">Somente para os imóveis da Caixa</div>'+
+                               '</div>';
+            }
+            $('#div_modalidade').html(alertModalidade)
+
+            $('.select2').select2({
+                theme: 'real',
+                language: 'pt-BR'
+            });
+        });
+
+		// Buscar bairros pela cidade selecionada
+		$(document).on('change', '#b_cidade', function(){
+			var value = $(this).val();
+			var valueDefault = '';
+			if ( value != '' ) {
+				$.ajax({
+					method: 'POST',
+					url: url + '/_inc/_getBairro.php',
+					data: {value: value, typeSearch : typeSearch},
+					success: function(data) {
+						if ( data != false ) {
+							$('#b_bairro').html(valueDefault + data);
+						} else {
+							$('#b_bairro').html(valueDefault);
+						}
+						$('#b_bairro').trigger('change')
+					}
+				});
+			} else {
+				$('#b_bairro').html(valueDefault);
+				$('#b_bairro').trigger('change')
+			}
+		});
+
+		// Buscar cidades pelo estado selecionado
+		$(document).on('change', '#b_estado, #r_estado', function(){
+			var value = $(this).val();
+			var defaultValue = '<option></option>';
+			if ( value != '' ) {
+				$.ajax({
+					method: 'POST',
+					url: url + '/_inc/_getCidade.php',
+					data: {value: value, name : 'b_cidade', immobileExists : true, act : 'select', 'option' : true, 'required' : false, typeSearch : typeSearch, optionEmpty : true},
+					success: function(data) {
+						if ( data != false ) {
+							$('#b_cidade').html(data);
+							$('#r_cidade').html(data);
+						} else {
+							$('#b_cidade').html(defaultValue);
+							$('#r_cidade').html(defaultValue);
+						}
+						$('#b_bairro').html(defaultValue);
+					}
+				});
+			} else {
+				$('#b_cidade').html(defaultValue);
+			}
+		});
+
+		// Quando é alterado a ordenação na busca dos imóveis
+		$(document).on('change', '#orderby, #limit', function(){
+			$('#formSearch').submit();
+		});
+
+		$(document).on('click', '.current-grid', function(){
+			if ( !$(this).hasClass('color-orange') ) {
+				let grid = $(this).data('grid');
+				$('input[name="b_visualizacao"]').val(grid);
+				$('#formSearch').submit();
+			}
+		});
+	};
+
+	return {
+		init: function() {
+			_componentSearch();
+		}
+	}
+}();
+
+// Inicializar módulo
+document.addEventListener('DOMContentLoaded', function() {
+	Search.init();
+	/*
+	 * FUNÇÕES
+	 */
+	let moneyBR = numero => {
+	    var numero = numero.toFixed(2).split('.');
+	    numero[0] = numero[0].split(/(?=(?:...)*$)/).join('.');
+	    return numero.join(',');
+	}
+
+	/*
+	 * SLIDERS RANGE
+	 */
+	if ( document.getElementById('slider_desconto') != null ) {
+		var sliderDesconto = document.getElementById('slider_desconto');
+		var inputsDesconto = [document.getElementById('b_desconto_min'), document.getElementById('b_desconto_max')];
+		noUiSlider.create(sliderDesconto, {
+		    start: [parseFloat($('#b_desconto_min').val()), parseFloat($('#b_desconto_max').val())],
+		    connect: true,
+		    range: {
+		        'min': parseFloat($('#slider_desconto').attr('min')),
+		        'max': parseFloat($('#slider_desconto').attr('max'))
+		    }
+		});
+		sliderDesconto.noUiSlider.on('update', function (values, handle) {
+		    inputsDesconto[handle].value = values[handle];
+		    $('#b_desconto_values').html(values[0].replace('.', ',') + '% - ' + values[1].replace('.', ',') + '%');
+		});
+	}
+
+	if ( document.getElementById('slider_valor') != null ) {
+		var sliderValor = document.getElementById('slider_valor');
+		var inputsValor = [document.getElementById('b_valor_min'), document.getElementById('b_valor_max')];
+		noUiSlider.create(sliderValor, {
+		    start: [parseFloat($('#b_valor_min').val()), parseFloat($('#b_valor_max').val())],
+		    connect: true,
+		    range: {
+		        'min': parseFloat($('#slider_valor').attr('min')),
+		        'max': parseFloat($('#slider_valor').attr('max'))
+		    }
+		});
+		sliderValor.noUiSlider.on('update', function (values, handle) {
+		    inputsValor[handle].value = values[handle];
+		    $('#b_valor_values').html('R$ ' + moneyBR(parseFloat(values[0])) + ' - R$ ' + moneyBR(parseFloat(values[1])));
+		});
+	}
+
+	if ( document.getElementById('slider_dormitorios') != null ) {
+		var sliderDormitorios = document.getElementById('slider_dormitorios');
+		var inputsDormitorios = [document.getElementById('b_dormitorios_min'), document.getElementById('b_dormitorios_max')];
+		noUiSlider.create(sliderDormitorios, {
+		    start: [parseInt($('#b_dormitorios_min').val()), parseInt($('#b_dormitorios_max').val())],
+		    connect: true,
+		    range: {
+		        'min': parseInt($('#slider_dormitorios').attr('min')),
+		        'max': parseInt($('#slider_dormitorios').attr('max'))
+		    },
+		    format: wNumb({
+				decimals: 0,
+				edit: function(value, defaultValue) {
+					return value;
+				}
+			})
+		});
+		sliderDormitorios.noUiSlider.on('update', function (values, handle) {
+		    inputsDormitorios[handle].value = values[handle];
+		    $('#b_dormitorios_values').html(values[0] + ' - ' + values[1]);
+		});
+	}
+
+	if ( document.getElementById('slider_area_privativa') != null ) {
+		var sliderarea_privativa = document.getElementById('slider_area_privativa');
+		var inputsarea_privativa = [document.getElementById('b_area_privativa_min'), document.getElementById('b_area_privativa_max')];
+		noUiSlider.create(sliderarea_privativa, {
+		    start: [parseFloat($('#b_area_privativa_min').val()), parseFloat($('#b_area_privativa_max').val())],
+		    connect: true,
+		    range: {
+		        'min': parseFloat($('#slider_area_privativa').attr('min')),
+		        'max': parseFloat($('#slider_area_privativa').attr('max'))
+		    }
+		});
+		sliderarea_privativa.noUiSlider.on('update', function (values, handle) {
+		    inputsarea_privativa[handle].value = values[handle];
+		    $('#b_area_privativa_values').html(moneyBR(parseFloat(values[0])) + 'm² - ' + moneyBR(parseFloat(values[1])) + 'm²');
+		});
+	}
+
+	if ( document.getElementById('slider_area_terreno') != null ) {
+		var sliderarea_terreno = document.getElementById('slider_area_terreno');
+		var inputsarea_terreno = [document.getElementById('b_area_terreno_min'), document.getElementById('b_area_terreno_max')];
+		noUiSlider.create(sliderarea_terreno, {
+		    start: [parseFloat($('#b_area_terreno_min').val()), parseFloat($('#b_area_terreno_max').val())],
+		    connect: true,
+		    range: {
+		        'min': parseFloat($('#slider_area_terreno').attr('min')),
+		        'max': parseFloat($('#slider_area_terreno').attr('max'))
+		    }
+		});
+		sliderarea_terreno.noUiSlider.on('update', function (values, handle) {
+		    inputsarea_terreno[handle].value = values[handle];
+		    $('#b_area_terreno_values').html(moneyBR(parseFloat(values[0])) + 'm² - ' + moneyBR(parseFloat(values[1])) + 'm²');
+		});
+	}
+
+	if ( document.getElementById('slider_vagas') != null ) {
+		var sliderVagas = document.getElementById('slider_vagas');
+		var inputsVagas = [document.getElementById('b_vagas_min'), document.getElementById('b_vagas_max')];
+		noUiSlider.create(sliderVagas, {
+		    start: [parseInt($('#b_vagas_min').val()), parseInt($('#b_vagas_max').val())],
+		    connect: true,
+		    range: {
+		        'min': parseInt($('#slider_vagas').attr('min')),
+		        'max': parseInt($('#slider_vagas').attr('max'))
+		    },
+		    format: wNumb({
+				decimals: 0,
+				edit: function(value, defaultValue) {
+					return value;
+				}
+			})
+		});
+		sliderVagas.noUiSlider.on('update', function (values, handle) {
+		    inputsVagas[handle].value = values[handle];
+		    $('#b_vagas_values').html(values[0] + ' - ' + values[1]);
+		});
+	}
+});

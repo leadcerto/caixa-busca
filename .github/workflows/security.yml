@@ -1,0 +1,160 @@
+name: Security
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - staging
+      - production
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+      - staging
+      - production
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
+          warn-only: false
+
+  trivy-filesystem-scan:
+    name: Trivy filesystem scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+
+  dockerfile-security-check:
+    name: Dockerfile security check
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('Dockerfile') != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          failure-threshold: error
+
+  basic-sensitive-files-check:
+    name: Basic sensitive files check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for sensitive files
+        run: |
+          echo "Checking for sensitive files that should not be committed..."
+
+          forbidden_files=(
+            ".env"
+            ".env.local"
+            ".env.development.local"
+            ".env.test.local"
+            ".env.production.local"
+            ".npmrc"
+            ".pypirc"
+            ".netrc"
+            "id_rsa"
+            "id_dsa"
+            "id_ecdsa"
+            "id_ed25519"
+            "credentials.json"
+            "service-account.json"
+            "firebase-adminsdk.json"
+            "google-services.json"
+            "GoogleService-Info.plist"
+          )
+
+          found_forbidden=false
+
+          for file in "${forbidden_files[@]}"; do
+            if find . -path "./.git" -prune -o -type f -name "$file" -print | grep -q .; then
+              echo "::error::Sensitive file found: $file"
+              found_forbidden=true
+            fi
+          done
+
+          if [ "$found_forbidden" = true ]; then
+            echo "Sensitive files were found. Remove them from the repository."
+            exit 1
+          fi
+
+          echo "No sensitive files found."
+
+      - name: Check for private keys
+        run: |
+          echo "Checking for private key patterns..."
+
+          if grep -RIl \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules \
+            --exclude-dir=vendor \
+            --exclude-dir=dist \
+            --exclude-dir=build \
+            --exclude="*.lock" \
+            "BEGIN .*PRIVATE KEY" .; then
+            echo "::error::Private key pattern found in repository."
+            exit 1
+          fi
+
+          echo "No private key patterns found."
