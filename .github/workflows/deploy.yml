@@ -22,12 +22,10 @@ jobs:
 
       - name: 📥 Install Dependencies (Composer)
         run: |
-          cd app
           composer install --no-dev --optimize-autoloader --no-interaction
 
       - name: 🏗️ Install Dependencies (NPM)
         run: |
-          cd app
           npm install
           npm run build
 
@@ -39,10 +37,35 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           protocol: ftp
-          server-dir: /venda/
-          local-dir: app/
+          server-dir: public_html/venda/
+          local-dir: ./
           dangerous-clean-slate: false
           exclude: |
             **/.git*
             **/.github/**
             **/node_modules/**
+            **/tests/**
+            **/storage/logs/**
+            **/storage/framework/sessions/**
+            .env
+            phpunit.xml
+            README.md
+            TECH_STACK.md
+            REQUISITOS.md
+            AI_GUIDELINES.md
+            CONTRIBUTING.md
+            CODE_OF_CONDUCT.md
+            SECURITY.md
+            PHILOSOPHY.md
+            KNOWLEDGE_BASE_MENTOR.md
+            Pendencias.txt
+            analise de contexto.md
+            arquitetura.md
+            banco-de-dados.md
+            design-ui-ux.md
+            integracoes.md
+            integracoes_funcionais.md
+            visao-explicativa.md
+            visao-geral.md
+            docs/**
+            referencias/**

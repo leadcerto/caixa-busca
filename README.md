@@ -1,181 +1,58 @@
-# Nome do Projeto
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-> Projeto em desenvolvimento com estrutura arquitetural planejada para evolução progressiva.
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-## Visão Geral
+## About Laravel
 
-Este repositório contém a base inicial do projeto, incluindo uma estrutura de arquivos e pastas pensada para organizar o desenvolvimento de forma clara, escalável e sustentável.
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-No estágio atual, parte da estrutura pode conter arquivos vazios, placeholders ou diretórios ainda sem implementação completa. Esses elementos fazem parte do planejamento arquitetural e servem como guia para o desenvolvimento futuro.
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-A proposta é permitir que o projeto evolua de maneira incremental, mantendo uma organização consistente desde o início.
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
----
+## Learning Laravel
 
-## Objetivos do Projeto
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-- Definir uma base organizada para o desenvolvimento.
-- Manter separação clara entre responsabilidades.
-- Facilitar a colaboração entre desenvolvedores humanos e assistentes de IA.
-- Permitir implementação progressiva das funcionalidades.
-- Documentar decisões técnicas importantes desde as fases iniciais.
-- Evitar crescimento desordenado da estrutura do projeto.
+In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
----
+You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
 
-## Status Atual
+## Agentic Development
 
-O projeto encontra-se em fase inicial de estruturação.
+Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
 
-Atualmente, o foco está em:
+```bash
+composer require laravel/boost --dev
 
-- Organização da estrutura de diretórios.
-- Definição do stack tecnológico.
-- Criação da documentação base.
-- Preparação para desenvolvimento incremental.
-- Padronização para futuras contribuições.
-
-Algumas partes do projeto ainda podem não estar implementadas. Isso é intencional e faz parte do processo de construção progressiva.
-
----
-
-## Estrutura do Projeto
-
-A estrutura do projeto foi planejada para acomodar futuras funcionalidades, módulos e responsabilidades.
-
-Exemplo geral:
-
-```text
-.
-├── README.md
-├── TECH_STACK.md
-├── CONTRIBUTING.md
-├── src/
-├── docs/
-├── tests/
-└── ...
+php artisan boost:install
 ```
 
-> Observação: a estrutura real pode variar conforme a evolução do projeto.
+Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
-Arquivos e diretórios ainda sem conteúdo completo devem ser tratados como parte do esqueleto arquitetural planejado, e não necessariamente como funcionalidades finalizadas.
+## Contributing
 
----
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-## Documentação Técnica
+## Code of Conduct
 
-As decisões técnicas, tecnologias adotadas, estratégias de arquitetura e justificativas do projeto devem ser registradas no arquivo:
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-- [TECH_STACK.md](./TECH_STACK.md)
+## Security Vulnerabilities
 
-Esse documento serve como referência técnica principal para entender o stack utilizado e as escolhas feitas ao longo do desenvolvimento.
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
----
+## License
 
-## Como Contribuir
-
-As diretrizes de contribuição estão documentadas no arquivo:
-
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-
-Esse documento explica como colaborar com o projeto, respeitando a estrutura existente, os padrões definidos e o processo de implementação progressiva.
-
-Ao contribuir com o projeto, recomenda-se:
-
-- Não remover arquivos ou diretórios estruturais sem justificativa.
-- Manter placeholders quando uma implementação ainda não estiver pronta.
-- Registrar decisões técnicas relevantes.
-- Evitar mudanças grandes sem documentação.
-- Preservar a organização arquitetural planejada.
-
----
-
-## Desenvolvimento Progressivo
-
-Este projeto segue uma abordagem incremental.
-
-Isso significa que:
-
-- A estrutura pode existir antes da implementação completa.
-- Funcionalidades podem ser adicionadas em etapas.
-- Arquivos placeholders podem ser usados para indicar intenções futuras.
-- A documentação deve acompanhar a evolução do código.
-- Mudanças estruturais devem ser feitas com cuidado.
-
-Essa abordagem ajuda a manter clareza durante o desenvolvimento e facilita a colaboração com ferramentas de IA.
-
----
-
-## Uso com Assistentes de IA
-
-Este repositório foi pensado para ser utilizado também com apoio de assistentes de IA durante o desenvolvimento.
-
-Para melhores resultados, recomenda-se que qualquer IA envolvida no projeto:
-
-- Leia primeiro o `README.md`.
-- Consulte o `TECH_STACK.md` antes de sugerir tecnologias.
-- Consulte o `CONTRIBUTING.md` antes de alterar a estrutura do projeto.
-- Respeite a estrutura existente.
-- Não remova placeholders sem necessidade.
-- Implemente mudanças de forma incremental.
-- Explique alterações estruturais importantes.
-- Atualize a documentação quando necessário.
-
----
-
-## Boas Práticas
-
-Durante o desenvolvimento, procure seguir estas práticas:
-
-- Manter nomes de arquivos e diretórios claros.
-- Separar responsabilidades por módulos ou camadas.
-- Evitar acoplamento desnecessário.
-- Documentar decisões relevantes.
-- Preferir mudanças pequenas e revisáveis.
-- Preservar consistência com o stack definido.
-- Atualizar a documentação conforme o projeto evolui.
-
----
-
-## Próximos Passos
-
-Alguns próximos passos sugeridos para evolução do projeto:
-
-- Revisar e manter atualizado o arquivo `TECH_STACK.md`.
-- Revisar e manter atualizado o arquivo `CONTRIBUTING.md`.
-- Definir padrões de código.
-- Implementar os primeiros módulos funcionais.
-- Adicionar instruções de instalação e execução.
-- Criar testes iniciais.
-- Documentar fluxos principais do sistema.
-
----
-
-## Licença
-
-Defina aqui a licença do projeto.
-
-Exemplo:
-
-```text
-MIT
-```
-
-Ou substitua por outra licença conforme a necessidade do projeto.
-
----
-
-## Observações Finais
-
-Este README descreve o estado inicial e a intenção estrutural do projeto.
-
-À medida que o desenvolvimento avançar, este documento deve ser atualizado para refletir melhor:
-
-- O funcionamento real da aplicação.
-- As instruções de instalação.
-- Os comandos de execução.
-- As funcionalidades disponíveis.
-- As dependências necessárias.
-- Os fluxos de contribuição.
-
-A documentação deve evoluir junto com o projeto.
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
