@@ -20,17 +20,17 @@ jobs:
           php-version: '8.4'
           extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
 
-      - name: 📝 Create dummy .env
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-
       - name: 📥 Install Dependencies (Composer)
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ":memory:"
         run: |
           composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: 📝 Create dummy .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate
 
       - name: 🏗️ Install Dependencies (NPM)
         run: |
