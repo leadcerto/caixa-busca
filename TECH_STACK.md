@@ -67,7 +67,7 @@ Essa estratégia ajuda a evitar crescimento desordenado do código e facilita a 
 
 ### Linguagem Principal
 
-- **PHP 8.4**
+- **PHP 8.2+**
   - Utilizado como linguagem base para todo o desenvolvimento do sistema, aproveitando a maturidade e performance das versões recentes.
   - Framework: **Laravel 11**.
 
