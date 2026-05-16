@@ -5,6 +5,12 @@
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
 
+# Bloqueio de acesso a arquivos sensíveis
+<FilesMatch "^\.env|composer\.(json|lock)|package(-lock)?\.json|.*\.md$|Pendencias\.txt">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
 <FilesMatch "\.(php4|php5|php3|php2|php|phtml)$">
 SetHandler application/x-lsphp84
 </FilesMatch>

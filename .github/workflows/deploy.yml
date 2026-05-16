@@ -45,7 +45,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           protocol: ftp
-          server-dir: ./
+          server-dir: public_html/venda/
           local-dir: ./
           dangerous-clean-slate: false
           exclude: |
@@ -56,6 +56,8 @@ jobs:
             **/storage/logs/**
             **/storage/framework/sessions/**
             .env
+            composer.phar
+            composer-setup.php
             phpunit.xml
             README.md
             TECH_STACK.md
