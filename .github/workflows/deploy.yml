@@ -1,4 +1,4 @@
-name: Deploy via FTP - Hostinger
+name: Deploy Laravel Ideal via SSH
 
 on:
   push:
@@ -20,62 +20,47 @@ jobs:
           php-version: '8.4'
           extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
 
-      - name: 📥 Install Dependencies (Composer)
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ":memory:"
-        run: |
-          composer install --no-dev --optimize-autoloader --no-interaction
+      - name: 📥 Install Composer Dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
 
-      - name: 📝 Create dummy .env
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-
-      - name: 🏗️ Install Dependencies (NPM)
+      - name: 🏗️ Install NPM & Build
         run: |
           npm install
           npm run build
 
-      - name: 📂 Sync files via SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: 📝 Adjust index.php for split folder structure
+        run: |
+          sed -i "s|require __DIR__.'/../vendor/autoload.php'|require __DIR__.'/../laravel-app/vendor/autoload.php'|g" public/index.php
+          sed -i "s|\$app = require_once __DIR__.'/../bootstrap/app.php'|\$app = require_once __DIR__.'/../laravel-app/bootstrap/app.php'|g" public/index.php
+
+      - name: 🔑 Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 65002
-          protocol: sftp
-          server-dir: ./
-          local-dir: ./
-          dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.github/**
-            **/node_modules/**
-            **/tests/**
-            **/storage/logs/**
-            **/storage/framework/sessions/**
-            .env
-            composer.phar
-            composer-setup.php
-            phpunit.xml
-            README.md
-            TECH_STACK.md
-            REQUISITOS.md
-            AI_GUIDELINES.md
-            CONTRIBUTING.md
-            CODE_OF_CONDUCT.md
-            SECURITY.md
-            PHILOSOPHY.md
-            KNOWLEDGE_BASE_MENTOR.md
-            Pendencias.txt
-            analise de contexto.md
-            arquitetura.md
-            banco-de-dados.md
-            design-ui-ux.md
-            integracoes.md
-            integracoes_funcionais.md
-            visao-explicativa.md
-            visao-geral.md
-            docs/**
-            referencias/**
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: 📂 Sync Laravel App Core
+        run: |
+          rsync -az --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude 'public' \
+            --exclude '.env' \
+            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/u541302702/domains/imoveisdacaixa.com.br/laravel-app/
+
+      - name: 📂 Sync Public Folder
+        run: |
+          rsync -az --delete \
+            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
+            ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/u541302702/domains/imoveisdacaixa.com.br/public_html/
+
+      - name: ⚡ Run Post-Deployment Commands
+        run: |
+          ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            cd /home/u541302702/domains/imoveisdacaixa.com.br/laravel-app
+            php artisan storage:link || true
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+          EOF
