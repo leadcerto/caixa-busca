@@ -30,9 +30,9 @@ jobs:
 
       - name: 📝 Adjust index.php for split folder structure (Subfolder version)
         run: |
-          # Sobe dois níveis para sair de public_html/venda e entrar em laravel-app
-          sed -i "s|require __DIR__.'/../vendor/autoload.php'|require __DIR__.'/../../laravel-app/vendor/autoload.php'|g" public/index.php
-          sed -i "s|\$app = require_once __DIR__.'/../bootstrap/app.php'|\$app = require_once __DIR__.'/../../laravel-app/bootstrap/app.php'|g" public/index.php
+          # Sobe três níveis para sair de public_html/venda/public e entrar em laravel-app
+          sed -i "s|require __DIR__.'/../vendor/autoload.php'|require __DIR__.'/../../../laravel-app/vendor/autoload.php'|g" public/index.php
+          sed -i "s|\$app = require_once __DIR__.'/../bootstrap/app.php'|\$app = require_once __DIR__.'/../../../laravel-app/bootstrap/app.php'|g" public/index.php
 
       - name: 🔑 Setup SSH Key
         uses: webfactory/ssh-agent@v0.9.0
@@ -50,11 +50,14 @@ jobs:
             -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
             ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/laravel-app/
 
-      - name: 📂 Sync Public Folder to /venda
+      - name: 📂 Sync Public Folder to /venda/public
         run: |
+          # Cria a pasta de destino se não existir
+          ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /home/${{ secrets.SSH_USER }}/public_html/venda/public"
+          
           rsync -az --delete \
             -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-            ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/public_html/venda/
+            ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/public_html/venda/public/
 
       - name: ⚡ Run Post-Deployment Commands
         run: |
@@ -69,5 +72,9 @@ jobs:
             $PHP_BIN artisan config:cache
             $PHP_BIN artisan route:cache
             $PHP_BIN artisan view:cache
+
+            # Limpeza de arquivos de teste
+            rm /home/${{ secrets.SSH_USER }}/public_html/venda/rastreio.txt || true
+            rm /home/${{ secrets.SSH_USER }}/public_html/venda/public/rastreio.txt || true
           EOF
 
