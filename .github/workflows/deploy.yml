@@ -48,20 +48,26 @@ jobs:
             --exclude 'public' \
             --exclude '.env' \
             -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/u541302702/laravel-app/
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/laravel-app/
 
       - name: 📂 Sync Public Folder to /venda
         run: |
           rsync -az --delete \
             -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-            ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/u541302702/public_html/venda/
+            ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/public_html/venda/
 
       - name: ⚡ Run Post-Deployment Commands
         run: |
           ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            cd /home/u541302702/laravel-app
-            php artisan storage:link || true
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
+            cd /home/${{ secrets.SSH_USER }}/laravel-app
+            
+            # Tenta encontrar o binário do PHP 8.4 na Hostinger
+            PHP_BIN=$(which php8.4 || which /usr/local/bin/php8.4 || which /opt/alt/php84/usr/bin/php || echo "php")
+            echo "Using PHP binary: $PHP_BIN"
+            
+            $PHP_BIN artisan storage:link || true
+            $PHP_BIN artisan config:cache
+            $PHP_BIN artisan route:cache
+            $PHP_BIN artisan view:cache
           EOF
+
