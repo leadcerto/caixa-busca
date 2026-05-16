@@ -65,8 +65,8 @@ jobs:
           ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd /home/${{ secrets.SSH_USER }}/laravel-app
             
-            # Tenta encontrar o binário do PHP 8.4 na Hostinger
-            PHP_BIN=$(which php8.4 || which /usr/local/bin/php8.4 || which /opt/alt/php84/usr/bin/php || echo "php")
+            # PHP 8.4 na Hostinger (caminho confirmado)
+            PHP_BIN="/opt/alt/php84/usr/bin/php"
             echo "Using PHP binary: $PHP_BIN"
             
             $PHP_BIN artisan storage:link || true
