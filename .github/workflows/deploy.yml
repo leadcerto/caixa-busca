@@ -37,14 +37,14 @@ jobs:
           npm install
           npm run build
 
-      - name: 📂 Sync files via FTP
+      - name: 📂 Sync files via SFTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          protocol: ftp
+          port: 65002
+          protocol: sftp
           server-dir: ./
           local-dir: ./
           dangerous-clean-slate: false
