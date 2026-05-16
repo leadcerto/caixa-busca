@@ -28,10 +28,11 @@ jobs:
           npm install
           npm run build
 
-      - name: 📝 Adjust index.php for split folder structure
+      - name: 📝 Adjust index.php for split folder structure (Subfolder version)
         run: |
-          sed -i "s|require __DIR__.'/../vendor/autoload.php'|require __DIR__.'/../laravel-app/vendor/autoload.php'|g" public/index.php
-          sed -i "s|\$app = require_once __DIR__.'/../bootstrap/app.php'|\$app = require_once __DIR__.'/../laravel-app/bootstrap/app.php'|g" public/index.php
+          # Sobe dois níveis para sair de public_html/venda e entrar em laravel-app
+          sed -i "s|require __DIR__.'/../vendor/autoload.php'|require __DIR__.'/../../laravel-app/vendor/autoload.php'|g" public/index.php
+          sed -i "s|\$app = require_once __DIR__.'/../bootstrap/app.php'|\$app = require_once __DIR__.'/../../laravel-app/bootstrap/app.php'|g" public/index.php
 
       - name: 🔑 Setup SSH Key
         uses: webfactory/ssh-agent@v0.9.0
@@ -47,18 +48,18 @@ jobs:
             --exclude 'public' \
             --exclude '.env' \
             -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/u541302702/domains/imoveisdacaixa.com.br/laravel-app/
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/u541302702/laravel-app/
 
-      - name: 📂 Sync Public Folder
+      - name: 📂 Sync Public Folder to /venda
         run: |
           rsync -az --delete \
             -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-            ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/u541302702/domains/imoveisdacaixa.com.br/public_html/
+            ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/u541302702/public_html/venda/
 
       - name: ⚡ Run Post-Deployment Commands
         run: |
           ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            cd /home/u541302702/domains/imoveisdacaixa.com.br/laravel-app
+            cd /home/u541302702/laravel-app
             php artisan storage:link || true
             php artisan config:cache
             php artisan route:cache
