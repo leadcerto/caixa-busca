@@ -7,21 +7,20 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tabela: tipos_imovel
+     * Tipos de imóvel extraídos da descrição original via PHP.
      */
     public function up(): void
     {
-        Schema::create('imobiliaria_estados', function (Blueprint $table) {
+        Schema::create('tipos_imovel', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('nome', 80);
+            $table->boolean('ativo')->default(true);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('imobiliaria_estados');
+        Schema::dropIfExists('tipos_imovel');
     }
 };

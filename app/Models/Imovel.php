@@ -48,15 +48,43 @@ class Imovel extends Model
     ];
 
     protected $casts = [
-        'area_total' => 'decimal:2',
-        'area_privativa' => 'decimal:2',
-        'area_terreno' => 'decimal:2',
-        'updated_at' => 'datetime',
+        'area_total'        => 'decimal:2',
+        'area_privativa'    => 'decimal:2',
+        'area_terreno'      => 'decimal:2',
+        'varanda'           => 'boolean',
+        'area_servico'      => 'boolean',
+        'cozinha'           => 'boolean',
+        'piscina'           => 'boolean',
+        'churrasqueira'     => 'boolean',
+        'terraco'           => 'boolean',
+        'aceita_financ_sbpe' => 'boolean',
+        'aceita_financ_mcmv' => 'boolean',
+        'updated_at'        => 'datetime',
     ];
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 
     public function historico()
     {
         return $this->hasMany(ImovelHistorico::class, 'id_imovel');
+    }
+
+    public function ultimoHistorico()
+    {
+        return $this->hasOne(ImovelHistorico::class, 'id_imovel')->latestOfMany('created_at');
+    }
+
+    public function estado()
+    {
+        return $this->belongsTo(Estado::class, 'id_estado');
+    }
+
+    public function municipio()
+    {
+        return $this->belongsTo(Municipio::class, 'id_municipio');
     }
 
     public function bairro()
@@ -67,5 +95,30 @@ class Imovel extends Model
     public function subBairro()
     {
         return $this->belongsTo(SubBairro::class, 'id_sub_bairro');
+    }
+
+    public function tipoImovel()
+    {
+        return $this->belongsTo(TipoImovel::class, 'id_tipo_imovel');
+    }
+
+    public function grupo()
+    {
+        return $this->belongsTo(ImovelGrupo::class, 'id_grupo');
+    }
+
+    public function etapa()
+    {
+        return $this->belongsTo(ImovelEtapa::class, 'id_etapa');
+    }
+
+    public function imobiliaria()
+    {
+        return $this->belongsTo(Imobiliaria::class, 'id_imobiliaria');
+    }
+
+    public function atendimentos()
+    {
+        return $this->hasMany(Atendimento::class, 'id_imovel');
     }
 }

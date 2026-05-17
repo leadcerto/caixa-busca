@@ -2,81 +2,78 @@
 
 namespace App\Modules\Imoveis\Livewire;
 
+use App\Models\Estado;
 use App\Models\Imovel;
+use App\Models\TipoImovel;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Componente Livewire para busca e vitrine de imveis.
- * Implementa a regra de "Epicenter Design" focada na facilidade de busca.
- */
 class ImovelSearch extends Component
 {
     use WithPagination;
 
-    /**
-     * Atributos de pesquisa vinculados ao Model (Regra 88).
-     */
-    public $estado = '';
-    public $municipio = '';
-    public $tipo = '';
-    public $min_preco = '';
-    public $max_preco = '';
+    public string $estado    = '';
+    public string $municipio = '';
+    public string $tipo      = '';
+    public string $min_preco = '';
+    public string $max_preco = '';
 
-    /**
-     * Mantm os filtros na URL para facilitar o compartilhamento da busca.
-     */
     protected $queryString = [
-        'estado' => ['except' => ''],
+        'estado'    => ['except' => ''],
         'municipio' => ['except' => ''],
-        'tipo' => ['except' => ''],
+        'tipo'      => ['except' => ''],
         'min_preco' => ['except' => ''],
         'max_preco' => ['except' => ''],
     ];
 
-    /**
-     * Hook do Livewire disparado em qualquer alterao de estado.
-     * Garante que a busca volte para a pgina 1 ao filtrar.
-     */
-    public function updated()
+    public function updated(): void
     {
         $this->resetPage();
     }
 
-    /**
-     * Executa a query de busca indexada no MySQL.
-     */
     public function render()
     {
-        // Apenas imveis ativos so exibidos na vitrine pblica
-        $query = Imovel::query();
+        $query = Imovel::query()->where('status', 'ativo');
 
-        // Aplicao de filtros dinmicos
         if ($this->estado) {
-            $query->where('uf', $this->estado);
+            $query->whereHas('estado', fn($q) => $q->where('uf', $this->estado));
         }
 
         if ($this->municipio) {
-            $query->where('cidade', 'like', '%' . $this->municipio . '%');
+            $query->whereHas('municipio', fn($q) =>
+                $q->where('nome', 'like', '%' . $this->municipio . '%')
+            );
         }
 
         if ($this->tipo) {
-            $query->where('tipo_imovel', $this->tipo);
+            $query->whereHas('tipoImovel', fn($q) => $q->where('nome', $this->tipo));
         }
 
-        if ($this->min_preco) {
-            $query->where('preco', '>=', (float) $this->min_preco);
+        if ($this->min_preco || $this->max_preco) {
+            $query->whereHas('historico', function ($h) {
+                // Garante que é o histórico mais recente do imóvel
+                $h->whereNotExists(fn($newer) =>
+                    $newer->from('imoveis_historico as h2')
+                        ->whereColumn('h2.id_imovel', 'imoveis_historico.id_imovel')
+                        ->whereColumn('h2.created_at', '>', 'imoveis_historico.created_at')
+                );
+                if ($this->min_preco) {
+                    $h->where('valor_venda', '>=', (float) str_replace(',', '.', $this->min_preco));
+                }
+                if ($this->max_preco) {
+                    $h->where('valor_venda', '<=', (float) str_replace(',', '.', $this->max_preco));
+                }
+            });
         }
 
-        if ($this->max_preco) {
-            $query->where('preco', '<=', (float) $this->max_preco);
-        }
+        $imoveis = $query
+            ->with(['estado', 'municipio', 'tipoImovel', 'bairro', 'ultimoHistorico'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(12);
 
-        // Ordenao por atualizao mais recente (Data de Gerao do CSV)
-        $imoveis = $query->orderBy('updated_at', 'desc')->paginate(12);
+        $estados = Estado::orderBy('nome')->get();
+        $tipos   = TipoImovel::where('ativo', true)->orderBy('nome')->get();
 
-        return view('modules.imoveis.livewire.imovel-search', [
-            'imoveis' => $imoveis
-        ]);
+        return view('modules.imoveis.livewire.imovel-search', compact('imoveis', 'estados', 'tipos'));
     }
 }

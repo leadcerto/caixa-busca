@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Atendimento extends Model
 {
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'id_lead',
         'id_imovel',
@@ -29,5 +31,10 @@ class Atendimento extends Model
     public function imobiliaria()
     {
         return $this->belongsTo(Imobiliaria::class, 'id_imobiliaria');
+    }
+
+    public function origem()
+    {
+        return $this->belongsTo(AtendimentoOrigem::class, 'id_origem');
     }
 }

@@ -19,7 +19,7 @@ class ImobiliariaAuthMiddleware
         // Verifica se o usuário está autenticado no guard 'imobiliaria'
         // NOTA: Assumindo que o guard 'imobiliaria' foi configurado no auth.php
         if (!Auth::guard('imobiliaria')->check()) {
-            return redirect()->route('login')->with('error', 'Acesso restrito a imobiliárias parceiras.');
+            return redirect()->route('imobiliaria.login')->with('error', 'Acesso restrito a imobiliárias parceiras.');
         }
 
         // Restrição absoluta: A imobiliária não pode acessar rotas de administração global

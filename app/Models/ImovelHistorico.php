@@ -28,8 +28,15 @@ class ImovelHistorico extends Model
         'desconto_valor' => 'decimal:2',
     ];
 
+    const UPDATED_AT = null;
+
     public function imovel()
     {
         return $this->belongsTo(Imovel::class, 'id_imovel');
+    }
+
+    public function modalidade()
+    {
+        return $this->belongsTo(ModalidadeVenda::class, 'id_modalidade');
     }
 }

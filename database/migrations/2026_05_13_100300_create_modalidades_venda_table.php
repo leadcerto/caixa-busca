@@ -7,21 +7,20 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tabela: modalidades_venda
+     * Modalidades de venda aceitas para importação no sistema.
      */
     public function up(): void
     {
-        Schema::create('imovel_etapas', function (Blueprint $table) {
+        Schema::create('modalidades_venda', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('nome', 100);
+            $table->boolean('ativo')->default(true);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('imovel_etapas');
+        Schema::dropIfExists('modalidades_venda');
     }
 };

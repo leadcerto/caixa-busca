@@ -7,21 +7,21 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tabela: sub_bairros
+     * Sub-bairros vinculados aos bairros.
      */
     public function up(): void
     {
-        Schema::create('tipo_imovels', function (Blueprint $table) {
+        Schema::create('sub_bairros', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_bairro')->constrained('bairros')->cascadeOnDelete();
+            $table->string('nome', 150);
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('tipo_imovels');
+        Schema::dropIfExists('sub_bairros');
     }
 };

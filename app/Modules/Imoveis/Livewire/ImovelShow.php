@@ -2,83 +2,135 @@
 
 namespace App\Modules\Imoveis\Livewire;
 
+use App\Models\Atendimento;
+use App\Models\AtendimentoOrigem;
 use App\Models\Imovel;
+use App\Models\Lead;
 use App\Modules\Imoveis\Jobs\DispatchCrmWebhookJob;
 use App\Modules\Imoveis\Services\UtmTrackerService;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-/**
- * Componente Livewire para a Pgina de Detalhes do Imvel.
- * Responsvel pela converso final do Lead e gerao de links dinmicos.
- */
 class ImovelShow extends Component
 {
-    /**
-     * Instncia do imvel carregada via Route Model Binding.
-     */
     public Imovel $imovel;
 
-    /**
-     * Inicializa o componente e captura UTMs (Regra 8).
-     */
-    public function mount(Imovel $imovel, UtmTrackerService $utmTracker)
+    #[Validate('required|string|min:3|max:100')]
+    public string $nome = '';
+
+    #[Validate('required|email|max:150')]
+    public string $email = '';
+
+    #[Validate('required|string|min:10|max:20')]
+    public string $telefone = '';
+
+    public function mount(Imovel $imovel, UtmTrackerService $utmTracker): void
     {
-        $this->imovel = $imovel;
-        
-        // Persiste UTMs se o usurio caiu direto nesta pgina
+        $this->imovel = $imovel->load([
+            'estado',
+            'municipio',
+            'bairro',
+            'tipoImovel',
+            'ultimoHistorico.modalidade',
+        ]);
+
         $utmTracker->captureFromRequest();
     }
 
-    /**
-     * Mtodo de Converso: Dispara o Webhook e gera o link do WhatsApp.
-     * Segue a regra de "Integrao Resiliente" e "Mensagens Dinmicas".
-     */
-    public function converterLead(UtmTrackerService $utmTracker)
+    public function converterLead(UtmTrackerService $utmTracker): mixed
     {
-        // 1. Recupera as UTMs persistidas para enriquecer o Lead
-        $utms = $utmTracker->getTrackedUtms();
+        $this->validate();
 
-        // 2. Prepara o Payload para o CRM (Regra 50)
-        $payload = [
-            'imovel_id' => $this->imovel->numero_original,
-            'tipo_imovel' => $this->imovel->tipo_imovel,
-            'valor' => (float) $this->imovel->preco,
-            'localidade' => "{$this->imovel->bairro}, {$this->imovel->cidade} - {$this->imovel->uf}",
-            'conversao_url' => url()->current(),
-            'timestamp' => now()->toIso8601String(),
-            'marketing' => $utms
-        ];
-
-        // 3. Dispara o Job Assncrono (Resilincia - Matriz do Caos)
-        DispatchCrmWebhookJob::dispatch($payload);
-
-        // 4. Gera a Mensagem Dinmica do WhatsApp (Regra 44)
-        // Template flexvel para o SDR saber exatamente de onde o lead veio
-        $messageTemplate = "Ol! Tenho interesse no imvel {{tipo}} (ID: {{id}}) localizado em {{bairro}}. Gostaria de mais informaes.";
-        
-        $message = str_replace(
-            ['{{tipo}}', '{{id}}', '{{bairro}}'],
-            [$this->imovel->tipo_imovel, $this->imovel->numero_original, $this->imovel->bairro],
-            $messageTemplate
+        // Cria ou recupera o lead pelo e-mail
+        $lead = Lead::firstOrCreate(
+            ['email' => $this->email],
+            [
+                'nome'     => $this->nome,
+                'telefone' => $this->telefone,
+                'senha'    => Hash::make(Str::random(16)),
+            ]
         );
 
-        $centralNumber = env('WHATSAPP_CENTRAL', '5511999999999');
-        $whatsappUrl = "https://api.whatsapp.com/send?phone={$centralNumber}&text=" . urlencode($message);
+        // Atualiza nome/telefone se o lead já existia
+        if (!$lead->wasRecentlyCreated) {
+            $lead->update(['nome' => $this->nome, 'telefone' => $this->telefone]);
+        }
 
-        // 5. Redirecionamento Final para o WhatsApp
+        // Adiciona imóvel ao histórico de interesse sem duplicar
+        $interesse = $lead->imoveis_interesse ?? [];
+        $jaExiste  = collect($interesse)->contains('numero', $this->imovel->numero_original);
+        if (!$jaExiste) {
+            $interesse[] = [
+                'numero'     => $this->imovel->numero_original,
+                'data'       => now()->toDateString(),
+                'modalidade' => $this->imovel->ultimoHistorico?->modalidade?->nome,
+            ];
+            $lead->update(['imoveis_interesse' => $interesse]);
+        }
+
+        // Cria o atendimento (evita duplicata lead+imóvel)
+        $origem = AtendimentoOrigem::where('nome', 'like', '%Formulário%')->first();
+
+        Atendimento::firstOrCreate(
+            [
+                'id_lead'   => $lead->id,
+                'id_imovel' => $this->imovel->id,
+            ],
+            [
+                'id_imobiliaria'   => $this->imovel->id_imobiliaria,
+                'id_origem'        => $origem?->id,
+                'mensagem'         => "{$this->nome} solicitou contato sobre o imóvel {$this->imovel->numero_original}.",
+                'whatsapp_enviado' => true,
+            ]
+        );
+
+        // Monta localidade para o webhook e mensagem
+        $localidade = implode(', ', array_filter([
+            $this->imovel->bairro?->nome,
+            $this->imovel->municipio?->nome,
+            $this->imovel->estado?->uf,
+        ]));
+
+        // Dispara webhook CRM de forma assíncrona
+        DispatchCrmWebhookJob::dispatch([
+            'imovel_id'     => $this->imovel->numero_original,
+            'tipo_imovel'   => $this->imovel->tipoImovel?->nome,
+            'valor'         => (float) ($this->imovel->ultimoHistorico?->valor_venda ?? 0),
+            'localidade'    => $localidade,
+            'lead'          => [
+                'nome'     => $this->nome,
+                'email'    => $this->email,
+                'telefone' => $this->telefone,
+            ],
+            'conversao_url' => url()->current(),
+            'timestamp'     => now()->toIso8601String(),
+            'marketing'     => $utmTracker->getTrackedUtms(),
+        ]);
+
+        // Gera link do WhatsApp com dados do lead e imóvel
+        $message = "Olá! Meu nome é {$this->nome}. Tenho interesse no imóvel "
+            . "{$this->imovel->tipoImovel?->nome} (Cód: {$this->imovel->numero_original}) "
+            . "em {$localidade}. Pode me ajudar?";
+
+        $numero      = config('services.whatsapp.central', env('WHATSAPP_CENTRAL', '5511999999999'));
+        $whatsappUrl = 'https://api.whatsapp.com/send?phone=' . $numero . '&text=' . urlencode($message);
+
         return redirect()->away($whatsappUrl);
     }
 
-    /**
-     * Renderiza a view com metatags dinmicas para SEO (Regra 15).
-     */
     public function render()
     {
+        $tipo      = $this->imovel->tipoImovel?->nome ?? 'Imóvel';
+        $municipio = $this->imovel->municipio?->nome ?? '';
+
         return view('modules.imoveis.livewire.imovel-show')
             ->layout('layouts.app', [
-                'meta_title' => "{$this->imovel->tipo_imovel} em {$this->imovel->cidade} | Antigravity Imveis",
-                'meta_description' => "Oportunidade de investimento em {$this->imovel->bairro}. Veja fotos e detalhes tcnicos.",
-                'og_image' => asset("images/og/{$this->imovel->slug}.jpg") // Regra 31
+                'meta_title'       => "{$tipo} em {$municipio} | Antigravity Imóveis",
+                'meta_description' => $this->imovel->meta_description
+                    ?? "Oportunidade de investimento em {$this->imovel->bairro?->nome}. Veja detalhes.",
+                'og_image'         => asset("images/og/{$this->imovel->slug}.jpg"),
             ]);
     }
 }

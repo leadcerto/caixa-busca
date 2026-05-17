@@ -39,8 +39,12 @@ return [
 
     'guards' => [
         'web' => [
-            'driver' => 'session',
+            'driver'   => 'session',
             'provider' => 'users',
+        ],
+        'imobiliaria' => [
+            'driver'   => 'session',
+            'provider' => 'imobiliarias',
         ],
     ],
 
@@ -64,7 +68,11 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'model'  => env('AUTH_MODEL', User::class),
+        ],
+        'imobiliarias' => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\Imobiliaria::class,
         ],
 
         // 'users' => [

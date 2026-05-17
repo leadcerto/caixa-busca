@@ -7,21 +7,20 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tabela: estados
+     * Estados brasileiros (UF).
      */
     public function up(): void
     {
-        Schema::create('atendimento_origems', function (Blueprint $table) {
+        Schema::create('estados', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('nome', 50);
+            $table->char('uf', 2)->unique();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('atendimento_origems');
+        Schema::dropIfExists('estados');
     }
 };

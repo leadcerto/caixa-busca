@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class SubBairro extends Model
 {
-    protected $fillable = ['nome', 'id_bairro', 'ativo'];
+    protected $table = 'sub_bairros';
+
+    protected $fillable = ['id_bairro', 'nome'];
 
     public function bairro()
     {

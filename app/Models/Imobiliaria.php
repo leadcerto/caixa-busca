@@ -2,13 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Imobiliaria extends Model
+class Imobiliaria extends Authenticatable
 {
     protected $fillable = ['nome', 'email', 'senha', 'whatsapp', 'creci', 'ativo'];
 
     protected $hidden = ['senha'];
+
+    protected $casts = ['ativo' => 'boolean'];
+
+    public function getAuthPasswordName(): string
+    {
+        return 'senha';
+    }
 
     public function atendimentos()
     {
