@@ -55,20 +55,20 @@ Route::get('/test-log', function() {
         $logContent = "Arquivo laravel.log não existe em: " . $logPath;
     }
     
-    return response("
+    return response('
     <!DOCTYPE html>
-    <html lang='pt-BR'>
+    <html lang="pt-BR">
     <head>
-        <meta charset='UTF-8'>
-        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Console de Diagnóstico - Antigravity</title>
-        <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
-        <link href='https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap' rel='stylesheet'>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
         <style>
             body {
                 background: linear-gradient(135deg, #0b0f19 0%, #111827 100%);
                 color: #f3f4f6;
-                font-family: 'Outfit', sans-serif;
+                font-family: "Outfit", sans-serif;
                 min-height: 100vh;
                 padding: 40px 20px;
             }
@@ -112,7 +112,7 @@ Route::get('/test-log', function() {
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 14px;
                 padding: 20px;
-                font-family: 'JetBrains Mono', monospace;
+                font-family: "JetBrains Mono", monospace;
                 font-size: 0.82rem;
                 color: #34d399;
                 max-height: 400px;
@@ -137,75 +137,75 @@ Route::get('/test-log', function() {
             }
             .info-val {
                 color: #f3f4f6;
-                font-family: 'JetBrains Mono', monospace;
+                font-family: "JetBrains Mono", monospace;
                 font-size: 0.9rem;
             }
         </style>
     </head>
     <body>
-        <div class='container'>
-            <div class='text-center mb-5'>
-                <h1 class='gradient-text display-4'>🔍 Console de Diagnóstico Premium</h1>
-                <p class='text-muted'>Antigravity Production Diagnostics Panel</p>
+        <div class="container">
+            <div class="text-center mb-5">
+                <h1 class="gradient-text display-4">🔍 Console de Diagnóstico Premium</h1>
+                <p class="text-muted">Antigravity Production Diagnostics Panel</p>
             </div>
             
-            <div class='row'>
-                <div class='col-lg-6'>
-                    <div class='card-premium'>
-                        <h3 class='mb-4 text-info'>⚙️ Informações de Infraestrutura</h3>
-                        <div class='row g-3'>
-                            <div class='col-6'><span class='info-label'>Versão PHP:</span></div>
-                            <div class='col-6'><span class='info-val'>\" . phpversion() . \"</span></div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card-premium">
+                        <h3 class="mb-4 text-info">⚙️ Informações de Infraestrutura</h3>
+                        <div class="row g-3">
+                            <div class="col-6"><span class="info-label">Versão PHP:</span></div>
+                            <div class="col-6"><span class="info-val">' . phpversion() . '</span></div>
                             
-                            <div class='col-6'><span class='info-label'>Ambiente Laravel:</span></div>
-                            <div class='col-6'><span class='info-val'>\" . app()->environment() . \"</span></div>
+                            <div class="col-6"><span class='info-label'>Ambiente Laravel:</span></div>
+                            <div class="col-6"><span class="info-val">' . app()->environment() . '</span></div>
                             
-                            <div class='col-6'><span class='info-label'>Debug Mode:</span></div>
-                            <div class='col-6'><span class='info-val'>\" . (config('app.debug') ? '✅ Ativado' : '❌ Desativado') . \"</span></div>
+                            <div class="col-6"><span class="info-label">Debug Mode:</span></div>
+                            <div class="col-6"><span class="info-val">' . (config('app.debug') ? '✅ Ativado' : '❌ Desativado') . '</span></div>
                             
-                            <div class='col-6'><span class='info-label'>Banco de Dados:</span></div>
-                            <div class='col-6'>
-                                <span class='badge-status \" . ($dbError ? 'badge-danger-custom' : 'badge-success-custom') . \"'>
-                                    $dbStatus
+                            <div class="col-6"><span class="info-label">Banco de Dados:</span></div>
+                            <div class="col-6">
+                                <span class="badge-status ' . ($dbError ? 'badge-danger-custom' : 'badge-success-custom') . '">
+                                    ' . $dbStatus . '
                                 </span>
                             </div>
                         </div>
                         
-                        \" . ($dbError ? \"
-                        <div class='alert alert-danger mt-4' role='alert' style='background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px;'>
-                            <strong class='text-danger'>Erro de Conexão com Banco de Dados:</strong><br>
-                            <code class='text-danger' style='font-size:0.8rem; word-break: break-all;'>$dbError</code>
-                        </div>\" : \"\") . \"
+                        ' . ($dbError ? '
+                        <div class="alert alert-danger mt-4" role="alert" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px;">
+                            <strong class="text-danger">Erro de Conexão com Banco de Dados:</strong><br>
+                            <code class="text-danger" style="font-size:0.8rem; word-break: break-all;">' . htmlspecialchars($dbError) . '</code>
+                        </div>' : '') . '
                         
-                        <h4 class='mt-5 mb-3 text-warning'>⚡ Ações de Manutenção</h4>
-                        <div class='d-flex flex-wrap gap-2'>
-                            <a href='?action=clear' class='btn btn-outline-info btn-action'>optimize:clear</a>
-                            <a href='?action=migrate' class='btn btn-outline-warning btn-action'>migrate --force</a>
-                            <a href='?action=seed' class='btn btn-outline-success btn-action'>db:seed --force</a>
+                        <h4 class="mt-5 mb-3 text-warning">⚡ Ações de Manutenção</h4>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="?action=clear" class="btn btn-outline-info btn-action">optimize:clear</a>
+                            <a href="?action=migrate" class="btn btn-outline-warning btn-action">migrate --force</a>
+                            <a href="?action=seed" class="btn btn-outline-success btn-action">db:seed --force</a>
                         </div>
                     </div>
                 </div>
                 
-                <div class='col-lg-6'>
-                    <div class='card-premium h-100 d-flex flex-column'>
-                        <h3 class='mb-4 text-purple'>💻 Console Output</h3>
-                        <div class='console-panel flex-grow-1' style='color: #6ee7b7;'>\" . ($actionOutput ?: "Pronto. Selecione uma ação para ver a saída técnica do console do Laravel...") . \"</div>
+                <div class="col-lg-6">
+                    <div class="card-premium h-100 d-flex flex-column">
+                        <h3 class="mb-4 text-purple">💻 Console Output</h3>
+                        <div class="console-panel flex-grow-1" style="color: #6ee7b7;">' . ($actionOutput ?: "Pronto. Selecione uma ação para ver a saída técnica do console do Laravel...") . '</div>
                     </div>
                 </div>
             </div>
             
-            <div class='row mt-4'>
-                <div class='col-12'>
-                    <div class='card-premium'>
-                        <h3 class='mb-4 text-danger'>📋 Histórico de Logs do Laravel</h3>
-                        <div class='console-panel' style='color: #cbd5e1; max-height: 450px;'>$logContent</div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card-premium">
+                        <h3 class="mb-4 text-danger">📋 Histórico de Logs do Laravel</h3>
+                        <div class="console-panel" style="color: #cbd5e1; max-height: 450px;">' . htmlspecialchars($logContent) . '</div>
                     </div>
                 </div>
             </div>
         </div>
     </body>
     </html>
-    ");
+    ');
 });
 Route::get('/test-log.php', fn() => redirect('/test-log'));
 
