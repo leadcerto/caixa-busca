@@ -157,7 +157,7 @@ Route::get('/test-log', function() {
                             <div class="col-6"><span class="info-label">Versão PHP:</span></div>
                             <div class="col-6"><span class="info-val">' . phpversion() . '</span></div>
                             
-                            <div class="col-6"><span class='info-label'>Ambiente Laravel:</span></div>
+                            <div class="col-6"><span class="info-label">Ambiente Laravel:</span></div>
                             <div class="col-6"><span class="info-val">' . app()->environment() . '</span></div>
                             
                             <div class="col-6"><span class="info-label">Debug Mode:</span></div>
