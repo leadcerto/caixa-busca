@@ -566,3 +566,15 @@ O princípio central para uso de IA neste projeto é:
 A IA deve tornar o projeto mais simples, mais claro e mais sustentável.
 
 Se o uso da IA estiver aumentando confusão, complexidade ou risco, o processo deve ser revisto.
+
+---
+
+## 26. Padrão de Idioma, Código e Comunicação
+
+Este projeto adota regras claras de idioma e comunicação para assegurar a consistência do código e a qualidade das interações:
+
+- **Código:** Todas as variáveis, funções, classes, métodos e banco de dados devem ser escritos obrigatoriamente em **Inglês**.
+- **Comentários:** Todos os comentários explicativos e descritivos dentro do código-fonte devem ser escritos em **Português do Brasil**.
+- **Comunicação:** O agente de IA deve conversar, interagir e explicar suas ações no chat de forma clara, amigável e estritamente em **Português do Brasil**.
+- **Links:** Todos os links de arquivos ou páginas compartilhados no chat pelo agente devem ser formatados em Markdown válido (ex: `[texto](file:///caminho/do/arquivo)` ou `[texto](https://url.com)`) para garantir que sejam sempre perfeitamente clicáveis pelo usuário.
+
