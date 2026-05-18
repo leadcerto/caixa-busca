@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Público
-Route::get('/', fn() => view('welcome'));
-Route::get('/buscar', ImovelSearch::class)->name('imoveis.index');
+Route::get('/', ImovelSearch::class)->name('imoveis.index');
+Route::get('/buscar', fn() => redirect()->route('imoveis.index'));
 Route::get('/imovel/{imovel:slug}', ModularImovelShow::class)->name('imovel.show');
 
 // Admin — login/logout
