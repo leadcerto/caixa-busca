@@ -14,6 +14,14 @@ Route::get('/', ImovelSearch::class)->name('imoveis.index');
 Route::get('/buscar', fn() => redirect()->route('imoveis.index'));
 Route::get('/imovel/{imovel:slug}', ModularImovelShow::class)->name('imovel.show');
 
+// Rota de diagnóstico temporária
+Route::get('/test-log.php', function() {
+    require public_path('test-log.php');
+});
+Route::get('/test-log', function() {
+    require public_path('test-log.php');
+});
+
 // Admin — login/logout
 Route::get('/admin/login', AdminLogin::class)->name('login')->middleware('guest');
 Route::post('/admin/logout', function () {
