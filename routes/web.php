@@ -157,6 +157,19 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
     } catch (\Throwable $e) {
         $dbTestResult = "<span style='color: #ef4444; font-weight: bold;'>❌ Erro de Conexão: " . htmlspecialchars($e->getMessage()) . "</span>";
     }
+
+    $estadosCount = 0;
+    $municipiosCount = 0;
+    $bairrosCount = 0;
+    $imoveisCount = 0;
+    try {
+        $estadosCount = \App\Models\Estado::count();
+        $municipiosCount = \App\Models\Municipio::count();
+        $bairrosCount = \App\Models\Bairro::count();
+        $imoveisCount = \App\Models\Imovel::count();
+    } catch (\Throwable $e) {
+        // Ignora caso tabelas estejam vazias/ausentes
+    }
     
     $logPath = storage_path('logs/laravel.log');
     $recentLogs = 'Nenhum log encontrado no servidor.';
@@ -243,6 +256,22 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
                     <div class='info-item'>
                         <span class='label-info'>Arquivo .env é Gravável?</span>
                         <span class='val-info'>{$envWritable}</span>
+                    </div>
+                    <div class='info-item'>
+                        <span class='label-info'>Estados no Banco:</span>
+                        <span class='val-info'>{$estadosCount}</span>
+                    </div>
+                    <div class='info-item'>
+                        <span class='label-info'>Cidades no Banco:</span>
+                        <span class='val-info'>{$municipiosCount}</span>
+                    </div>
+                    <div class='info-item'>
+                        <span class='label-info'>Bairros no Banco:</span>
+                        <span class='val-info'>{$bairrosCount}</span>
+                    </div>
+                    <div class='info-item'>
+                        <span class='label-info'>Imóveis no Banco:</span>
+                        <span class='val-info'>{$imoveisCount}</span>
                     </div>
                     <div class='info-item' style='margin-top: 15px; border: none; padding: 0; display: flex; gap: 10px;'>
                         <a href='?token=lcps1974&migrate=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #eab308; color: #000; text-align: center; text-decoration: none; flex: 1;'>⚡ Migrar Banco</a>

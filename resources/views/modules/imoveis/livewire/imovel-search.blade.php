@@ -1,8 +1,8 @@
 <!-- Vitrine de Imóveis -->
-<div class="bg-slate-50 min-h-screen py-12 px-6 flex flex-col {{ $show_results ? '' : 'justify-center items-center' }}">
+<div class="bg-slate-50 min-h-screen py-12 px-6">
 
     <!-- Filtros de Busca -->
-    <div class="w-full max-w-5xl mx-auto {{ $show_results ? 'mb-12' : 'my-auto' }}">
+    <div class="max-w-7xl mx-auto mb-12">
         <div class="bg-white p-8 md:p-12 rounded-[3rem] shadow-[0_20px_60px_-15px_rgba(0,92,169,0.15)] border border-blue-50/50 relative overflow-hidden">
             <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-50/20 rounded-full"></div>
 
