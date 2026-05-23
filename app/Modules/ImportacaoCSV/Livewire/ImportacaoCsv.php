@@ -57,10 +57,10 @@ class ImportacaoCsv extends Component
 
         try {
             // Salva o arquivo em storage/app/imports para processamento pelo Job
-            // O uso de storeAs garante que saibamos o caminho exato
+            // Especificar explicitamente o disco 'local' garante consistência independente do .env
             $fileName = 'caixa_import_' . now()->format('Ymd_His') . '.csv';
-            $path = $this->csvFile->storeAs('imports', $fileName);
-            $absolutePath = storage_path('app/' . $path);
+            $this->csvFile->storeAs('imports', $fileName, 'local');
+            $absolutePath = storage_path('app/imports/' . $fileName);
 
             // Dispara o Job para o Worker processar sem travar a interface
             ProcessCaixaCsvJob::dispatch($absolutePath);
