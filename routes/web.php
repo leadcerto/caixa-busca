@@ -22,6 +22,20 @@ Route::get('/buscar', fn() => redirect()->route('imoveis.index'));
 Route::get('/bairros/{uf}/{municipio_slug}/{bairro_slug}', PaginaBairro::class)->name('bairro.show');
 Route::get('/images/imoveis/{slug}.jpg', [App\Http\Controllers\ImovelImageController::class, 'serve'])->name('imovel.imagem');
 
+// Rota de diagnóstico temporária segura para capturar o Erro 500 em produção
+Route::get('/verificar-erro-sistema', function () {
+    if (request('token') !== 'lcps1974') {
+        abort(403);
+    }
+    $logPath = storage_path('logs/laravel.log');
+    if (!file_exists($logPath)) {
+        return "Arquivo de log não existe em: " . $logPath;
+    }
+    $lines = file($logPath);
+    $lastLines = array_slice($lines, -150);
+    return response(implode("", $lastLines), 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
+});
+
 // Retrocompatibilidade: URLs antigas do diagnóstico redirecionam para o painel admin protegido
 Route::get('/test-log', fn() => redirect()->route('admin.diagnostico'));
 Route::get('/test-log.php', fn() => redirect()->route('admin.diagnostico'));
