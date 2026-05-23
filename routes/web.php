@@ -27,13 +27,52 @@ Route::get('/verificar-erro-sistema', function () {
     if (request('token') !== 'lcps1974') {
         abort(403);
     }
-    $logPath = storage_path('logs/laravel.log');
-    if (!file_exists($logPath)) {
-        return "Arquivo de log não existe em: " . $logPath;
+    
+    $envPath = base_path('.env');
+    $envExists = file_exists($envPath);
+    
+    $dbConfig = config('database.connections.mysql');
+    
+    $envContentSnippet = '';
+    if ($envExists) {
+        $lines = file($envPath);
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+            if (str_starts_with($trimmed, 'DB_') || str_starts_with($trimmed, 'APP_')) {
+                // Ofuscar valores para segurança
+                $parts = explode('=', $line, 2);
+                $key = trim($parts[0]);
+                $val = isset($parts[1]) ? trim($parts[1]) : '';
+                if ($key === 'DB_PASSWORD' && strlen($val) > 2) {
+                    $val = substr($val, 0, 2) . '***' . substr($val, -2);
+                } elseif ($key === 'DB_PASSWORD') {
+                    $val = '***';
+                }
+                $envContentSnippet .= "{$key}={$val}\n";
+            }
+        }
     }
-    $lines = file($logPath);
-    $lastLines = array_slice($lines, -150);
-    return response(implode("", $lastLines), 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
+    
+    $logPath = storage_path('logs/laravel.log');
+    $lastLogs = 'Nenhum log encontrado';
+    if (file_exists($logPath)) {
+        $lines = file($logPath);
+        $lastLines = array_slice($lines, -60);
+        $lastLogs = implode("", $lastLines);
+    }
+    
+    return response()->json([
+        'env_exists' => $envExists,
+        'env_path' => $envPath,
+        'loaded_db_config' => [
+            'host' => $dbConfig['host'] ?? null,
+            'database' => $dbConfig['database'] ?? null,
+            'username' => $dbConfig['username'] ?? null,
+            'password_masked' => isset($dbConfig['password']) ? (strlen($dbConfig['password']) > 2 ? substr($dbConfig['password'], 0, 2) . '***' . substr($dbConfig['password'], -2) : '***') : 'null',
+        ],
+        'env_file_db_variables' => $envContentSnippet,
+        'logs' => $lastLogs
+    ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 });
 
 // Retrocompatibilidade: URLs antigas do diagnóstico redirecionam para o painel admin protegido
