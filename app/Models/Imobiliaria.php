@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Imobiliaria extends Authenticatable
 {
-    protected $fillable = ['nome', 'email', 'senha', 'whatsapp', 'creci', 'ativo'];
+    use HasFactory;
+    protected $fillable = ['nome', 'cnpj', 'email', 'senha', 'whatsapp', 'creci', 'imagem_botao', 'ativo'];
 
     protected $hidden = ['senha'];
 

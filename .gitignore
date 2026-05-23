@@ -29,3 +29,6 @@ Thumbs.db
 deploy_key*
 hostinger_deploy_key*
 deploy_key_final*
+/scratch/
+/getMetricasProperty())
+/toArray())

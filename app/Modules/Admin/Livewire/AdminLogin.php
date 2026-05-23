@@ -23,14 +23,16 @@ class AdminLogin extends Component
             return null;
         }
 
-        request()->session()->regenerate();
+        if (request()->hasSession()) {
+            request()->session()->regenerate();
+        }
 
-        return redirect()->intended(route('admin.importar'));
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     public function render()
     {
         return view('modules.admin.livewire.admin-login')
-            ->layout('layouts.app', ['meta_title' => 'Admin — Antigravity']);
+            ->layout('layouts.app', ['meta_title' => 'Admin — Imóveis da Caixa']);
     }
 }

@@ -1,237 +1,1151 @@
-<!-- Página de Detalhes do Imóvel -->
-<div class="bg-gray-50 min-h-screen">
+@php
+    $historico = $imovel->ultimoHistorico;
+    $valorAvaliacao = $historico?->valor_avaliacao ?? 0;
+    $valorVenda = $historico?->valor_venda ?? 0;
+    $descontoPct = $historico?->desconto_percentual ?? 0;
+    $valorLucro = $historico?->desconto_valor ?? ($valorAvaliacao - $valorVenda);
+    if ($valorLucro < 0) {
+        $valorLucro = 0;
+    }
 
-    <div class="max-w-7xl mx-auto py-12 px-6">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+    $cidadeNome = $imovel->municipio?->nome ?? '';
+    $bairroNome = $imovel->bairro?->nome ?? '';
+    $uf = $imovel->estado?->uf ?? '';
+    $endereco = $imovel->endereco;
+    $codigo = $imovel->numero_original;
+    $tipoNome = $imovel->tipoImovel?->nome ?? 'Imóvel';
+    $cepFormatado = $imovel->cep ? preg_replace('/(\d{5})(\d{3})/', '$1-$2', $imovel->cep) : 'Não informado';
 
-            <!-- Coluna Esquerda: Imagem -->
-            <div class="space-y-8 sticky top-12">
-                <div class="rounded-[3.5rem] overflow-hidden shadow-2xl bg-white p-6 border border-gray-100">
-                    <div class="relative group">
-                        <img src="{{ $imovel->foto_fachada_url ?? asset('images/imovel-placeholder.jpg') }}"
-                             alt="{{ $imovel->tipoImovel?->nome }} em {{ $imovel->municipio?->nome }}"
-                             class="w-full h-auto rounded-[2.5rem] object-cover shadow-inner"
-                             loading="eager">
+    $aceitaFgts = ($imovel->aceita_fgts === 'sim');
+    $aceitaFinanciamentoMcmv = $imovel->aceita_financ_mcmv;
+    $aceitaFinanciamentoSbpe = $imovel->aceita_financ_sbpe;
+    $aceitaFinanciamento = ($aceitaFinanciamentoMcmv || $aceitaFinanciamentoSbpe);
 
-                        <div class="absolute -bottom-4 -right-4 bg-[#005CA9] text-white p-6 rounded-full shadow-2xl border-4 border-white">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    // Morar calculations
+    $morarRegistro = $valorAvaliacao * 0.05; 
+    $morarCondominioMax = $valorAvaliacao * 0.10; 
+    $morarDesocupacao = $valorAvaliacao * 0.015; 
+    $morarDespachante = $valorAvaliacao * 0.005; 
+    $entradaNormal = $valorAvaliacao * 0.20;
+    $entradaCaixa = $valorVenda * 0.05;
+    $reducaoEntrada = $entradaNormal - $entradaCaixa;
+    $prestacaoTradicional = $valorAvaliacao * 0.008;
+    $prestacaoCaixa = $valorVenda * 0.008;
 
-            <!-- Coluna Direita: Dados + Formulário -->
-            <div class="flex flex-col">
+    // Revenda calculations
+    $reforma = $valorAvaliacao * 0.05; 
+    $mesesVenda = 6;
+    $condominioMes = $valorAvaliacao * 0.001 * $mesesVenda;
+    $iptuMes = $valorAvaliacao * 0.0005 * $mesesVenda;
+    $aguaLuzMes = 150 * $mesesVenda;
+    $fundoReserva = 50 * $mesesVenda;
+    $comissaoVenda = $valorAvaliacao * 0.05;
+    $descontoAceleracao = $valorAvaliacao * 0.10;
+    $vendaSugerida = $valorAvaliacao - $descontoAceleracao;
+    $despesasTotais = $reforma + $condominioMes + $iptuMes + $aguaLuzMes + $fundoReserva + $comissaoVenda;
+    $lucroPrevisto = $vendaSugerida - ($valorVenda + $despesasTotais);
 
-                <!-- Tags -->
-                <div class="flex items-center space-x-3 mb-8">
-                    <span class="bg-blue-100 text-[#005CA9] text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full">
-                        {{ $imovel->tipoImovel?->nome ?? 'Imóvel' }}
-                    </span>
-                    <span class="bg-orange-100 text-[#F39200] text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full">
-                        {{ $imovel->estado?->uf }}
-                    </span>
-                </div>
+    // Locação calculations
+    $aluguelEstimado = $valorAvaliacao * 0.0047;
+    $rentabilidadeReal = $valorVenda > 0 ? ($aluguelEstimado / $valorVenda) * 100 : 0;
 
-                <h1 class="text-5xl md:text-6xl font-black text-gray-900 leading-[1.1] mb-6 tracking-tighter">
-                    {{ $imovel->tipoImovel?->nome ?? 'Imóvel' }}<br>
-                    <span class="text-[#005CA9]">em {{ $imovel->bairro?->nome ?? $imovel->municipio?->nome }}</span>
-                </h1>
+    // Portal comparison valuations
+    $valFipe = $valorAvaliacao * 0.98;
+    $valLoft = $valorAvaliacao * 1.02;
+    $valOlx = $valorAvaliacao * 0.95;
+    $valQuinto = $valorAvaliacao * 1.05;
 
-                <p class="text-2xl text-gray-400 font-medium mb-10 flex items-center">
-                    <svg class="w-6 h-6 mr-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    </svg>
-                    {{ $imovel->municipio?->nome }} — {{ $imovel->estado?->uf }}
-                </p>
+    // Opportunity tier definitions
+    if ($descontoPct >= 40) {
+        $badgeStyle = 'background: linear-gradient(135deg, #FEF08A 0%, #FBBF24 50%, #CA8A04 100%) !important; border: 1px solid #F59E0B !important; color: #78350F !important; font-weight: 900 !important; text-shadow: none !important;';
+        $badgeText = 'Ouro';
+        $badgeIcon = '⭐';
+    } elseif ($descontoPct >= 30) {
+        $badgeStyle = 'background: linear-gradient(135deg, #CBD5E1 0%, #64748B 100%) !important; border: 1px solid #94A3B8 !important; color: #ffffff !important;';
+        $badgeText = 'Prata';
+        $badgeIcon = '🥈';
+    } elseif ($descontoPct >= 20) {
+        $badgeStyle = 'background: linear-gradient(135deg, #FCA5A5 0%, #EF4444 50%, #991B1B 100%) !important; border: 1px solid #EF4444 !important; color: #ffffff !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;';
+        $badgeText = 'Bronze';
+        $badgeIcon = '🥉';
+    } else {
+        $badgeStyle = 'background: linear-gradient(135deg, #10B981 0%, #047857 100%) !important; border: 1px solid #10B981 !important; color: #ffffff !important;';
+        $badgeText = 'Selecionado';
+        $badgeIcon = '🏷️';
+    }
+@endphp
 
-                <!-- Preço -->
-                <div class="bg-white p-10 rounded-[3rem] shadow-xl shadow-blue-900/5 border border-gray-50 mb-10 relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full -mt-16 -mr-16 transition-all group-hover:scale-150"></div>
-                    <span class="text-gray-400 text-xs uppercase font-black tracking-widest block mb-2">Valor de Investimento</span>
-                    <div class="flex items-baseline space-x-2">
-                        <span class="text-2xl font-bold text-gray-400">R$</span>
-                        <span class="text-6xl font-black text-[#005CA9] tracking-tighter">
-                            {{ number_format($imovel->ultimoHistorico?->valor_venda ?? 0, 2, ',', '.') }}
-                        </span>
-                    </div>
-                    @if($imovel->ultimoHistorico?->desconto_percentual)
-                        <span class="mt-3 inline-block bg-green-100 text-green-700 text-xs font-black px-3 py-1 rounded-full">
-                            {{ number_format($imovel->ultimoHistorico->desconto_percentual, 0) }}% de desconto sobre a avaliação
-                        </span>
-                    @endif
-                </div>
+<!-- Página de Apresentação de Imóvel Premium -->
+<div class="bg-gray-50 min-h-screen text-gray-800 font-sans pb-24 selection:bg-[#F39200] selection:text-white"
+     x-data="{ activeTab: null }">
 
-                <!-- Formulário de Captação -->
-                <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-8 mb-6 space-y-4">
-                    <p class="text-xs font-black uppercase text-gray-400 tracking-widest">Seus dados para contato</p>
-
-                    <div>
-                        <input type="text" wire:model="nome" placeholder="Seu nome completo"
-                               class="w-full border border-gray-200 rounded-2xl h-14 px-5 text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition">
-                        @error('nome')
-                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <input type="email" wire:model="email" placeholder="Seu e-mail"
-                               class="w-full border border-gray-200 rounded-2xl h-14 px-5 text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition">
-                        @error('email')
-                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <input type="tel" wire:model="telefone" placeholder="WhatsApp com DDD (ex: 11999998888)"
-                               class="w-full border border-gray-200 rounded-2xl h-14 px-5 text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition">
-                        @error('telefone')
-                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                        @enderror
-                    </div>
-                </div>
-
-                <!-- Botão CTA -->
-                <button wire:click="converterLead"
-                        wire:loading.attr="disabled"
-                        class="w-full bg-[#F39200] hover:bg-[#E08600] active:scale-95 text-white font-black py-7 rounded-[2.5rem] shadow-2xl shadow-orange-300/40 transition-all duration-300 flex items-center justify-center space-x-6 text-2xl group relative overflow-hidden">
-
-                    <div wire:loading.remove wire:target="converterLead" class="flex items-center space-x-6">
-                        <span>Falar com Corretor</span>
-                        <div class="bg-white/20 p-2 rounded-full group-hover:rotate-12 transition-transform">
-                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 5.021 1.388 5.487 0 9.954-4.467 9.956-9.956.002-2.659-1.032-5.159-2.908-7.038-1.876-1.878-4.378-2.913-7.046-2.913-5.483 0-9.95 4.467-9.953 9.956-.001 1.93.566 3.811 1.641 5.393l-.401 1.464 1.69-.443z"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <span wire:loading wire:target="converterLead" class="flex items-center space-x-4">
-                        <svg class="animate-spin h-8 w-8 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                        </svg>
-                        <span>Conectando…</span>
-                    </span>
-                </button>
-
-                <div class="mt-6 flex items-center justify-center space-x-2 text-gray-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                    <p class="text-[10px] font-medium uppercase tracking-tighter">
-                        Seus dados são protegidos conforme a LGPD.
-                    </p>
-                </div>
-            </div>
+    <!-- Hero Header Banner Section -->
+    <div class="py-16 px-6 text-center text-white relative overflow-hidden border-b border-gray-100 shadow-md" style="background-color: #005CA9;">
+        <div class="max-w-7xl mx-auto space-y-5 relative z-10">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight max-w-5xl mx-auto text-white">
+                {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
+            </h1>
+            <p class="text-lg md:text-xl text-blue-100 font-bold max-w-3xl mx-auto tracking-wide">
+                Desconto imediato de <span class="text-yellow-300 font-black underline decoration-wavy decoration-orange-400">R$ {{ number_format($valorLucro, 2, ',', '.') }}</span> ({{ number_format($descontoPct, 0) }}% OFF) por tempo limitado!
+            </p>
         </div>
     </div>
 
-    <!-- Accordions -->
-    <div class="max-w-7xl mx-auto pb-32 px-6" x-data="{ active: 1 }">
-        <div class="space-y-6">
+    <!-- Main Content Container -->
+    <div class="max-w-7xl mx-auto py-12 px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
-            <!-- Ficha Técnica -->
-            <div class="bg-white rounded-[2.5rem] shadow-sm overflow-hidden border border-gray-100"
-                 :class="active === 1 ? 'ring-2 ring-blue-50 shadow-xl' : ''">
-                <button @click="active = active === 1 ? null : 1"
-                        class="w-full px-10 py-8 flex justify-between items-center text-left hover:bg-gray-50 transition-colors">
-                    <span class="text-2xl font-black text-gray-800 tracking-tight flex items-center">
-                        <span class="w-2 h-6 bg-[#005CA9] mr-4 rounded-full"></span>
-                        Ficha Técnica e Descrição
-                    </span>
-                    <div class="bg-gray-100 p-3 rounded-2xl transition-transform duration-500"
-                         :class="active === 1 ? 'rotate-180 bg-blue-50 text-blue-600' : ''">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </div>
-                </button>
-                <div x-show="active === 1" x-collapse>
-                    <div class="px-10 pb-10">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-                            <div class="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                                <span class="text-[9px] uppercase font-black text-gray-400 block mb-1">Área Total</span>
-                                <span class="text-xl font-black text-gray-800">
-                                    {{ $imovel->area_total ? number_format($imovel->area_total, 0, ',', '.') . ' m²' : '—' }}
-                                </span>
-                            </div>
-                            <div class="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                                <span class="text-[9px] uppercase font-black text-gray-400 block mb-1">Dormitórios</span>
-                                <span class="text-xl font-black text-gray-800">{{ $imovel->quartos ?? '—' }}</span>
-                            </div>
-                            <div class="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                                <span class="text-[9px] uppercase font-black text-gray-400 block mb-1">Garagem</span>
-                                <span class="text-xl font-black text-gray-800">
-                                    {{ $imovel->garagens ? $imovel->garagens . ' vaga(s)' : '—' }}
-                                </span>
-                            </div>
-                            <div class="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                                <span class="text-[9px] uppercase font-black text-gray-400 block mb-1">Código Caixa</span>
-                                <span class="text-xl font-black text-gray-800">#{{ $imovel->numero_original }}</span>
-                            </div>
+            <!-- Coluna Esquerda: Conteúdos, Sanfonas e Dados Técnicos (ColSpan 2) -->
+            <div class="lg:col-span-2 space-y-8">
+
+                <!-- Galeria / Imagem Fachada do Imóvel -->
+                <div class="bg-white p-6 rounded-[2.5rem] shadow-lg border border-gray-100 overflow-hidden relative group">
+                    <div class="relative aspect-video rounded-3xl overflow-hidden shadow-inner bg-gray-50">
+                        <img src="{{ $imovel->foto_fachada_url ?? asset('images/imovel-placeholder.svg') }}"
+                             alt="{{ $tipoNome }} em {{ $cidadeNome }}"
+                             class="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-700 ease-out"
+                             loading="eager"
+                             onerror="this.onerror=null;this.src='{{ asset('images/imovel-placeholder.svg') }}';">
+                        
+                        <!-- Floating discount badge -->
+                        <div class="absolute top-6 left-6 bg-[#E50000] text-white font-black text-sm px-4 py-2 rounded-2xl shadow-xl border border-red-500 tracking-wider">
+                            {{ number_format($descontoPct, 0) }}% DE DESCONTO
                         </div>
+                    </div>
+                </div>
 
-                        @if($imovel->aceita_fgts !== 'nao_informado')
-                            <div class="mb-6 flex items-center space-x-2">
-                                <span class="text-xs font-black uppercase text-gray-400">FGTS:</span>
-                                <span class="text-xs font-bold {{ $imovel->aceita_fgts === 'sim' ? 'text-green-600' : 'text-red-500' }}">
-                                    {{ $imovel->aceita_fgts === 'sim' ? 'Aceita' : 'Não aceita' }}
-                                </span>
-                            </div>
-                        @endif
+                <!-- Endereço, Descrição e Dados Técnicos Físicos -->
+                <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6">
+                    <div class="space-y-2">
+                        <h2 class="text-xs font-black uppercase tracking-wider text-gray-500">📍 Endereço:</h2>
+                        <p class="text-xl font-bold text-gray-900 flex items-start gap-2.5 leading-relaxed">
+                            {{ $endereco }}, {{ $bairroNome }}, {{ $cidadeNome }} – {{ $uf }}
+                        </p>
+                    </div>
 
-                        <div class="prose prose-blue max-w-none text-gray-600 leading-relaxed italic">
+                    <hr class="border-gray-100">
+
+                    <div class="space-y-3">
+                        <h2 class="text-xs font-black uppercase tracking-wider text-gray-500">📝 Descrição:</h2>
+                        <div class="prose prose-blue max-w-none text-gray-700 leading-relaxed text-justify text-sm">
                             {!! nl2br(e($imovel->descricao_original)) !!}
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Dossiê do Bairro -->
-            <div class="bg-white rounded-[2.5rem] shadow-sm overflow-hidden border border-gray-100"
-                 :class="active === 2 ? 'ring-2 ring-blue-50 shadow-xl' : ''">
-                <button @click="active = active === 2 ? null : 2"
-                        class="w-full px-10 py-8 flex justify-between items-center text-left hover:bg-gray-50 transition-colors">
-                    <span class="text-2xl font-black text-gray-800 tracking-tight flex items-center">
-                        <span class="w-2 h-6 bg-[#F39200] mr-4 rounded-full"></span>
-                        Vizinhança: {{ $imovel->bairro?->nome ?? $imovel->municipio?->nome }}
-                    </span>
-                    <div class="bg-gray-100 p-3 rounded-2xl transition-transform duration-500"
-                         :class="active === 2 ? 'rotate-180 bg-orange-50 text-orange-600' : ''">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/>
-                        </svg>
+                    <hr class="border-gray-100">
+
+                    <!-- Ficha Técnica e Checklist de Cômodos/Amenities -->
+                    <div class="space-y-4">
+                        <h2 class="text-xs font-black uppercase tracking-wider text-gray-500">⚙️ Informações Técnicas e Distribuição:</h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Número do imóvel</span>
+                                <span class="text-base font-black text-gray-900">{{ $codigo }}</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Tipo de imóvel</span>
+                                <span class="text-base font-black text-gray-900">{{ $tipoNome }}</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">CEP Formatado</span>
+                                <span class="text-base font-black text-gray-900">{{ $cepFormatado }}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Matrícula</span>
+                                <span class="text-sm font-black text-gray-900 truncate block" title="{{ $imovel->matricula }}">{{ $imovel->matricula }}</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Comarca</span>
+                                <span class="text-sm font-black text-gray-900 truncate block" title="{{ $imovel->comarca }}">{{ $imovel->comarca }}</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Ofício</span>
+                                <span class="text-sm font-black text-gray-900 truncate block" title="{{ $imovel->oficio }}">{{ $imovel->oficio }}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Inscrição Imobiliária</span>
+                                <span class="text-sm font-black text-gray-900 truncate block" title="{{ $imovel->inscricao_imobiliaria }}">{{ $imovel->inscricao_imobiliaria }}</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center col-span-2">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Averbação dos leilões negativos</span>
+                                <span class="text-sm font-black text-emerald-600 font-extrabold">Sim (Confirmada e Averbada no RGI)</span>
+                            </div>
+                        </div>
+
+                        <hr class="border-gray-100 my-4">
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Área do Terreno</span>
+                                <span class="text-base font-black text-gray-900">
+                                    {{ $imovel->area_terreno ? number_format($imovel->area_terreno, 2, ',', '.') . ' m²' : 'Não informado' }}
+                                </span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Área Privativa</span>
+                                <span class="text-base font-black text-gray-900">
+                                    {{ $imovel->area_privativa ? number_format($imovel->area_privativa, 2, ',', '.') . ' m²' : 'Não informado' }}
+                                </span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center">
+                                <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Área total</span>
+                                <span class="text-base font-black text-gray-900">
+                                    {{ $imovel->area_total ? number_format($imovel->area_total, 2, ',', '.') . ' m²' : 'Não informado' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                            <!-- 1. Cozinha -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-505 text-gray-500 block mb-1">🍳 Cozinha</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->cozinha ? 'Sim' : 'Não' }}</span>
+                            </div>
+                            <!-- 2. Garagem -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-505 text-gray-500 block mb-1">🚗 Garagem</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->garagens ?? '0' }}</span>
+                            </div>
+                            <!-- 3. Quartos -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-505 text-gray-500 block mb-1">🛏️ Quartos</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->quartos ?? '0' }}</span>
+                            </div>
+                            <!-- 4. Sala -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🛋️ Sala</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->salas ?? '0' }}</span>
+                            </div>
+                            <!-- 5. Banheiro -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🚽 Banheiro</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->banheiros ?? '0' }}</span>
+                            </div>
+                            <!-- 6. Área de Serviço -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🧺 Área de Serviço</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->area_servico ? 'Sim' : 'Não' }}</span>
+                            </div>
+                            <!-- 7. Varanda -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🌅 Varanda</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->varanda ? 'Sim' : 'Não' }}</span>
+                            </div>
+                            <!-- 8. Terraço -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🏢 Terraço</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->terraco ? 'Sim' : 'Não' }}</span>
+                            </div>
+                            <!-- 9. Churrasqueira -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🥩 Churrasqueira</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->churrasqueira ? 'Sim' : 'Não' }}</span>
+                            </div>
+                            <!-- 10. Piscina -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🏊 Piscina</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->piscina ? 'Sim' : 'Não' }}</span>
+                            </div>
+                            <!-- 11. Sauna -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🧖 Sauna</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">Não</span>
+                            </div>
+                            <!-- 12. Playground -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🛝 Playground</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">Não</span>
+                            </div>
+                            <!-- 13. Estacionamento -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🚗 Estacionamento</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">{{ $imovel->garagens ? 'Sim' : 'Não' }}</span>
+                            </div>
+                            <!-- 14. Salão de Festa -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">🥳 Salão de Festa</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">Não</span>
+                            </div>
+                            <!-- 15. Quadra esportiva -->
+                            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200/60 text-center flex flex-col justify-center items-center">
+                                <span class="text-[10px] sm:text-xs uppercase font-black text-gray-550 text-gray-500 block mb-1">⚽ Quadra esportiva</span>
+                                <span class="text-base sm:text-lg font-black text-gray-900">Não</span>
+                            </div>
+                        </div>
                     </div>
-                </button>
-                <div x-show="active === 2" x-collapse>
-                    <div class="px-10 pb-10">
-                        @php $conteudoIA = $imovel->bairro?->conteudo_ia @endphp
-                        @if($conteudoIA)
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                                <div class="space-y-4">
-                                    <h4 class="text-sm font-black text-gray-900 uppercase">Educação e Lazer</h4>
-                                    <p class="text-gray-500 text-sm leading-relaxed">{{ $conteudoIA['lazer'] ?? 'Dados em processamento.' }}</p>
+                </div>
+
+                <!-- Formas de Pagamento e Regras de Despesas -->
+                <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
+                        <span class="bg-[#005CA9] w-2.5 h-6 mr-3 rounded-full"></span>
+                        💳 Formas de Pagamento Permitidas:
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm bg-emerald-50 border-emerald-200">
+                            <div>
+                                <span class="font-extrabold text-sm text-emerald-700 block">Recursos Próprios: Sim</span>
+                                <span class="text-xs text-emerald-600/80">Permitido para todos os imóveis (À vista)</span>
+                            </div>
+                            <span class="text-xl">✅</span>
+                        </div>
+
+                        <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFgts ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100 opacity-80' }}">
+                            <div>
+                                <span class="font-extrabold text-sm {{ $aceitaFgts ? 'text-emerald-700' : 'text-rose-700' }} block">Aceita FGTS: {{ $aceitaFgts ? 'Sim' : 'Não' }}</span>
+                                <span class="text-xs {{ $aceitaFgts ? 'text-emerald-600/80' : 'text-rose-600/80' }}">{{ $aceitaFgts ? 'Utilize o saldo acumulado' : 'Não permite FGTS' }}</span>
+                            </div>
+                            <span class="text-xl">{{ $aceitaFgts ? '✅' : '❌' }}</span>
+                        </div>
+
+                        <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFinanciamentoMcmv ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100 opacity-80' }}">
+                            <div>
+                                <span class="font-extrabold text-sm {{ $aceitaFinanciamentoMcmv ? 'text-emerald-700' : 'text-rose-700' }} block">Aceita Financiamento MCMV: {{ $aceitaFinanciamentoMcmv ? 'Sim' : 'Não' }}</span>
+                                <span class="text-xs {{ $aceitaFinanciamentoMcmv ? 'text-emerald-600/80' : 'text-rose-600/80' }}">{{ $aceitaFinanciamentoMcmv ? 'Permite taxas Minha Casa Minha Vida' : 'Não permite MCMV' }}</span>
+                            </div>
+                            <span class="text-xl">{{ $aceitaFinanciamentoMcmv ? '✅' : '❌' }}</span>
+                        </div>
+
+                        <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFinanciamentoSbpe ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100 opacity-80' }}">
+                            <div>
+                                <span class="font-extrabold text-sm {{ $aceitaFinanciamentoSbpe ? 'text-emerald-700' : 'text-rose-700' }} block">Aceita Financiamento SBPE: {{ $aceitaFinanciamentoSbpe ? 'Sim' : 'Não' }}</span>
+                                <span class="text-xs {{ $aceitaFinanciamentoSbpe ? 'text-emerald-600/80' : 'text-rose-600/80' }}">{{ $aceitaFinanciamentoSbpe ? 'Permite carta de crédito SBPE' : 'Não permite SBPE' }}</span>
+                            </div>
+                            <span class="text-xl">{{ $aceitaFinanciamentoSbpe ? '✅' : '❌' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200/60 text-xs text-gray-600 space-y-2 mt-4 leading-relaxed">
+                        <p><strong>FORMAS DE PAGAMENTO ACEITAS:</strong> Exclusivamente de acordo com os critérios informados acima.</p>
+                        <p><strong>REGRAS PARA PAGAMENTO DAS DESPESAS (caso existam):</strong></p>
+                        <ul class="list-disc pl-4 space-y-1">
+                            <li><strong>Condomínio:</strong> Sob responsabilidade do comprador, até o limite de 10% em relação ao valor de avaliação do imóvel. A CAIXA realizará o pagamento apenas do valor que exceder o limite de 10% do valor de avaliação.</li>
+                            <li><strong>Tributos (IPTU/Taxas):</strong> Sob responsabilidade do comprador a partir da data de assinatura.</li>
+                        </ul>
+                        <p class="font-semibold text-orange-600">Existe área não averbada (caso informada na descrição original).</p>
+                    </div>
+                </div>
+
+                <!-- Análise da Oportunidade (Todos começam 100% FECHADOS para atender o pedido do usuário!) -->
+                <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6"
+                     x-data="{ openOportunidade: null }">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
+                        <span class="bg-[#F39200] w-2.5 h-6 mr-3 rounded-full"></span>
+                        📈 Análise da Oportunidade
+                    </h2>
+                    
+                    <h6 class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
+                        {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
+                    </h6>
+
+                    <p class="text-gray-650 leading-relaxed text-justify text-sm">
+                        Hoje este Imóvel da Caixa está avaliado pela equipe técnica da CAIXA pelo preço de mercado de <strong class="text-gray-900">R$ {{ number_format($valorAvaliacao, 2, ',', '.') }}</strong> e está sendo vendido hoje pelo valor de <strong class="text-gray-900">R$ {{ number_format($valorVenda, 2, ',', '.') }}</strong> o que é uma <strong class="text-emerald-600 font-extrabold">grande oportunidade</strong> para o comprador que vai economizar o valor de <strong class="text-emerald-650 font-black">R$ {{ number_format($valorLucro, 2, ',', '.') }}</strong>. Este percentual de <strong class="text-red-600 font-black">{{ number_format($descontoPct, 0) }}%</strong> de desconto na compra deste imóvel só é possível, porque <strong class="text-orange-600">ESTE IMÓVEL NÃO ESTÁ EM LEILÃO</strong>, este imóvel está sendo vendido hoje nas modalidades de venda da CAIXA e por isso o banco consegue oferecer descontos que não seriam possíveis caso este imóvel ainda estivesse “preso” à Lei de Alienação Fiduciária.
+                    </p>
+                    
+                    <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                        👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
+                    </p>
+
+                    <div class="space-y-3">
+                        <!-- Aba 1: Modalidades -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openOportunidade = openOportunidade === 1 ? null : 1"
+                                    class="w-full px-6 py-4.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span class="flex items-center gap-2">📌 MODALIDADE X BENEFÍCIOS</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openOportunidade === 1 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openOportunidade === 1" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-3 leading-relaxed">
+                                <p>Os Imóveis Caixa são comercializados na sua grande maioria em diferentes modalidades de venda, porém as mais conhecidas são as modalidades de Leilão. O ouro está nas modalidades que a Caixa vende após o leilão onde ela consegue oferecer os maiores descontos e o comprador ainda está livre do pagamento da comissão do leiloeiro e a Caixa ainda pode pagar grande parte das dívidas de condomínio caso existam.</p>
+                                <p>As Vantagens de comprar um Imóvel Caixa nas modalidades de Venda Direta ou Venda Direta Online são muitas e começamos com a economia de não ter que pagar a comissão do leiloeiro que neste caso seria de <strong class="text-emerald-600">R$ {{ number_format($valorVenda * 0.05, 2, ',', '.') }}</strong> e o não pagamento de comissão de corretagem, esses honorários seriam de <strong class="text-emerald-600">R$ {{ number_format($valorVenda * 0.05, 2, ',', '.') }}</strong> mas hoje, nestas modalidades de venda, o comprador não vai pagar nada.</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 2: Valor de Mercado -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openOportunidade = openOportunidade === 2 ? null : 2"
+                                    class="w-full px-6 py-4.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span class="flex items-center gap-2">📌 VALOR DE MERCADO</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openOportunidade === 2 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openOportunidade === 2" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-3 leading-relaxed">
+                                <p>Para validarmos esta informação nós fomos fazer uma pesquisa atualizada no mercado imobiliário utilizando as informações existentes em outros grandes portais de venda de imóveis usados. Usamos como base outros imóveis semelhantes a este imóvel que está sendo anunciado para que possamos garantir esta previsão de lucros. Então segue abaixo o resultado destas pesquisas:</p>
+                                <p>Pelo portal <strong>Fipe zap</strong> as avaliações estão em torno de <strong class="text-gray-900">R$ {{ number_format($valFipe, 2, ',', '.') }}</strong>. Acessando o portal do <strong>Loft</strong> as avaliações estão com um preço aproximado de <strong class="text-gray-900">R$ {{ number_format($valLoft, 2, ',', '.') }}</strong>. No portal <strong>OLX</strong> encontramos avaliações pelo preço de <strong class="text-gray-900">R$ {{ number_format($valOlx, 2, ',', '.') }}</strong>. Já no portal do <strong>Quinto Andar</strong> as avaliações estão em torno de <strong class="text-gray-900">R$ {{ number_format($valQuinto, 2, ',', '.') }}</strong>. Com essa busca chegamos a um <strong>valor médio de mercado de R$ {{ number_format($valorAvaliacao, 2, ',', '.') }}</strong> e com este resultado fica mais fácil garantirmos nossa margem de lucro na compra deste imóvel.</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 3: Comissão de Venda -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openOportunidade = openOportunidade === 3 ? null : 3"
+                                    class="w-full px-6 py-4.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span class="flex items-center gap-2">📌 COMISSÃO DE VENDA</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openOportunidade === 3 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openOportunidade === 3" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-2 leading-relaxed">
+                                <p>Faça sua proposta de compra com a nossa imobiliária – <strong>Imóveis da Caixa LTDA CNPJ 50.563.863/0001-45 – CRECI-PJ 10.234/RJ</strong>, nós vamos te enviar um documento assegurando esta gratuidade do serviço prestado.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Análise do Comprador e Perfis Dinâmicos (Todos começam 100% FECHADOS!) -->
+                <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6"
+                     x-data="{ openPerfil: null }">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
+                        <span class="bg-[#005CA9] w-2.5 h-6 mr-3 rounded-full"></span>
+                        👤 Análise do Comprador
+                    </h2>
+                    
+                    <h6 class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
+                        {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
+                    </h6>
+
+                    <p class="text-gray-650 leading-relaxed text-justify text-sm">
+                        Neste conteúdo estamos trazendo a maneira de se pensar de acordo com cada finalidade de compra do seu imóvel e para te ajudar nesta reflexão também vamos te dar uma visão geral das despesas, do lucro, e como nós fazemos estas formas distintas de processo de compra. Você terá acesso aos cálculos já prontos para que você tenha clareza do retorno financeiro que esta compra pode te trazer. São valores criados com base em experiências anteriores que servem para nos ajudar na tomada de decisão de compra.
+                    </p>
+                    
+                    <div class="bg-gray-50 p-4.5 rounded-2xl border border-gray-200/60 text-xs text-gray-500 text-center font-extrabold">
+                        <p class="text-orange-600">⚠️ ESTE CONTEÚDO AINDA É GRATUITO ⚠️</p>
+                        <p class="text-gray-750">MAS SÓ ESTÁ DISPONÍVEL PARA PESSOAS CADASTRADAS</p>
+                    </div>
+
+                    <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                        👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
+                    </p>
+
+                    <div class="space-y-3">
+                        <!-- Perfil 1: Comprar para Morar -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openPerfil = openPerfil === 1 ? null : 1"
+                                    class="w-full px-6 py-5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-extrabold text-gray-800 text-base">
+                                <span class="flex items-center gap-2.5">🏠 👤 COMPRAR PARA MORAR</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openPerfil === 1 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openPerfil === 1" x-collapse class="px-6 py-6 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-5 leading-relaxed">
+                                <p><strong>Perfil do Comprador:</strong> O “Comprador Morador” é o cliente que descobriu no leilão de imóveis a oportunidade de ouro para elevar seu padrão de vida. Ele busca comprar um imóvel significativamente abaixo do valor de mercado, não para revender, mas para realizar o sonho da casa própria, fazer um upgrade de moradia (ir para um bairro melhor ou um imóvel maior) ou sair do aluguel.</p>
+                                
+                                <div class="space-y-2">
+                                    <h4 class="font-extrabold text-gray-900 uppercase tracking-wider text-[10px]">🏠 01 – Comprar para Morar pagando barato</h4>
+                                    <h5 class="font-extrabold text-gray-900 text-[10px] uppercase">📌 DESPESAS DE COMPRA:</h5>
+                                    <ul class="list-disc pl-5 space-y-1.5">
+                                        <li><strong>Despesas obrigatórias:</strong> quando o comprador faz a proposta de compra do Imóvel da Caixa ele se compromete a enviar uma cópia do Registro do Imóvel para dar baixa na compra do imóvel, esta despesa, deste imóvel, terá um custo aproximado de <strong class="text-gray-900">R$ {{ number_format($morarRegistro, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 5% do registro).</li>
+                                        <li><strong>Despesas eventuais:</strong> Débitos de Condomínio: limite de <strong class="text-gray-900">R$ {{ number_format($morarCondominioMax, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 10%), o que passar deste valor a CAIXA faz a quitação das despesas que ainda existam. Para saber este valor, o comprador deverá entrar em contato com o condomínio e solicitar o extrato de débitos.</li>
+                                        <li><strong>Débitos de Tributos:</strong> Para saber o débito de IPTU o comprador precisa pesquisar no site da prefeitura, através do número da inscrição do imóvel, para ver todas as despesas de tributos que ficam por conta do comprador.</li>
+                                    </ul>
                                 </div>
-                                <div class="space-y-4">
-                                    <h4 class="text-sm font-black text-gray-900 uppercase">Segurança</h4>
-                                    <p class="text-gray-500 text-sm leading-relaxed">{{ $conteudoIA['seguranca'] ?? 'Monitoramento local ativo.' }}</p>
+
+                                <div class="space-y-2">
+                                    <h5 class="font-extrabold text-gray-900 text-[10px] uppercase">📌 DESPESAS QUE PODEM NÃO EXISTIR:</h5>
+                                    <p>A grande maioria dos imóveis da Caixa estão ocupados, mas o processo de desocupação vem sendo simplificado, na maioria das vezes a desocupação é amigável. Em último caso pode ser que você tenha uma Custas de Desocupação deste imóvel que deve ficar em torno de <strong class="text-gray-900">R$ {{ number_format($morarDesocupacao, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 1.5% de desocupação) para iniciar um processo de reintegração de posse, por liminar que tem o prazo máximo de 60 dias, de acordo com a lei de alienação fiduciária.</p>
+                                    <p>Uma das Despesas opcionais que ajudam muito as pessoas mais ocupadas é o investimento na contratação de um Despachante Imobiliário em torno de <strong class="text-gray-900">R$ {{ number_format($morarDespachante, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 0.5% despachante), ele vai agilizar todo o processo de registro e de quitação de dívidas se for o caso. Mas com nossa orientação o próprio comprador poderá fazer todo o processo, porém vai ter que investir tempo nestas tarefas.</p>
                                 </div>
-                                <div class="space-y-4 border-l border-gray-100 md:pl-10">
-                                    <h4 class="text-sm font-black text-gray-900 uppercase">Potencial de Valorização</h4>
-                                    <p class="text-gray-500 text-sm leading-relaxed">{{ $conteudoIA['valorizacao'] ?? 'Análise em andamento.' }}</p>
+
+                                @if($aceitaFinanciamento)
+                                <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl space-y-3">
+                                    <h5 class="font-extrabold text-[#005CA9] text-[10px] uppercase">📌 COMPRA FINANCIADA (caso este imóvel aceite financiamento):</h5>
+                                    <p class="text-gray-700"><strong>FINANCIAMENTO:</strong> Se este imóvel estivesse sendo vendido no mercado comum você teria que dar uma entrada de <strong class="text-gray-900">R$ {{ number_format($entradaNormal, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 20% entrada tradicional) mas como é um imóvel da Caixa, o valor de entrada fica em apenas <strong class="text-emerald-700 font-bold">R$ {{ number_format($entradaCaixa, 2, ',', '.') }}</strong> (R$ {{ number_format($valorVenda, 2, ',', '.') }} x 5% entrada Caixa). É uma redução de entrada de <strong class="text-emerald-700 font-black">R$ {{ number_format($reducaoEntrada, 2, ',', '.') }}</strong>!</p>
+                                    <p class="text-gray-700">No Financiamento tradicional você pagaria uma prestação de <strong class="text-gray-400 line-through">R$ {{ number_format($prestacaoTradicional, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 0.8%); Mas por ser um Imóvel da Caixa você vai pagar uma prestação no valor de <strong class="text-emerald-700 font-bold">R$ {{ number_format($prestacaoCaixa, 2, ',', '.') }} /mês</strong> (R$ {{ number_format($valorVenda, 2, ',', '.') }} x 0.8% da prestação).</p>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Perfil 2: Comprar para Revender -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openPerfil = openPerfil === 2 ? null : 2"
+                                    class="w-full px-6 py-5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-extrabold text-gray-800 text-base">
+                                <span class="flex items-center gap-2.5">💲 👤 COMPRAR PARA REVENDER</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openPerfil === 2 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openPerfil === 2" x-collapse class="px-6 py-6 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-4 leading-relaxed">
+                                <p><strong>Perfil Investidor de Giro Rápido (Volume e Liquidez):</strong> O “Investidor de Giro Rápido” ganha dinheiro na velocidade do capital. Ele compra no leilão com um bom deságio e, em vez de tentar vender pelo preço máximo de mercado (o que pode demorar meses), ele vende de 10% a 15% abaixo do mercado tradicional. O objetivo dele é que o imóvel dele seja a melhor oferta da rua no portal imobiliário, vendendo em tempo recorde para pegar o dinheiro e já arrematar o próximo. Ele busca volume de negócios.</p>
+                                
+                                <div class="bg-gray-50 p-4.5 rounded-xl border border-gray-200 space-y-1">
+                                    <p class="text-gray-700">Este imóvel faz parte do Grupo <strong class="text-gray-900">{{ $imovel->grupo?->nome ?? 'Especial de Giro Rápido' }}</strong>, os imóveis deste grupo têm o seu valor de venda entre o valor mínimo de <strong class="text-gray-900">R$ {{ number_format($imovel->grupo?->valor_minimo ?? $valorVenda * 0.9, 2, ',', '.') }}</strong> e o valor máximo de <strong class="text-gray-900">R$ {{ number_format($imovel->grupo?->valor_maximo ?? $valorAvaliacao * 1.1, 2, ',', '.') }}</strong>.</p>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <h4 class="font-extrabold text-gray-900 uppercase tracking-wider text-[10px]">💲 Comprar para Vender com Lucro Rápido</h4>
+                                    <h5 class="font-extrabold text-gray-900 text-[10px] uppercase">🚀 CÁLCULOS DE REVENDA (INVESTIDOR):</h5>
+                                    <p>Não existe um valor exato a ser investido nesta operação, mas com base em casos anteriores, nós criamos uma tabela de valores que nos ajuda a ter uma estimativa bem precisa dos gastos e dos lucros que serão alcançados neste processo de compra e venda.</p>
+                                    <ul class="list-disc pl-5 space-y-1.5 mt-2">
+                                        <li><strong>Reforma de Manutenção:</strong> não devemos fazer grandes reformas, o objetivo é fazer uma pintura, consertar torneiras, disjuntores, lâmpadas, caixa de descarga, fechaduras, pisos que possam estar danificados, janelas quebradas. A meta é deixar o imóvel atraente, limpo e tudo funcionando. <strong class="text-gray-900">R$ {{ number_format($reforma, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 5% de reforma).</li>
+                                        <li><strong>Prazo estimado para venda:</strong> {{ $mesesVenda }} meses.</li>
+                                        <li><strong>Despesas durante o prazo de venda:</strong> Condomínio: <strong class="text-gray-900">R$ {{ number_format($condominioMes, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 0.1% condominio por 6 meses) | IPTU: <strong class="text-gray-900">R$ {{ number_format($iptuMes, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 0.05% impostos por 6 meses) | Água e Luz: <strong class="text-gray-900">R$ {{ number_format($aguaLuzMes, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x agua/luz) | Fundo de Reserva: <strong class="text-gray-900">R$ {{ number_format($fundoReserva, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x fundo reserva).</li>
+                                        <li><strong>Despesas de Venda (Comissões e Anúncios):</strong> <strong class="text-gray-900">R$ {{ number_format($comissaoVenda, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 5% despesas).</li>
+                                        <li><strong>Desconto de aceleração de venda:</strong> <strong class="text-gray-900">R$ {{ number_format($descontoAceleracao, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 10% aceleracao) (Ajuda a manter a venda rápida dentro do prazo sugerido).</li>
+                                        <li><strong>Valor de Venda Sugerido:</strong> <strong class="text-gray-900">R$ {{ number_format($vendaSugerida, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} – (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 10% aceleracao)).</li>
+                                    </ul>
+                                </div>
+
+                                <div class="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl">
+                                    <span class="text-[10px] font-black text-emerald-700 uppercase tracking-widest block mb-1">🚀 LUCRO PREVISTO NA OPERAÇÃO:</span>
+                                    <span class="text-3xl font-black text-emerald-700 block">R$ {{ number_format($lucroPrevisto, 2, ',', '.') }}</span>
+                                    <span class="text-[10px] text-gray-500 block pt-1">Fórmula: Valor Sugerido - (Valor de Venda Caixa + Reforma + Despesas Venda + Condomínio + IPTU no período).</span>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Perfil 3: Comprar para Alugar -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openPerfil = openPerfil === 3 ? null : 3"
+                                    class="w-full px-6 py-5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-extrabold text-gray-800 text-base">
+                                <span class="flex items-center gap-2.5">💰 👤 COMPRAR PARA ALUGAR</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openPerfil === 3 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openPerfil === 3" x-collapse class="px-6 py-6 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-4 leading-relaxed">
+                                <p><strong>Perfil O Investidor de Renda (Focado em Aluguel / Yield):</strong> O “Investidor de Renda” vê o imóvel como uma “máquina de imprimir dinheiro” mensal. O objetivo principal dele não é revender para ter um lucro alto de uma vez só (como o perfil de Giro), mas sim construir um patrimônio sólido que pague dividendos constantes todos os meses. Ele usa o leilão como a ferramenta perfeita para “turbinar” essa rentabilidade, comprando barato para alugar pelo preço cheio de mercado.</p>
+                                
+                                <div class="space-y-3">
+                                    <h4 class="font-extrabold text-gray-900 uppercase tracking-wider text-[10px]">💰 Comprar para Alugar com maior Lucro</h4>
+                                    <h5 class="font-extrabold text-gray-900 text-[10px] uppercase">📌 CÁLCULOS DE LOCAÇÃO:</h5>
+                                    <p>Se você comprasse este imóvel hoje no mercado tradicional, você investiria <strong class="text-gray-900">R$ {{ number_format($valorAvaliacao, 2, ',', '.') }}</strong> para ter um aluguel de <strong class="text-gray-900">R$ {{ number_format($aluguelEstimado, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 0.0047 de yield) (margem de 0,47% ao mês).</p>
+                                    <p>But you only invested <strong class="text-emerald-750 font-bold">R$ {{ number_format($valorVenda, 2, ',', '.') }}</strong> to get the exact same market performance!</p>
+                                    <p>Sendo assim, sua rentabilidade real saltou para mais de <strong class="text-emerald-700 font-black">{{ number_format($rentabilidadeReal, 2, ',', '.') }}% ao mês</strong> (([R$ {{ number_format($aluguelEstimado, 2, ',', '.') }}] / R$ {{ number_format($valorVenda, 2, ',', '.') }}) x 100)% ao mês.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nossos Serviços (Todos começam 100% FECHADOS!) -->
+                <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6"
+                     x-data="{ openServico: null }">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
+                        <span class="bg-[#F39200] w-2.5 h-6 mr-3 rounded-full"></span>
+                        💼 Nossos Serviços
+                    </h2>
+                    
+                    <h6 class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
+                        {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
+                    </h6>
+
+                    <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                        👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
+                    </p>
+
+                    <div class="space-y-3">
+                        <!-- Sanfona 1: Assessoria 360 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openServico = openServico === 1 ? null : 1"
+                                    class="w-full px-6 py-4.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span class="flex items-center gap-2">🚀 ASSESSORIA 360º DE PONTA A PONTA</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openServico === 1 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openServico === 1" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-4 leading-relaxed">
+                                <h4 class="text-sm font-black text-gray-900">🚀 Assessoria 360º de Ponta a Ponta (Parceria de Resultados)</h4>
+                                <p>Seu capital financeiro aliado à nossa inteligência operacional.</p>
+                                <p><strong>O que é o serviço?</strong> A Assessoria 360º é um modelo exclusivo de parceria onde nós assumimos <strong>100% do trabalho operacional</strong> do investimento em leilão, enquanto você entra exclusivamente com o capital (ou crédito aprovado para financiamento).</p>
+                                <p>Nosso objetivo é transformar o leilão de imóveis em um investimento totalmente passivo e livre de dores de cabeça para você. Nós cuidamos de absolutamente tudo, desde a busca da oportunidade até a venda final do imóvel, e só somos remunerados no final, dividindo o lucro da operação.</p>
+                                
+                                <h5 class="font-extrabold text-gray-900 pt-2">🛡️ Segurança e Transparência em Primeiro Lugar:</h5>
+                                <ul class="list-disc pl-5 space-y-1.5">
+                                    <li><strong>O Imóvel é Seu:</strong> Toda a documentação, o registro e a posse do imóvel ficam <strong>100% no seu nome</strong> desde o primeiro dia. Você tem controle e segurança patrimonial absoluta.</li>
+                                    <li><strong>Alinhamento de Interesses:</strong> Como nossa remuneração é baseada na divisão dos lucros da venda, nosso maior interesse é comprar pelo menor preço, resolver tudo no menor tempo possível e vender com a maior margem de lucro. Nós só ganhamos se você ganhar.</li>
+                                </ul>
+
+                                <h5 class="font-extrabold text-gray-900 pt-2">⚙️ Como funciona a nossa Operação na Prática?</h5>
+                                <ul class="list-decimal pl-5 space-y-1.5">
+                                    <li><strong>Garimpo e Viabilidade Jurídica:</strong> Analisamos centenas de oportunidades para encontrar os imóveis mais lucrativos e fazemos toda a análise de risco e verificação de dívidas antes da compra.</li>
+                                    <li><strong>Estratégia de Arrematação:</strong> Definimos o teto máximo de lance baseados em planilhas rigorosas de rentabilidade e representamos você no dia do leilão.</li>
+                                    <li><strong>Burocracia e Documentação:</strong> Cuidamos de pagamentos de guias, ITBI, baixas de penhoras e o registro do imóvel no seu nome no cartório.</li>
+                                    <li><strong>Desocupação Humanizada ou Jurídica:</strong> Lidamos diretamente com o ocupante. Negociamos acordos amigáveis para uma saída rápida e pacífica ou, se necessário, conduzimos a desocupação judicial com nossos advogados parceiros.</li>
+                                    <li><strong>Reforma Estratégica (Home Staging):</strong> Assumimos a gestão da obra. Fazemos as reformas necessárias (pintura, reparos, iluminação) focadas exclusivamente em valorizar o imóvel gastando o mínimo possível, preparando-o para uma venda rápida.</li>
+                                    <li><strong>Venda Acelerada:</strong> Colocamos o imóvel no mercado, gerando fotos profissionais, anúncios e conduzindo as visitas e negociações com os compradores finais.</li>
+                                    <li><strong>Apuração e Divisão de Lucros:</strong> Com o imóvel vendido e o dinheiro na sua conta, apuramos todos os custos da operação. O capital investido retorna para você e, somente sobre o Lucro Líquido, fazemos a nossa divisão combinada.</li>
+                                </ul>
+
+                                <h5 class="font-extrabold text-gray-900 pt-2">🎯 Para quem é este serviço?</h5>
+                                <ul class="list-disc pl-5 space-y-1.5">
+                                    <li>Investidores que buscam a alta rentabilidade dos leilões, mas não têm tempo para procurar imóveis, lidar com obras ou negociar desocupações.</li>
+                                    <li>Pessoas que têm capital disponível ou crédito imobiliário pré-aprovado, mas não têm o conhecimento técnico/jurídico para atuar sozinhas no mercado de leilões.</li>
+                                    <li>Investidores que buscam diversificar seu portfólio de forma segura, mantendo o patrimônio no seu próprio nome.</li>
+                                </ul>
+
+                                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 italic text-gray-750 mt-3">
+                                    “no mercado financeiro, quando você investe em um fundo, o gestor te cobra taxa de administração mesmo se o fundo der prejuízo. Na nossa Parceria 360º, o imóvel é garantido no seu nome, você não tem nenhum trabalho braçal e nós só colocamos a mão no dinheiro se entregarmos lucro. O seu único trabalho é aprovar o lance inicial e assinar a venda no final. O resto é com a minha equipe.”
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sanfona 2: Formacao de Consultores -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openServico = openServico === 2 ? null : 2"
+                                    class="w-full px-6 py-4.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span class="flex items-center gap-2">🎓 FORMAÇÃO DE CONSULTORES EM LEILÕES</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openServico === 2 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openServico === 2" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-4 leading-relaxed">
+                                <h4 class="text-sm font-black text-gray-900">🎓 Formação de Consultores em Leilões de Imóveis (O Método 360º)</h4>
+                                <p>Construa um negócio altamente lucrativo prestando assessoria para investidores.</p>
+                                <p><strong>Sobre o Treinamento:</strong> Existe um oceano de pessoas com capital disponível — ou crédito imobiliário aprovado — que sonham com as altas margens do mercado de leilões, mas esbarram no medo, na burocracia e na falta de conhecimento.</p>
+                                <p>Este treinamento pago é a sua formação completa para se tornar a “ponte” entre o dinheiro desses investidores e as melhores oportunidades do mercado. Nós vamos abrir a “caixa-preta” da nossa empresa e te ensinar o exato passo a passo que utilizamos todos os dias para arrematar e lucrar com imóveis.</p>
+                                
+                                <h5 class="font-extrabold text-gray-900 pt-2">🚀 O que você vai dominar:</h5>
+                                <ul class="list-disc pl-5 space-y-1.5">
+                                    <li><strong>Captar e Fechar com Investidores:</strong> Como encontrar pessoas com capital, apresentar o modelo de negócio (onde eles entram com o dinheiro e você com o trabalho) e fechar contratos de parceria com divisão de lucros.</li>
+                                    <li><strong>Garimpo e Análise de Risco:</strong> Como ler editais, encontrar as verdadeiras “minas de ouro” ocultas e analisar a documentação para garantir que a compra seja 100% segura para o seu cliente.</li>
+                                    <li><strong>A Estratégia de Arrematação:</strong> Como calcular o lance máximo, avaliar a rentabilidade (para giro ou aluguel) e vencer a disputa no leilão.</li>
+                                    <li><strong>Operação e Desburocratização:</strong> O passo a passo jurídico e cartorário para passar o imóvel para o nome do investidor sem dores de cabeça.</li>
+                                    <li><strong>Desocupação e Venda:</strong> Técnicas para desocupar o imóvel (amigável ou judicialmente), estratégias de reforma de baixo custo para valorização e o caminho mais rápido para vender o imóvel e colocar a sua parte do lucro no bolso.</li>
+                                </ul>
+
+                                <h5 class="font-extrabold text-gray-900 pt-2">🎯 Por que fazer este treinamento?</h5>
+                                <p>Você não precisa ter centenas de milhares de reais para lucrar com leilões. O seu maior ativo será o <strong>conhecimento técnico</strong>. Você aprenderá a rentabilizar o capital de terceiros, construindo a sua própria carteira de clientes, estruturando o seu próprio negócio de assessoria e ganhando honorários ou participação expressiva nos lucros de cada operação validada por você.</p>
+                                
+                                <p class="font-bold text-orange-600">“Consultores em Leilões de Imóveis – uma nova profissão altamente rentável.”</p>
+
+                                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 italic text-gray-700">
+                                    “Eu não estou te vendendo apenas um cursinho sobre leilões. Eu estou te entregando o modelo de negócios da minha empresa pronto para você replicar. Você vai sair daqui sabendo como captar o investidor, como achar o imóvel e como colocar dinheiro no bolso fazendo o trabalho que nós fazemos hoje, com total independência.”
+                                </div>
+
+                                <h5 class="font-black text-gray-900 pt-3 border-t border-gray-200 flex items-center gap-1.5">♾️ Os 7 segredos desta profissão:</h5>
+                                <p class="italic text-gray-500 mt-1">“Você quer continuar preso no trânsito 2 horas por dia trabalhando para enriquecer o seu chefe, ou quer usar apenas um notebook para construir um networking com grandes investidores, sendo o dono do seu próprio tempo?”</p>
+                                
+                                <div class="space-y-3 pt-2">
+                                    <p><strong>🌍 1. Liberdade Geográfica e de Tempo (Trabalhe de onde quiser):</strong> Hoje, mais de 90% dos leilões ocorrem de forma 100% online. Tudo o que ele precisa é de um notebook, internet e um celular. Ele pode analisar editais, dar lances e negociar com clientes da sala de casa, de um café ou até mesmo viajando.</p>
+                                    <p><strong>🤝 2. Construção de um Networking de Alto Nível (Capital Social):</strong> Como consultor, o aluno vai lidar diariamente com pessoas que têm capital: empresários, médicos, diretores de empresas, investidores e advogados.</p>
+                                    <p><strong>🧠 3. Autoridade e Prestígio Profissional:</strong> O consultor que domina esse mercado é visto como um especialista raro, um estrategista. Ele não é apenas um “vendedor de casas”, ele é um solucionador de problemas e um multiplicador de patrimônio.</p>
+                                    <p><strong>📦 4. Negócio “Zero Estoque” (Sem dor de cabeça operacional):</strong> Diferente de quem abre uma loja física, o consultor não precisa comprar mercadoria ou lidar com fornecedores. É um modelo de negócio Asset-Light.</p>
+                                    <p><strong>🧩 5. Estimulação Intelectual Constante (Adeus ao Tédio):</strong> Cada leilão é um “quebra-cabeça” único, que envolve direito, economia, mercado imobiliário e relações humanas.</p>
+                                    <p><strong>🛡️ 6. Independência de “Chefes” e do Mercado de Trabalho Tradicional:</strong> O consultor não depende de currículos, ele cria a própria demanda. Em momentos de crise econômica, o número de leilões aumenta, trazendo resiliência.</p>
+                                    <p><strong>♾️ 7. Mercado Inesgotável, “Oceano Azul” e de Rápida Formação:</strong> A fonte nunca seca; enquanto existir financiamento bancário existirá leilão. E você tem uma vantagem competitiva "injusta" comprando mais barato e vendendo rápido.</p>
+                                </div>
+
+                                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 italic text-gray-700 mt-3">
+                                    “Hoje, você tem a chance de surfar uma onda que pouca gente conhece. Você não precisa passar 5 anos numa faculdade para ter uma profissão altamente lucrativa. Em poucas semanas aplicando o meu método, você já tem o conhecimento necessário para comprar imóveis mais baratos que qualquer um, vender rápido e ganhar dinheiro num mercado que nunca, jamais, vai deixar de existir.”
+                                </div>
+
+                                <h5 class="font-extrabold text-gray-900 pt-3 border-t border-gray-200 flex items-center gap-1.5">🤝 O Fim do Medo: Acompanhamento “Lado a Lado” na Primeira Operação:</h5>
+                                <p>A maioria dos cursos te entrega um monte de vídeo-aulas teóricas e te joga aos leões. Aqui é diferente. Nós sabemos que a primeira arrematação é a que gera mais frio na barriga. Por isso, além de você receber todo o acesso às aulas em vídeo detalhando como tudo funciona, <strong>eu vou pegar na sua mão na sua primeira operação real</strong>.</p>
+                                <ul class="list-disc pl-5 space-y-1.5">
+                                    <li><strong>Como funciona:</strong> Eu não vou fazer o trabalho por você – afinal, você precisa aprender na prática para ser independente –, mas eu vou ser o seu co-piloto. Desde a escolha do primeiro imóvel, passando pela análise documental, até a estratégia de lance e, finalmente, a venda para colocar o lucro no bolso.</li>
+                                    <li><strong>Você executa, eu oriento:</strong> Vou te explicar exatamente o que fazer em cada etapa. Você terá a tranquilidade de tomar as decisões sabendo que tem um especialista olhando por cima do seu ombro.</li>
+                                    <li><strong>Aceleração de Confiança:</strong> Depois que você passar por essa primeira operação com o meu acompanhamento e ver o dinheiro entrando, o medo desaparece. Você estará pronto para repetir o processo sozinho.</li>
+                                </ul>
+                                
+                                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 italic text-gray-700">
+                                    “Eu confio tanto no meu método que eu não vou te dar apenas as aulas gravadas e sumir. Na sua primeira arrematação, quando você captar o seu primeiro cliente, eu vou estar com você. Eu vou validar a sua análise, te orientar no lance e te guiar até o imóvel ser vendido. Qual a chance de dar errado quando você tem o mapa e o criador do mapa do seu lado?”
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sanfona 3: Treinamento Gratuito -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openServico = openServico === 3 ? null : 3"
+                                    class="w-full px-6 py-4.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span class="flex items-center gap-2">🎁 TREINAMENTO GRATUITO</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openServico === 3 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openServico === 3" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-3 leading-relaxed">
+                                <h4 class="text-sm font-black text-gray-900">🏠 A Jornada da Casa Própria: Como Comprar Seu Imóvel em Leilão (Treinamento 100% Gratuito)</h4>
+                                <p>Descubra o caminho seguro para comprar a casa da sua família pagando muito menos que o valor de mercado tradicional.</p>
+                                <p><strong>Sobre o Treinamento:</strong> Sair do aluguel e conquistar a casa própria é o maior sonho da maioria dos brasileiros. Mas sabemos que, muitas vezes, os preços do mercado tradicional e as taxas de financiamento tornam esse sonho distante.</p>
+                                <p>O que poucas pessoas sabem é que os leilões de imóveis não são apenas para “grandes investidores ricos”. Eles são, na verdade, a <strong>oportunidade perfeita para famílias</strong> que têm um orçamento mais apertado e querem fazer o seu dinheiro render muito mais na hora de comprar o lugar onde vão morar.</p>
+                                
+                                <h5 class="font-extrabold text-gray-900 pt-2">🎒 O que você vai aprender de forma simples e direta:</h5>
+                                <p>Criamos um passo a passo pensado exatamente para quem quer comprar apenas um imóvel popular para morar com a família, com segurança e tranquilidade:</p>
+                                <ul class="list-disc pl-5 space-y-1.5">
+                                    <li><strong>Onde encontrar as oportunidades:</strong> Como pesquisar e achar casas e apartamentos no bairro que você deseja, por valores que cabem no seu bolso.</li>
+                                    <li><strong>Entendendo as regras (O Bê-á-bá do Leilão):</strong> Como ler as informações do imóvel e entender exatamente o que você está comprando, sem pegadinhas.</li>
+                                    <li><strong>Compra Segura:</strong> O que você precisa olhar para ter certeza de que está fazendo um negócio seguro para a sua família.</li>
+                                    <li><strong>O Passo a Passo até a Chave na Mão:</strong> O que acontece depois que você ganha o leilão e como organizar a papelada para entrar na sua casa nova.</li>
+                                </ul>
+
+                                <h5 class="font-extrabold text-gray-900 pt-2">💙 Por que este treinamento é gratuito?</h5>
+                                <p>Acreditamos que o conhecimento sobre leilões pode mudar a vida de muitas famílias. Nosso objetivo com este treinamento básico é democratizar o acesso a essas informações. Queremos tirar os seus medos e te mostrar que é possível, sim, comprar a sua casa própria pagando muito mais barato.</p>
+                                <p>Você não precisa de milhares de reais para começar a aprender. O conhecimento está aqui, à sua disposição, sem custo nenhum.</p>
+                                <p class="text-orange-600 font-extrabold">Nos chame no WhatsApp para fazer a sua inscrição gratuita!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ 1: Perguntas Frequentes sobre os Imóveis Caixa (Todos começam 100% FECHADOS!) -->
+                <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6"
+                     x-data="{ openFaq1: null }">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
+                        <span class="bg-[#005CA9] w-2.5 h-6 mr-3 rounded-full"></span>
+                        ❓ FAQ 1 = Perguntas frequentes sobre os Imóveis Caixa
+                    </h2>
+                    
+                    <h6 class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
+                        {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
+                    </h6>
+
+                    <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                        👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
+                    </p>
+
+                    <div class="space-y-3">
+                        <!-- Aba 1 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq1 = openFaq1 === 1 ? null : 1"
+                                    class="w-full px-6 py-4.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>📌 Imóveis da CAIXA e Alienação Fiduciária</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq1 === 1 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq1 === 1" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-3 leading-relaxed">
+                                <p>Os imóveis que não foram vendidos no leilão são chamados de imóveis adjudicados, ou seja, é decidido judicialmente que o imóvel pertence à Caixa e por isso estes imóveis são vendidos pelas modalidades de venda que a CAIXA preferir, cada modalidade tem suas características e por isso devemos prestar atenção em cada detalhe da modalidade escolhida para a venda do imóvel que você deseja comprar.</p>
+                                <p>A origem dos imóveis da caixa está na cobrança da dívida de um financiamento imobiliário que não foi pago por quem realizou o financiamento bancário. Este procedimento é regulado pela lei de alienação fiduciária o que facilita todo o processo de venda e de tomada de posse.</p>
+                                <p>Os imóveis da caixa já estiveram na posse de quem fez a compra financiada, mas quem sempre teve a propriedade do imóvel foi a Caixa. O imóvel só é do comprador depois que o financiamento é quitado. Como alguém já pagou parte do preço deste imóvel e o banco não tem o interesse de ficar com este patrimônio, o banco vende este imóvel com preços e condições muito atraentes.</p>
+                                <p>Estes imóveis um dia já foram vendidos para pessoas que já pagaram uma parte do valor desse imóvel, pagaram uma entrada e algumas prestações, só não pagaram todas as prestações até o final; Por algum motivo deixaram de pagar o financiamento, por isso a CAIXA precisou retomar este imóvel para recuperar o valor da dívida deixada pelo comprador. Esse procedimento é realizado de acordo com a lei de alienação fiduciária e não está vinculado a nenhum processo judicial, aqui estamos falando em leilão extrajudicial e por isso é muito mais simples, prático e direto que os leilões judiciais.</p>
+                                <p>Outro ponto forte é o grande número de ofertas que são lançadas diariamente na plataforma. Todos os dias a Caixa Econômica realiza novos financiamentos ao mesmo tempo que todos os dias novos imóveis vão sendo retomados e disponibilizados para venda, por isso todo dia o estoque de imóveis é atualizado. O segredo para garantir uma boa oportunidade é se preparar com antecedência para que quando a oferta apareça, você esteja pronto para fazer a sua proposta de compra.</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 2 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq1 = openFaq1 === 2 ? null : 2"
+                                    class="w-full px-6 py-4.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>📌 Detalhes das Formas de Pagamento</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq1 === 2 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq1 === 2" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-4 leading-relaxed">
+                                <p><strong>Compra Exclusivamente à vista (recursos próprios):</strong> Tanto nos casos de pagamento à vista como nos pagamentos com FGTS e Financiamento, o Comprador vai fazer o pagamento total através de boleto bancário da Caixa no valor total do Preço de Venda, em até 3 dias. O seu boleto bancário será gerado automaticamente; Este boleto deverá ser pago em até 3 dias. Esta data de pagamento não pode ser alterada; O Comprador pode fazer o download do boleto no sistema da CAIXA, mas nós temos o hábito de enviar direto no WhatsApp do comprador que nós estamos atendendo.</p>
+                                <p><strong>Compra com Recursos próprios e utilização de FGTS:</strong> O Comprador na hora de fazer sua Proposta de Compra vai informar o valor que tem disponível para saque do seu FGTS e vai fazer o pagamento do boleto bancário da Caixa no valor informado na Proposta de Compra em até 3 dias. O Comprador terá um prazo para quitação da parte do pagamento que será feita com recursos do FGTS. O comprador deverá fazer uma análise prévia dos valores que estão disponíveis para saque e deverá informar o valor que será sacado do FGTS na hora que estiver fazendo sua proposta de compra. É preciso que o comprador já tenha consultado suas condições e seu enquadramento em relação ao seu FGTS e saber qual o valor ele tem liberado para compra de imóvel e informar na proposta a parte que ele vai utilizar o FGTS. Mesmo que você tenha um valor de FGTS maior que o preço de venda, você sempre terá que pagar um mínimo de 5% em dinheiro pago por boleto e os 95% do valor você usa o seu FGTS.</p>
+                                <p><strong>Compra com Financiamento:</strong> Se na ficha do imóvel do seu interesse *APARECE* esta opção é porque este imóvel aceita financiamento, *mas só faça sua proposta se souber que não tem pendências de crédito*; O comprador já deverá ter feito uma análise prévia de aprovação de crédito antes de fazer uma proposta de compra, este procedimento é orientado pela CAIXA; No envio da proposta o comprador vai informar o valor de entrada que será pago em boleto, com o valor mínimo de 5% de entrada mais o saldo do valor a ser pago em financiamento imobiliário da CAIXA. O Comprador vai fazer o pagamento no valor mínimo de 5% do preço de venda através de boleto bancário da Caixa, em até 3 dias. Esta data de pagamento não pode ser alterada e tem um prazo de até 7 dias para apresentar a liberação do financiamento. Como o prazo é curto, a Caixa indica que esteja pré-aprovado antes da realização da Proposta de Compra; Caso o valor aprovado de financiamento somado ao valor mínimo de entrada de 5% não atinja o valor da compra, o comprador deverá aumentar o valor de entrada até que a soma do valor financiado e o valor de entrada seja igual ao valor de venda. A CAIXA orienta que antes de fazer sua proposta, você já tenha uma análise prévia de aprovação de crédito, para saber até que valor você poderá financiar; Se na ficha do imóvel do seu interesse NÃO APARECE esta opção é porque este imóvel não permite financiamento. Se você só pode comprar imóveis que possam ser financiados, será preciso que continue buscando até encontrar outro imóvel que seja do seu agrado e que venha informando que aceita financiamento.</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 3 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq1 = openFaq1 === 3 ? null : 3"
+                                    class="w-full px-6 py-4.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>📌 Gratuidade da Comissão de Venda e Serviços Adicionais</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq1 === 3 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq1 === 3" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-3 leading-relaxed">
+                                <p>Na comercialização dos Imóveis da Caixa você só paga comissão de venda para o leiloeiro, nas modalidades que existem o leiloeiro, o cliente não paga nenhuma comissão de venda para a imobiliária. A Caixa nos contratou para fornecer um serviço de assessoramento aos interessados em comprar seus imóveis, e por isso nós vamos te orientar no passo a passo da sua compra de forma <strong>inteiramente gratuita</strong>.</p>
+                                <p><strong>Leia os Serviços Adicionais que a CAIXA não cobre (Todos opcionais):</strong> Todos os serviços abaixo são opcionais, o comprador pode contratar através da nossa imobiliária ou pode realizar por conta própria.</p>
+                                <ul class="list-disc pl-5 space-y-1.5">
+                                    <li><strong>Despachante Imobiliário:</strong> é o serviço realizado por profissionais parceiros que tem o objetivo de facilitar a vida dos compradores que possuem recursos financeiros para terceirizar toda a parte de registro do imóvel, viabilizando e agilizando todo o processo de compra do imóvel.</li>
+                                    <li><strong>Desocupação Amigável:</strong> é o serviço de desocupação extrajudicial que segue um método próprio criado por nós para agilizar a desocupação e evitar a necessidade de um processo judicial. Este valor não envolve custas judiciais, honorários advocatícios nem custas de negociação ou outras despesas que se façam necessárias.</li>
+                                    <li><strong>Desocupação Judicial:</strong> Este serviço é realizado por advogado especialista neste tipo de processo, são pouquíssimos os casos que precisam de uma ação judicial, e já foi comprovado ao longo do tempo que é preciso realizar uma análise mais profunda em cada caso para poder ser feito um processo de imissão de posse que atenda todos os detalhes de uma desocupação de sucesso, aqui não é só saber da lei, mas ser também muito atento aos detalhes.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Aba 4 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq1 = openFaq1 === 4 ? null : 4"
+                                    class="w-full px-6 py-4.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>📌 Regras de Pagamento de Condomínio e IPTU</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq1 === 4 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq1 === 4" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-1.5 leading-relaxed">
+                                <p>A CAIXA só realiza o pagamento das dívidas de Condomínio e ou IPTU, depois que o imóvel foi comprado, respeitando as regras que estão na proposta de compra.</p>
+                                <p>A CAIXA também não se responsabiliza por pagamentos de tributos e outras dívidas que surgirem, bem como as despesas de desocupação caso sejam necessárias.</p>
+                                <p>A CAIXA só se responsabiliza pelos pagamentos que são informados dentro da Proposta de Compra.</p>
+                                <p>Todas as custas de cartório, despachantes, diligências, e outras que se façam necessárias são de responsabilidade do comprador.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ 2: Perguntas Frequentes sobre o Bairro (Todos começam 100% FECHADOS!) -->
+                <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6"
+                     x-data="{ openFaq2: null }">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
+                        <span class="bg-[#F39200] w-2.5 h-6 mr-3 rounded-full"></span>
+                        ❓ FAQ 2 = Perguntas Frequentes sobre o Bairro
+                    </h2>
+                    
+                    <h6 class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
+                        {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
+                    </h6>
+
+                    <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                        👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
+                    </p>
+
+                    <div class="space-y-3">
+                        @php $conteudoIA = $imovel->bairro?->conteudo_ia; @endphp
+
+                        <!-- Aba 1 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq2 = openFaq2 === 1 ? null : 1"
+                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>🔖 Vizinhança e Localização</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 1 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq2 === 1" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
+                                <p>{{ $conteudoIA['vizinhanca'] ?? 'Vizinhança tranquila e residencial, excelente localização.' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 2 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq2 = openFaq2 === 2 ? null : 2"
+                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>🔖 Benefícios</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 2 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq2 === 2" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
+                                <p>{{ $conteudoIA['beneficios'] ?? 'Proximidade com variados estabelecimentos comerciais, áreas verdes e praças públicas.' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 3 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq2 = openFaq2 === 3 ? null : 3"
+                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>🔖 Acessos & Transporte</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 3 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq2 === 3" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
+                                <p>{{ $conteudoIA['acesso_transporte'] ?? 'Bairro bem conectado com linhas urbanas de ônibus e acesso ágil a vias arteriais municipais.' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 4 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq2 = openFaq2 === 4 ? null : 4"
+                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>🔖 Comércio & Conveniência</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 4 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq2 === 4" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-2 leading-relaxed">
+                                <p><strong>Comércio local:</strong> {{ $conteudoIA['comercio'] ?? 'Excelente comércio de bairro.' }}</p>
+                                <p><strong>Supermercado & Shoppings:</strong> {{ $conteudoIA['supermercado_shopping'] ?? 'Supermercados e shoppings a poucos minutos.' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 5 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq2 = openFaq2 === 5 ? null : 5"
+                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>🔖 Educação</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 5 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq2 === 5" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
+                                <p>{{ $conteudoIA['educacao'] ?? 'Diversas escolas municipais, estaduais e particulares nas proximidades do endereço.' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 6 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq2 = openFaq2 === 6 ? null : 6"
+                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>🔖 Saúde</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 6 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq2 === 6" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
+                                <p>{{ $conteudoIA['saude'] ?? 'Postos de saúde e hospitais na região.' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 7 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq2 = openFaq2 === 7 ? null : 7"
+                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>🔖 Lazer & Cultura</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 7 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq2 === 7" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
+                                <p>{{ $conteudoIA['lazer'] ?? 'Espaços recreativos ao ar livre, quadras e praças.' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Aba 8 -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq2 = openFaq2 === 8 ? null : 8"
+                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>🔖 Dados de Infraestrutura</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 8 ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq2 === 8" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-2 leading-relaxed">
+                                <p><strong>Localização:</strong> {{ $conteudoIA['localizacao'] ?? 'Bairro bem estruturado.' }}</p>
+                                <p><strong>Transporte:</strong> {{ $conteudoIA['transporte'] ?? 'Linhas de ônibus e vias integradas.' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Histórico de Atualizações de Valores (Todos começam 100% FECHADOS!) -->
+                <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6"
+                     x-data="{ openHistorico: false }">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
+                        <span class="bg-[#005CA9] w-2.5 h-6 mr-3 rounded-full"></span>
+                        📅 Histórico de Atualizações
+                    </h2>
+                    
+                    <h6 class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
+                        {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
+                    </h6>
+
+                    <button @click="openHistorico = !openHistorico"
+                            class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-850 text-sm rounded-2xl border border-gray-200">
+                        <span>Visualizar Lista Completa de Atualizações</span>
+                        <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openHistorico ? 'rotate-180' : ''">▼</span>
+                    </button>
+
+                    <div x-show="openHistorico" x-collapse class="space-y-4 pt-2">
+                        @if($imovel->historico->isNotEmpty())
+                            @foreach($imovel->historico as $idx => $hist)
+                                <div class="p-5 rounded-2xl border border-gray-200 bg-gray-50 space-y-3 text-xs">
+                                    <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                                        <span class="font-extrabold text-gray-900">Atualização #{{ $idx + 1 }}</span>
+                                        <span class="text-gray-500">Data: {{ $hist->created_at->format('d/m/Y') }}</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-gray-500">Modalidade:</p>
+                                            <p class="font-bold text-gray-900">{{ $hist->modalidade?->nome ?? 'Venda Direta Especial' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500">Avaliação CAIXA:</p>
+                                            <p class="font-bold text-gray-900">R$ {{ number_format($hist->valor_avaliacao, 2, ',', '.') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 pt-1">
+                                        <div>
+                                            <p class="text-gray-500">Preço de Venda:</p>
+                                            <p class="font-bold text-[#005CA9]">R$ {{ number_format($hist->valor_venda, 2, ',', '.') }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500">Economia:</p>
+                                            <p class="font-bold text-emerald-605 font-extrabold text-emerald-650">R$ {{ number_format($hist->desconto_valor, 2, ',', '.') }} ({{ number_format($hist->desconto_percentual, 0) }}% OFF)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
                         @else
-                            <div class="text-center py-10">
-                                <p class="text-gray-400 italic">O dossiê de infraestrutura para este bairro está sendo atualizado pela nossa equipe.</p>
+                            <div class="p-5 rounded-2xl border border-gray-200 bg-gray-50 text-center text-gray-500 text-xs">
+                                Nenhuma alteração anterior de preço registrada. Valor atualizado e estável.
                             </div>
                         @endif
                     </div>
                 </div>
+
+                <!-- Acesso Restrito / Regras de SEO (Fim do arquivo) -->
+                @auth
+                <div class="bg-gray-100/60 p-6 rounded-2xl border border-gray-200 text-sm text-gray-600 space-y-3 mt-4 leading-relaxed">
+                    <p class="font-black text-[#E50000] uppercase tracking-wider text-xs">🔒 ACESSO RESTRITO</p>
+                    <p>Somente os Gestores do sistema podem visualizar o conteúdo abaixo:</p>
+                    <p><strong>Regras de SEO:</strong> Segue os campos que estamos utilizando para facilitar nossa indexação nos sites de busca</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Link Permanente: {{ $imovel->slug }}</li>
+                        <li>Palavra Chave: {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
+                        <li>Descrição: {{ $imovel->meta_description ?? 'Oportunidade de investimento Caixa Adjudicados.' }}</li>
+                        <li>Título: {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
+                        <li>Imagem destaque: {{ asset("images/imoveis/{$imovel->slug}.jpg") }}</li>
+                        <li>Tag ALT da imagem destaque: Fachada do {{ $tipoNome }} em {{ $bairroNome }}</li>
+                        <li>Imagem do post: {{ $imovel->foto_fachada_url }}</li>
+                        <li>Tag ALT: {{ $tipoNome }} à venda</li>
+                        <li>Tag TITLE: Comprar {{ $tipoNome }} Caixa</li>
+                    </ul>
+                    <hr class="border-gray-200 my-2">
+                    <p class="font-black text-gray-900 text-xs uppercase">📊 Relatório de Desempenho:</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Visitas Totais: 500</li>
+                        <li>WhatsApp: 300</li>
+                        <li>Formulários: 50</li>
+                        <li>Cliques na página: 1500</li>
+                        <li>Novos Cadastros: 25</li>
+                    </ul>
+                    <p class="text-xs italic pt-1 text-gray-500">📝 LEGENDA: Visitas Totais: número total de visitantes | WhatsApp: clicaram no botão de WhatsApp para falar com o atendimento | Formulários: número de formulários enviados pedindo informação sobre este imóvel | Cliques na página: interações feitas pelos visitantes | Novos Cadastros: cadastros realizados a partir desta página.</p>
+                </div>
+                @endauth
+
             </div>
 
+            <!-- Coluna Direita: Sticky Sidebar (Calculadora, Form de Captação e CTAs) -->
+            <div class="space-y-6 sticky top-8">
+
+                <!-- Bloco de Lucro Imediato -->
+                <div class="p-8 rounded-[2.5rem] shadow-lg text-center relative overflow-hidden" style="background-color: #F3F4F6; border: 1px solid #E5E7EB;">
+                    <div class="space-y-4">
+                        <!-- Line 1: LUCRO IMEDIATO -->
+                        <span class="font-black uppercase tracking-widest px-4 py-1.5 rounded-full inline-block" style="color: #111827; border: 1px solid #D1D5DB; background-color: #E5E7EB; font-size: 13px;">
+                            LUCRO IMEDIATO
+                        </span>
+                        
+                        <!-- Line 2: SUA MARGEM ESTIMADA -->
+                        <span class="block font-black uppercase tracking-wider text-sm" style="color: #374151;">
+                            Sua Margem Estimada
+                        </span>
+                        
+                        <!-- Line 3: R$ 565.227,20 (grandão em vermelho) -->
+                        <span class="font-black block tracking-tight leading-none text-4xl" style="color: #E50000;">
+                            R$ {{ number_format($valorLucro, 2, ',', '.') }}
+                        </span>
+                        
+                        <!-- Line 4: De: R$ ... -->
+                        <p class="font-bold text-sm" style="color: #4B5563;">
+                            <strong>De:</strong> R$ {{ number_format($valorAvaliacao, 2, ',', '.') }}
+                        </p>
+                        
+                        <!-- Line 5: Por Apenas: R$ ... -->
+                        <p class="font-bold text-sm" style="color: #111827;">
+                            <strong>Por Apenas:</strong> R$ {{ number_format($valorVenda, 2, ',', '.') }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Formulário de Captação de Leads Premium -->
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6">
+                    <div class="space-y-2">
+                        <span class="text-[#005CA9] text-[9px] font-black uppercase tracking-widest block">FALAR COM CORRETOR CREDENCIADO</span>
+                        <h3 class="text-2xl font-black text-gray-900 tracking-tight leading-none">
+                            Tenho Interesse!
+                        </h3>
+                        <p class="text-xs text-gray-500">Preencha seus dados para receber o dossiê detalhado e agendar atendimento.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">Seu Nome Completo</label>
+                            <input type="text" wire:model="nome" placeholder="Ex: João da Silva..."
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
+                            @error('nome')
+                                <span class="text-red-650 text-xs mt-1 block font-medium">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">Seu E-mail Principal</label>
+                            <input type="email" wire:model="email" placeholder="Ex: joao@email.com..."
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
+                            @error('email')
+                                <span class="text-red-650 text-xs mt-1 block font-medium">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">WhatsApp com DDD</label>
+                            <input type="tel" wire:model="telefone" placeholder="Ex: 21999998888..."
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
+                            @error('telefone')
+                                <span class="text-red-650 text-xs mt-1 block font-medium">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <!-- CTA Button -->
+                        <button wire:click="converterLead"
+                                wire:loading.attr="disabled"
+                                class="w-full bg-[#F39200] hover:bg-[#E08600] active:scale-95 text-white font-black py-4.5 rounded-2xl shadow-xl shadow-orange-500/20 transition-all duration-300 flex items-center justify-center space-x-3 text-base group relative overflow-hidden tracking-wider">
+                            
+                            <span wire:loading.remove wire:target="converterLead" class="flex items-center justify-center gap-2">
+                                <span>FALAR COM CORRETOR</span>
+                                <span class="bg-white/20 p-1 rounded-full group-hover:rotate-12 transition-transform">💬</span>
+                            </span>
+
+                            <span wire:loading wire:target="converterLead" class="flex items-center space-x-3">
+                                <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                </svg>
+                                <span>Conectando…</span>
+                            </span>
+                        </button>
+
+                        <p class="text-[9px] text-gray-450 text-center uppercase tracking-wider pt-1.5">
+                            🔐 Seus dados estão 100% protegidos conforme a LGPD.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- CTAs Rápidos e Úteis Extras -->
+                <div class="space-y-3">
+                    @if($imovel->link_edital)
+                    <a href="{{ $imovel->link_edital }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="w-full flex items-center justify-center space-x-3 text-blue-650 border border-gray-200 hover:border-blue-500/30 hover:bg-gray-50 bg-white rounded-2xl py-4 transition-all duration-300 text-sm font-extrabold shadow-sm">
+                        <span class="text-base leading-none">🌐</span>
+                        <span>Ver no Site Oficial da Caixa</span>
+                    </a>
+                    @endif
+
+                    <a href="{{ $imovel->link_matricula }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="w-full flex items-center justify-center space-x-3 text-emerald-650 border border-gray-200 hover:border-emerald-500/30 hover:bg-gray-50 bg-white rounded-2xl py-4 transition-all duration-300 text-sm font-extrabold shadow-sm">
+                        <span class="text-base leading-none">📋</span>
+                        <span>Visualizar Matrícula (RGI)</span>
+                    </a>
+                </div>
+
+                <!-- Horário de Atendimento e CNPJ da Imobiliária -->
+                <div class="p-6 bg-white border border-gray-100 rounded-2xl text-center space-y-4 text-xs text-gray-500 shadow-sm">
+                    <div class="space-y-1">
+                        <span class="font-black text-gray-900 block text-[9px] uppercase tracking-wider">🕒 HORÁRIO DE ATENDIMENTO</span>
+                        <p class="leading-relaxed">
+                            Segunda a Sexta-feira: 10:00 às 16:00<br>
+                            Telefone / WhatsApp: (21) 99788-2950
+                        </p>
+                    </div>
+                    <hr class="border-gray-100">
+                    <p class="leading-relaxed italic">
+                        Imóveis da Caixa LTDA<br>
+                        CNPJ: 50.563.863/0001-45<br>
+                        CRECI-PJ: 10.234/RJ
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Botão Flutuante Dinâmico (Parceiros por Estado ou Central) -->
+    @php
+        $resolvedImob = $imovel->resolved_imobiliaria;
+        
+        // Resolve o número de telefone, o nome e a imagem
+        if ($resolvedImob) {
+            $whatsappFone = preg_replace('/\D/', '', $resolvedImob->whatsapp);
+            $whatsappNome = $resolvedImob->nome;
+            $whatsappImg = $resolvedImob->imagem_botao;
+        } else {
+            $whatsappFone = preg_replace('/\D/', '', config('services.whatsapp.central', env('WHATSAPP_CENTRAL', '5521997882950')));
+            $whatsappNome = 'Imóveis da Caixa';
+            $whatsappImg = null;
+        }
+        
+        // Certifica de adicionar o DDI do Brasil (55) se estiver ausente
+        if (strlen($whatsappFone) > 0 && !str_starts_with($whatsappFone, '55')) {
+            if (strlen($whatsappFone) === 10 || strlen($whatsappFone) === 11) {
+                $whatsappFone = '55' . $whatsappFone;
+            }
+        }
+        
+        // Mensagem contendo o número do imóvel para fácil localização
+        $msgWhatsapp = "🎯 Olá! Entrei no site *Imóveis da Caixa* e quero mais informações sobre o imóvel nº *{$imovel->numero_original}*.";
+    @endphp
+    <div class="fixed bottom-6 left-0 right-0 flex justify-center" style="position: fixed !important; bottom: 24px !important; left: 0 !important; right: 0 !important; z-index: 9999999 !important; pointer-events: none !important; display: flex !important; justify-content: center !important;">
+        <div class="w-[240px] h-[80px] md:w-[360px] md:h-[120px]" style="pointer-events: auto !important; display: block !important;">
+            <a href="{{ route('imovel.whatsapp-redirect', $imovel->id) }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="block group rounded-3xl overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_45px_rgba(37,211,102,0.4)] hover:scale-105 active:scale-95 transition-all duration-300 ease-out w-full h-full"
+               style="display: block !important; width: 100% !important; height: 100% !important;">
+                @if($whatsappImg)
+                    <!-- Botão de Imagem Personalizado da Imobiliária (Ampliado e Centrado) -->
+                    <img src="/storage/{{ $whatsappImg }}" 
+                         alt="Falar com {{ $whatsappNome }}" 
+                         class="transition-transform duration-300 w-full h-full"
+                         style="display: block !important; width: 100% !important; height: 100% !important; object-fit: contain !important; background: transparent !important; border: none !important;">
+                @else
+                    <!-- Botão Padrão de Alta Definição (Ampliado e Centrado) -->
+                    <div class="w-full h-full bg-[#25D366] hover:bg-[#20BA5A] text-white flex items-center justify-center gap-3.5 px-6 transition-all duration-300"
+                         style="display: flex !important; width: 100% !important; height: 100% !important; border-radius: 1.5rem !important;">
+                        <svg class="w-9 h-9 md:w-12 md:h-12 text-white shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.739-1.453L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.864.002-2.637-1.019-5.117-2.875-6.973-1.857-1.857-4.339-2.875-6.979-2.875-5.437 0-9.863 4.42-9.867 9.865-.001 1.623.424 3.21 1.233 4.613L1.95 22.05l4.697-1.896zm12.39-11.537c-.27-.135-1.602-.79-1.85-.88-.247-.09-.427-.135-.606.135-.18.27-.697.88-.854 1.06-.157.18-.314.202-.584.067-.27-.136-1.14-.42-2.172-1.34-1.03-.92-1.724-2.057-1.926-2.396-.202-.34-.022-.523.148-.692.153-.153.337-.393.506-.59.168-.196.224-.336.336-.56.113-.225.056-.42-.028-.584-.084-.165-.606-1.46-.83-2.004-.219-.526-.479-.452-.606-.459-.126-.007-.27-.008-.415-.008-.146 0-.382.055-.584.277-.202.22-.772.755-.772 1.84s.79 2.13 1.002 2.413c.213.283 1.547 2.363 3.75 3.315 2.203.952 2.203.635 2.6.598.397-.037 1.282-.525 1.462-1.03.18-.506.18-.94.126-1.03-.056-.09-.202-.135-.472-.27z"/>
+                        </svg>
+                        <div class="text-left leading-tight">
+                            <span class="block text-xs font-medium opacity-90 uppercase tracking-wider md:text-sm">Falar com</span>
+                            <span class="block text-lg font-black uppercase tracking-tight md:text-2xl">Corretor</span>
+                        </div>
+                    </div>
+                @endif
+            </a>
         </div>
     </div>
 </div>

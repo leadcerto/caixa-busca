@@ -2,7 +2,9 @@
 
 namespace App\Modules\Imobiliaria\Livewire;
 
+use App\Models\Imobiliaria;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -18,12 +20,18 @@ class ImobiliariaLogin extends Component
     {
         $this->validate();
 
-        if (!Auth::guard('imobiliaria')->attempt(['email' => $this->email, 'senha' => $this->senha])) {
+        $imobiliaria = Imobiliaria::where('email', $this->email)->first();
+
+        if (!$imobiliaria || !Hash::check($this->senha, $imobiliaria->senha)) {
             $this->addError('email', 'Credenciais inválidas.');
             return null;
         }
 
-        request()->session()->regenerate();
+        Auth::guard('imobiliaria')->login($imobiliaria);
+
+        if (request()->hasSession()) {
+            request()->session()->regenerate();
+        }
 
         return redirect()->intended(route('imobiliaria.painel'));
     }

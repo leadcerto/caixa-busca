@@ -6,10 +6,13 @@ use App\Models\Atendimento;
 use App\Models\AtendimentoOrigem;
 use App\Models\Imovel;
 use App\Models\Lead;
+use App\Models\WhatsappTemplate;
 use App\Modules\Imoveis\Jobs\DispatchCrmWebhookJob;
 use App\Modules\Imoveis\Services\UtmTrackerService;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -34,6 +37,7 @@ class ImovelShow extends Component
             'bairro',
             'tipoImovel',
             'ultimoHistorico.modalidade',
+            'imobiliaria',
         ]);
 
         $utmTracker->captureFromRequest();
@@ -41,7 +45,18 @@ class ImovelShow extends Component
 
     public function converterLead(UtmTrackerService $utmTracker): mixed
     {
+        $key = 'lead_form:' . request()->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $segundos = RateLimiter::availableIn($key);
+            throw ValidationException::withMessages([
+                'nome' => ["Muitas tentativas. Aguarde {$segundos} segundos antes de tentar novamente."],
+            ]);
+        }
+
         $this->validate();
+
+        RateLimiter::hit($key, 60);
 
         // Cria ou recupera o lead pelo e-mail
         $lead = Lead::firstOrCreate(
@@ -79,7 +94,7 @@ class ImovelShow extends Component
                 'id_imovel' => $this->imovel->id,
             ],
             [
-                'id_imobiliaria'   => $this->imovel->id_imobiliaria,
+                'id_imobiliaria'   => $this->imovel->resolved_imobiliaria?->id ?? $this->imovel->id_imobiliaria,
                 'id_origem'        => $origem?->id,
                 'mensagem'         => "{$this->nome} solicitou contato sobre o imóvel {$this->imovel->numero_original}.",
                 'whatsapp_enviado' => true,
@@ -110,12 +125,31 @@ class ImovelShow extends Component
         ]);
 
         // Gera link do WhatsApp com dados do lead e imóvel
-        $message = "Olá! Meu nome é {$this->nome}. Tenho interesse no imóvel "
-            . "{$this->imovel->tipoImovel?->nome} (Cód: {$this->imovel->numero_original}) "
-            . "em {$localidade}. Pode me ajudar?";
+        $vars = [
+            'nome'       => $this->nome,
+            'tipo_imovel' => $this->imovel->tipoImovel?->nome ?? 'Imóvel',
+            'codigo'     => $this->imovel->numero_original,
+            'localidade' => $localidade,
+            'municipio'  => $this->imovel->municipio?->nome ?? '',
+            'uf'         => $this->imovel->estado?->uf ?? '',
+        ];
 
-        $numero      = config('services.whatsapp.central', env('WHATSAPP_CENTRAL', '5511999999999'));
-        $whatsappUrl = 'https://api.whatsapp.com/send?phone=' . $numero . '&text=' . urlencode($message);
+        $fallback = "Olá! Meu nome é {$this->nome}. Tenho interesse no {$vars['tipo_imovel']} "
+            . "(Cód: {$vars['codigo']}) em {$localidade}. Pode me ajudar?";
+
+        $message = WhatsappTemplate::renderizarAtivo($vars, $fallback);
+
+        $resolvedImob = $this->imovel->resolved_imobiliaria;
+        $numero = $resolvedImob ? preg_replace('/\D/', '', $resolvedImob->whatsapp) : config('services.whatsapp.central', env('WHATSAPP_CENTRAL', '5521997882950'));
+
+        // Certifica de adicionar o DDI do Brasil (55) se estiver ausente
+        if (strlen($numero) > 0 && !str_starts_with($numero, '55')) {
+            if (strlen($numero) === 10 || strlen($numero) === 11) {
+                $numero = '55' . $numero;
+            }
+        }
+
+        $whatsappUrl = 'https://api.whatsapp.com/send/?phone=' . $numero . '&text=' . urlencode($message);
 
         return redirect()->away($whatsappUrl);
     }

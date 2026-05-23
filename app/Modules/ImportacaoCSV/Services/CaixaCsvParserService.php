@@ -51,33 +51,60 @@ class CaixaCsvParserService
         $this->grupos = ImovelGrupo::where('ativo', true)->orderBy('valor_minimo')->get()->all();
 
         $lineCount = 0;
-        $headers = [];
+        $headers = null;
 
         try {
             while (($row = fgetcsv($handle, 0, ';')) !== false) {
                 $lineCount++;
 
                 $row = array_map(
-                    fn($cell) => mb_convert_encoding($cell, 'UTF-8', 'ISO-8859-1'),
+                    fn($cell) => $cell !== null ? mb_convert_encoding($cell, 'UTF-8', 'ISO-8859-1') : '',
                     $row
                 );
 
-                if ($lineCount === 1) {
-                    $this->extractDataGeracao($row[0]);
+                // Ignora linhas completamente vazias
+                $nonEmpty = array_filter($row, fn($c) => trim($c) !== '');
+                if (empty($nonEmpty)) {
                     continue;
                 }
 
-                if ($lineCount === 2) {
-                    $headers = $this->sanitizeHeaders($row);
-                    continue;
+                // Se ainda não detectou a data de geração, procura na linha atual
+                if ($this->dataGeracao === null) {
+                    $isMetadata = false;
+                    foreach ($row as $cell) {
+                        if (stripos($cell, 'Lista de Imóveis') !== false || stripos($cell, 'Data de geração') !== false) {
+                            $isMetadata = true;
+                            break;
+                        }
+                    }
+                    if ($isMetadata) {
+                        $this->extractDataGeracao($row);
+                        continue;
+                    }
                 }
 
-                if ($lineCount === 3) {
-                    continue;
+                // Se ainda não detectou o cabeçalho, procura a linha contendo "N° do imóvel" ou variantes
+                if (empty($headers)) {
+                    $isHeader = false;
+                    foreach ($row as $cell) {
+                        $cleanCell = trim(mb_strtolower($cell));
+                        if ($cleanCell === 'n° do imóvel' || $cleanCell === 'nº do imóvel' || $cleanCell === 'n. do imovel' || $cleanCell === 'numero_do_imovel') {
+                            $isHeader = true;
+                            break;
+                        }
+                    }
+                    if ($isHeader) {
+                        $headers = $this->sanitizeHeaders($row);
+                        if ($this->dataGeracao === null) {
+                            $this->dataGeracao = now()->toDateTimeString();
+                        }
+                        continue;
+                    }
+                    continue; // Pula linhas de metadados ou vazias antes do cabeçalho
                 }
 
                 if (count($headers) !== count($row)) {
-                    Log::warning("CaixaCsvParser: Linha {$lineCount} ignorada — colunas incompatíveis.");
+                    Log::warning("CaixaCsvParser: Linha {$lineCount} ignorada — colunas incompatíveis. Esperadas " . count($headers) . ", recebidas " . count($row));
                     continue;
                 }
 
@@ -86,7 +113,11 @@ class CaixaCsvParserService
                 try {
                     $this->processRow($data);
                 } catch (\Exception $e) {
-                    Log::warning("CaixaCsvParser: Falha na linha {$lineCount}: " . $e->getMessage());
+                    $msg = "CaixaCsvParser: Falha na linha {$lineCount}: " . $e->getMessage();
+                    Log::warning($msg);
+                    if (app()->runningInConsole()) {
+                        echo $msg . "\n";
+                    }
                 }
             }
         } catch (\Exception $e) {
@@ -98,7 +129,22 @@ class CaixaCsvParserService
 
     private function processRow(array $data): void
     {
-        $idCaixa = trim($data['numero_do_imovel'] ?? '');
+        // Bug fix: N° do imóvel chega em notação científica (1,44442E+12) quando
+        // o Excel gera o CSV. O número real está no parâmetro hdnimovel da URL.
+        $link    = trim($data['link_de_acesso'] ?? '');
+        $idCaixa = $this->extractHdnimovel($link);
+
+        if (!$idCaixa) {
+            $rawNum = trim($data['numero_do_imovel'] ?? '');
+            if (stripos($rawNum, 'E+') !== false) {
+                // Se estiver em notação científica, converte para inteiro string normalizado
+                $floatVal = (float) str_replace(',', '.', $rawNum);
+                $idCaixa = sprintf('%.0f', $floatVal);
+            } else {
+                $idCaixa = preg_replace('/\D/', '', $rawNum);
+            }
+        }
+
         $precoStr = $data['preco'] ?? '';
 
         if (!$idCaixa || !$precoStr) {
@@ -107,7 +153,7 @@ class CaixaCsvParserService
 
         $preco          = $this->cleanMoney($precoStr);
         $valorAvaliacao = $this->cleanMoney($data['valor_de_avaliacao'] ?? '0');
-        $desconto       = (float) str_replace(['.', ','], ['', '.'], $data['desconto'] ?? '0');
+        $desconto       = $this->cleanDecimal($data['desconto'] ?? '0');
 
         $attrs    = $this->parseDescription($data['descricao'] ?? '');
         $location = $this->parseBairro($data['bairro'] ?? '');
@@ -139,10 +185,13 @@ class CaixaCsvParserService
             }
         }
 
-        $nomeTipo     = trim($data['tipo_de_imovel'] ?? '');
+        $nomeTipo     = trim($data['tipo_de_imovel'] ?? $attrs['tipo_imovel'] ?? '');
         $idTipoImovel = $nomeTipo ? $this->resolveTipoImovel($nomeTipo) : null;
 
         $nomeModalidade = trim($data['modalidade_de_venda'] ?? '');
+        if (!in_array($nomeModalidade, ['Venda Online', 'Venda Direta Online'], true)) {
+            throw new \Exception("Modalidade de venda não permitida: \"{$nomeModalidade}\".");
+        }
         $idModalidade   = $nomeModalidade ? $this->resolveModalidade($nomeModalidade) : null;
 
         if (!$idModalidade) {
@@ -153,7 +202,8 @@ class CaixaCsvParserService
 
         $idGrupo = $valorAvaliacao > 0 ? $this->resolveGrupo($valorAvaliacao) : null;
 
-        $aceitaFgts = $this->parseAceitaFgts($data['aceita_fgts'] ?? '');
+        // Bug fix: CSV não tem coluna "aceita_fgts" — a coluna real é "Financiamento"
+        $aceitaFgts = $this->parseAceitaFgts($data['financiamento'] ?? '');
 
         // Dados textuais necessários para gerar SEO dentro da transação
         $nomeBairro = $location['bairro'];
@@ -162,7 +212,7 @@ class CaixaCsvParserService
             $idCaixa, $preco, $valorAvaliacao, $desconto, $data, $attrs,
             $idEstado, $idMunicipio, $idBairro, $idSubBairro,
             $idTipoImovel, $idModalidade, $idImobiliaria, $idGrupo, $aceitaFgts,
-            $nomeTipo, $nomeBairro, $nomeCidade, $uf
+            $nomeTipo, $nomeBairro, $nomeCidade, $uf, $link
         ) {
             // Campos fixos sempre atualizados
             $campos = [
@@ -172,7 +222,9 @@ class CaixaCsvParserService
                 'area_total'         => $attrs['area_total'] ?: null,
                 'quartos'            => $attrs['quartos'] ?: null,
                 'garagens'           => $attrs['vagas'] ?: null,
-                'link_edital'        => $data['link_edital'] ?? null,
+                // Bug fix: coluna CSV é "link_de_acesso", não "link_edital"
+                'link_edital'        => $link ?: null,
+                'foto_fachada_url'   => "https://venda-imoveis.caixa.gov.br/fotos/F" . str_pad($idCaixa, 13, '0', STR_PAD_LEFT) . "21.jpg",
                 'aceita_fgts'        => $aceitaFgts,
                 'status'             => 'ativo',
                 'updated_at'         => $this->dataGeracao,
@@ -338,7 +390,11 @@ class CaixaCsvParserService
     private function resolveModalidade(string $nome): ?int
     {
         if (!array_key_exists($nome, $this->modalidadeCache)) {
-            $this->modalidadeCache[$nome] = ModalidadeVenda::where('nome', $nome)->value('id');
+            $modalidade = ModalidadeVenda::firstOrCreate(
+                ['nome' => $nome],
+                ['ativo' => true]
+            );
+            $this->modalidadeCache[$nome] = $modalidade->id;
         }
         return $this->modalidadeCache[$nome];
     }
@@ -408,25 +464,29 @@ class CaixaCsvParserService
     // Parsers
     // -------------------------------------------------------------------------
 
-    private function extractDataGeracao(string $firstCell): void
+    private function extractDataGeracao(array|string $row): void
     {
-        if (preg_match('/(\d{2}\/\d{2}\/\d{4})/', $firstCell, $matches)) {
-            try {
-                $this->dataGeracao = Carbon::createFromFormat('d/m/Y', $matches[1])
-                    ->startOfDay()
-                    ->toDateTimeString();
-            } catch (\Exception) {
-                $this->dataGeracao = now()->toDateTimeString();
+        $cells = is_array($row) ? $row : [$row];
+        foreach ($cells as $cell) {
+            if (preg_match('/(\d{2}\/\d{2}\/\d{4})/', $cell, $matches)) {
+                try {
+                    $this->dataGeracao = Carbon::createFromFormat('d/m/Y', $matches[1])
+                        ->startOfDay()
+                        ->toDateTimeString();
+                    return;
+                } catch (\Exception) {
+                }
             }
-        } else {
-            $this->dataGeracao = now()->toDateTimeString();
         }
+        $this->dataGeracao = now()->toDateTimeString();
     }
 
     private function sanitizeHeaders(array $row): array
     {
         return array_map(function ($header) {
+            $header = trim($header);
             $header = mb_strtolower($header, 'UTF-8');
+            $header = str_replace(['n°', 'nº'], 'numero', $header);
             $header = str_replace(' ', '_', $header);
             $header = preg_replace('/[àáâãä]/u', 'a', $header);
             $header = preg_replace('/[èéêë]/u', 'e', $header);
@@ -441,7 +501,11 @@ class CaixaCsvParserService
 
     private function parseDescription(string $desc): array
     {
-        $attrs = ['quartos' => 0, 'vagas' => 0, 'area_total' => 0.0];
+        $attrs = ['quartos' => 0, 'vagas' => 0, 'area_total' => 0.0, 'tipo_imovel' => ''];
+
+        if (preg_match('/^([^,]+)/u', $desc, $matches)) {
+            $attrs['tipo_imovel'] = trim($matches[1]);
+        }
 
         if (preg_match('/(\d+[.,]\d+)\s*m[²2]/u', $desc, $matches)) {
             $attrs['area_total'] = (float) str_replace(',', '.', $matches[1]);
@@ -473,7 +537,35 @@ class CaixaCsvParserService
 
     private function cleanMoney(string $value): float
     {
-        return (float) str_replace(['.', ','], ['', '.'], $value);
+        return $this->cleanDecimal($value);
+    }
+
+    private function cleanDecimal(string $value): float
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return 0.0;
+        }
+
+        // If there's a comma and a dot, e.g. 51.111,93
+        if (strpos($value, ',') !== false && strpos($value, '.') !== false) {
+            // Find which one is last
+            if (strrpos($value, ',') > strrpos($value, '.')) {
+                // Comma is decimal, dot is thousand separator
+                return (float) str_replace(['.', ','], ['', '.'], $value);
+            } else {
+                // Dot is decimal, comma is thousand separator
+                return (float) str_replace([',', '.'], ['', '.'], $value);
+            }
+        }
+
+        // If there's only a comma, e.g. 70,46
+        if (strpos($value, ',') !== false) {
+            return (float) str_replace(',', '.', $value);
+        }
+
+        // If there's only a dot, e.g. 70.46
+        return (float) $value;
     }
 
     private function parseAceitaFgts(string $valor): string
@@ -482,5 +574,12 @@ class CaixaCsvParserService
         if (in_array($valor, ['sim', 's', 'yes', '1'], true)) return 'sim';
         if (in_array($valor, ['não', 'nao', 'n', 'no', '0'], true)) return 'nao';
         return 'nao_informado';
+    }
+
+    private function extractHdnimovel(string $link): ?string
+    {
+        if (!$link) return null;
+        preg_match('/hdnimovel=(\d+)/i', $link, $matches);
+        return $matches[1] ?? null;
     }
 }

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(cd \"c:\\\\Users\\\\PICHAU\\\\Desktop\\\\- LEAD CERTO\\\\Antigravity\\\\caixa-busca\"; Measure-Command { php vendor/bin/phpunit --filter \"AuthTest|CsvImportacao|ExampleTest\" 2>&1 | Out-Null } | Select TotalSeconds)"
+    ]
+  }
+}

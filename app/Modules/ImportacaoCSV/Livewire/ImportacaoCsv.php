@@ -34,7 +34,7 @@ class ImportacaoCsv extends Component
      * Regras de validao estritas.
      */
     protected $rules = [
-        'csvFile' => 'required|mimes:csv,txt|max:10240', // Limite de 10MB
+        'csvFile' => 'required|file|extensions:csv,txt|max:51200', // Limite de 50MB
     ];
 
     /**
@@ -42,8 +42,10 @@ class ImportacaoCsv extends Component
      */
     protected $messages = [
         'csvFile.required' => 'Por favor, selecione um arquivo.',
-        'csvFile.mimes' => 'O arquivo deve ser obrigatoriamente um CSV.',
-        'csvFile.max' => 'O arquivo  muito grande. O limite  de 10MB.',
+        'csvFile.file' => 'O arquivo enviado é inválido.',
+        'csvFile.extensions' => 'O arquivo deve ser obrigatoriamente um CSV ou TXT.',
+        'csvFile.max' => 'O arquivo é muito grande. O limite é de 50MB.',
+        'csvFile.uploaded' => 'O upload falhou. O arquivo de 3.81MB é maior do que o limite atual de 2MB do seu PHP local (Herd). Siga os passos de configuração abaixo para liberar uploads maiores.',
     ];
 
     /**
@@ -64,7 +66,7 @@ class ImportacaoCsv extends Component
             ProcessCaixaCsvJob::dispatch($absolutePath);
 
             // Atualiza o estado da interface (Caminho Feliz)
-            $this->message = "O arquivo foi enviado para processamento em background. Voc pode continuar navegando com segurana.";
+            $this->message = "O arquivo foi enviado para processamento em background. Você pode continuar navegando com segurança.";
             $this->messageType = 'success';
             
             // Limpa o input de arquivo
@@ -73,7 +75,7 @@ class ImportacaoCsv extends Component
             Log::info("UI_IMPORTACAO: Upload realizado com sucesso. Caminho: {$absolutePath}");
 
         } catch (\Exception $e) {
-            $this->message = "Erro ao iniciar importao: " . $e->getMessage();
+            $this->message = "Erro ao iniciar importação: " . $e->getMessage();
             $this->messageType = 'error';
             Log::error("UI_IMPORTACAO: Falha no upload: " . $e->getMessage());
         }
@@ -84,6 +86,7 @@ class ImportacaoCsv extends Component
      */
     public function render()
     {
-        return view('modules.importacao-csv.livewire.importacao-csv');
+        return view('modules.importacao-csv.livewire.importacao-csv')
+            ->layout('layouts.admin', ['title' => 'Importar CSV']);
     }
 }

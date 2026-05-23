@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Imovel extends Model
 {
+    use HasFactory, SoftDeletes;
+
     protected $table = 'imoveis';
 
     protected $fillable = [
@@ -67,6 +71,17 @@ class Imovel extends Model
         return 'slug';
     }
 
+    public function getLinkMatriculaAttribute(): string
+    {
+        $uf = strtoupper($this->estado?->uf ?? 'RJ');
+        return "https://venda-imoveis.caixa.gov.br/editais/matricula/{$uf}/{$this->numero_original}.pdf";
+    }
+
+    public function getImagemDestaqueUrlAttribute(): string
+    {
+        return asset("images/imoveis/{$this->slug}.jpg");
+    }
+
     public function historico()
     {
         return $this->hasMany(ImovelHistorico::class, 'id_imovel');
@@ -120,5 +135,56 @@ class Imovel extends Model
     public function atendimentos()
     {
         return $this->hasMany(Atendimento::class, 'id_imovel');
+    }
+
+    public function getMatriculaAttribute(): string
+    {
+        if (preg_match('/Matrícula(?:\s+nº|\s+number)?\s*:?\s*([0-9\.\-\/]+)/i', $this->descricao_original, $matches)) {
+            return trim($matches[1]);
+        }
+        return 'Não informada';
+    }
+
+    public function getComarcaAttribute(): string
+    {
+        if (preg_match('/Comarca\s+(?:de\s+)?([A-Za-zÀ-ÖØ-öø-ÿ\s\-\/]+?)(?=\.|\,|\s*Ofício|\s*Matrícula|$)/i', $this->descricao_original, $matches)) {
+            return trim($matches[1]);
+        }
+        return $this->municipio?->nome ?? 'Não informada';
+    }
+
+    public function getOficioAttribute(): string
+    {
+        if (preg_match('/([0-9]+º\s+Ofício|[0-9]+\s*Ofício)/i', $this->descricao_original, $matches)) {
+            return trim($matches[1]);
+        }
+        return 'Não informado';
+    }
+
+    public function getInscricaoImobiliariaAttribute(): string
+    {
+        if (preg_match('/(?:Inscrição(?:\s+imobiliária|\s+municipal)?|IPTU)\s*:?\s*([0-9\.\-\/]+)/i', $this->descricao_original, $matches)) {
+            return trim($matches[1]);
+        }
+        return 'Não informada';
+    }
+
+    public function getResolvedImobiliariaAttribute()
+    {
+        // 1. Se tem imobiliária direta ativa vinculada no imóvel, retorna ela
+        if ($this->imobiliaria && $this->imobiliaria->ativo) {
+            return $this->imobiliaria;
+        }
+
+        // 2. Senão, resolve dinamicamente buscando a primeira parceira ativa para o estado do imóvel
+        if ($this->id_estado) {
+            return Imobiliaria::where('ativo', 1)
+                ->whereHas('estados', function ($query) {
+                    $query->where('estados.id', $this->id_estado);
+                })
+                ->first();
+        }
+
+        return null;
     }
 }

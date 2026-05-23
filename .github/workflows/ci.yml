@@ -314,3 +314,38 @@ jobs:
           find . -name "*.md" -not -path "./.git/*" -print
 
           echo "Basic Markdown check completed."
+
+  laravel-tests:
+    name: Laravel Tests (PHP 8.3)
+    runs-on: ubuntu-latest
+    if: hashFiles('artisan') != ''
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3, mbstring, json, dom, curl
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction --optimize-autoloader
+
+      - name: Copy environment file
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run PHPUnit tests
+        run: php artisan test --stop-on-failure

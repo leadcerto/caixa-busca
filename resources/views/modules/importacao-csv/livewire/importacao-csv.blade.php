@@ -1,14 +1,14 @@
-<!-- Componente de Importao de CSV - VLPHP -->
-<!-- Regra: Design focado em Epicentro (Upload) e Trs Estados (Vazio, Loading, Erro) -->
+<!-- Componente de Importação de CSV - VLPHP -->
+<!-- Regra: Design focado em Epicentro (Upload) e Três Estados (Vazio, Loading, Erro) -->
 
 <div class="max-w-4xl mx-auto py-12 px-6">
     
-    <!-- Cabealho da Pgina -->
+    <!-- Cabeçalho da Página -->
     <div class="mb-10 text-center md:text-left border-b border-gray-100 pb-6">
         <h1 class="text-3xl font-extrabold text-[#005CA9] tracking-tight">
-            Central de Importao <span class="text-gray-400 font-light">| Caixa Econmica</span>
+            Central de Importação
         </h1>
-        <p class="text-gray-500 mt-2 text-lg">Atualize a base de imveis em massa utilizando o arquivo CSV oficial.</p>
+        <p class="text-gray-500 mt-2 text-lg">Atualize a base de imóveis utilizando o arquivo CSV oficial fornecido pela CAIXA.</p>
     </div>
 
     <!-- Alertas de Feedback (Estado de Sucesso ou Erro Crítico) -->
@@ -35,7 +35,7 @@
         </div>
     @endif
 
-    <!-- Container Principal do Formulrio -->
+    <!-- Container Principal do Formulário -->
     <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
         
         <form wire:submit.prevent="save" class="p-10">
@@ -45,9 +45,9 @@
                 <div class="border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center transition-all duration-300 group-hover:border-[#005CA9] group-hover:bg-blue-50/30">
                     
                     <!-- Input de Arquivo Escondido (Overlay) -->
-                    <input type="file" wire:model="csvFile" id="csv_file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                    <input type="file" wire:model="csvFile" id="csv_file" accept=".csv,.txt" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
 
-                    <!-- Contedo Visual do Dropzone -->
+                    <!-- Conteúdo Visual do Dropzone -->
                     <div class="flex flex-col items-center">
                         <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6 text-[#005CA9] group-hover:scale-110 transition-transform duration-300">
                             <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -92,26 +92,26 @@
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
 
-                    <span wire:loading.remove wire:target="save">Iniciar Importao em Massa</span>
+                    <span wire:loading.remove wire:target="save">Iniciar Importação</span>
                     <span wire:loading wire:target="save">Preparando Dados...</span>
                 </button>
             </div>
         </form>
 
-        <!-- Rodap com Instrues -->
+        <!-- Rodapé com Instruções -->
         <div class="bg-gray-50 p-8 border-t border-gray-100">
             <h4 class="text-[#005CA9] font-bold text-sm uppercase tracking-widest flex items-center">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Instrues de Segurana
+                Instruções de Segurança
             </h4>
             <div class="grid md:grid-cols-2 gap-6 mt-4">
                 <div class="text-sm text-gray-500 leading-relaxed">
-                    <p><strong>1. Formato:</strong> O sistema aceita apenas arquivos .csv codificados em UTF-8 ou ISO-8859-1 (Padro Caixa).</p>
+                    <p><strong>1. Formato:</strong> O sistema aceita apenas arquivos .csv codificados em UTF-8 ou ISO-8859-1 (Padrão Caixa).</p>
                     <p class="mt-2"><strong>2. Pular Linhas:</strong> O motor ignora automaticamente as 3 primeiras linhas (metadados e separadores).</p>
                 </div>
                 <div class="text-sm text-gray-500 leading-relaxed">
-                    <p><strong>3. Background:</strong> A importao rodar em segundo plano. Voc receber uma notificao ao finalizar.</p>
-                    <p class="mt-2"><strong>4. Deduplicao:</strong> Imveis j existentes tero seus dados e preos atualizados automaticamente.</p>
+                    <p><strong>3. Background:</strong> A importação rodará em segundo plano. Você receberá uma notificação ao finalizar.</p>
+                    <p class="mt-2"><strong>4. Deduplicação:</strong> Imóveis já existentes terão seus dados e preços atualizados automaticamente.</p>
                 </div>
             </div>
         </div>
