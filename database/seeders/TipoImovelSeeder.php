@@ -20,6 +20,11 @@ class TipoImovelSeeder extends Seeder
             ['nome' => 'Prédio',       'ativo' => true],
         ];
 
-        DB::table('tipos_imovel')->insert($tipos);
+        foreach ($tipos as $tipo) {
+            DB::table('tipos_imovel')->updateOrInsert(
+                ['nome' => $tipo['nome']],
+                ['ativo' => $tipo['ativo']]
+            );
+        }
     }
 }

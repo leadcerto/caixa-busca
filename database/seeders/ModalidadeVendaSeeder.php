@@ -17,6 +17,11 @@ class ModalidadeVendaSeeder extends Seeder
             ['nome' => 'Venda Direta Online',  'ativo' => true],
         ];
 
-        DB::table('modalidades_venda')->insert($modalidades);
+        foreach ($modalidades as $mod) {
+            DB::table('modalidades_venda')->updateOrInsert(
+                ['nome' => $mod['nome']],
+                ['ativo' => $mod['ativo']]
+            );
+        }
     }
 }

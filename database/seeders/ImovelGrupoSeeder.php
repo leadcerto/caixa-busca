@@ -19,11 +19,11 @@ class ImovelGrupoSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('imoveis_grupos')->insert([
+        $grupos = [
             [
                 'nome'         => 'Faixa 1 — Até R$ 90 mil',
                 'valor_minimo' => 0.00,
-                'valor_maximo' => 90_000.00,
+                'valor_maximo' => 90000.00,
                 'percentual_1' => 5.00,
                 'percentual_2' => null,
                 'valor_fixo_1' => null,
@@ -34,8 +34,8 @@ class ImovelGrupoSeeder extends Seeder
             ],
             [
                 'nome'         => 'Faixa 2 — R$ 90 mil a R$ 180 mil',
-                'valor_minimo' => 90_000.01,
-                'valor_maximo' => 180_000.00,
+                'valor_minimo' => 90000.01,
+                'valor_maximo' => 180000.00,
                 'percentual_1' => 10.00,
                 'percentual_2' => null,
                 'valor_fixo_1' => null,
@@ -46,8 +46,8 @@ class ImovelGrupoSeeder extends Seeder
             ],
             [
                 'nome'         => 'Faixa 3 — R$ 180 mil a R$ 300 mil',
-                'valor_minimo' => 180_000.01,
-                'valor_maximo' => 300_000.00,
+                'valor_minimo' => 180000.01,
+                'valor_maximo' => 300000.00,
                 'percentual_1' => 20.00,
                 'percentual_2' => null,
                 'valor_fixo_1' => null,
@@ -58,8 +58,8 @@ class ImovelGrupoSeeder extends Seeder
             ],
             [
                 'nome'         => 'Faixa 4 — R$ 300 mil a R$ 500 mil',
-                'valor_minimo' => 300_000.01,
-                'valor_maximo' => 500_000.00,
+                'valor_minimo' => 300000.01,
+                'valor_maximo' => 500000.00,
                 'percentual_1' => 30.00,
                 'percentual_2' => null,
                 'valor_fixo_1' => null,
@@ -70,8 +70,8 @@ class ImovelGrupoSeeder extends Seeder
             ],
             [
                 'nome'         => 'Faixa 5 — Acima de R$ 500 mil',
-                'valor_minimo' => 500_000.01,
-                'valor_maximo' => 99_999_999.99,
+                'valor_minimo' => 500000.01,
+                'valor_maximo' => 99999999.99,
                 'percentual_1' => 40.00,
                 'percentual_2' => null,
                 'valor_fixo_1' => null,
@@ -80,6 +80,23 @@ class ImovelGrupoSeeder extends Seeder
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ],
-        ]);
+        ];
+
+        foreach ($grupos as $grupo) {
+            DB::table('imoveis_grupos')->updateOrInsert(
+                ['nome' => $grupo['nome']],
+                [
+                    'valor_minimo' => $grupo['valor_minimo'],
+                    'valor_maximo' => $grupo['valor_maximo'],
+                    'percentual_1' => $grupo['percentual_1'],
+                    'percentual_2' => $grupo['percentual_2'],
+                    'valor_fixo_1' => $grupo['valor_fixo_1'],
+                    'valor_fixo_2' => $grupo['valor_fixo_2'],
+                    'ativo'        => $grupo['ativo'],
+                    'created_at'   => $grupo['created_at'],
+                    'updated_at'   => $grupo['updated_at'],
+                ]
+            );
+        }
     }
 }

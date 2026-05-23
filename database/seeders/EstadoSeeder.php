@@ -42,6 +42,11 @@ class EstadoSeeder extends Seeder
             ['nome' => 'Tocantins',           'uf' => 'TO'],
         ];
 
-        DB::table('estados')->insert($estados);
+        foreach ($estados as $estado) {
+            DB::table('estados')->updateOrInsert(
+                ['uf' => $estado['uf']],
+                ['nome' => $estado['nome']]
+            );
+        }
     }
 }

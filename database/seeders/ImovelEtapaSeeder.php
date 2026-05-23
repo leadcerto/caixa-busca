@@ -22,6 +22,15 @@ class ImovelEtapaSeeder extends Seeder
             ['nome' => 'Cálculos financeiros',         'descricao' => 'Enquadramento em grupos e cálculos de percentual', 'ordem' => 7, 'ativo' => true],
         ];
 
-        DB::table('imoveis_etapas')->insert($etapas);
+        foreach ($etapas as $etapa) {
+            DB::table('imoveis_etapas')->updateOrInsert(
+                ['ordem' => $etapa['ordem']],
+                [
+                    'nome' => $etapa['nome'],
+                    'descricao' => $etapa['descricao'],
+                    'ativo' => $etapa['ativo']
+                ]
+            );
+        }
     }
 }

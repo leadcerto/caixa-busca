@@ -20,6 +20,11 @@ class AtendimentoOrigemSeeder extends Seeder
             ['nome' => 'Blog',                    'ativo' => true],
         ];
 
-        DB::table('atendimentos_origem')->insert($origens);
+        foreach ($origens as $origem) {
+            DB::table('atendimentos_origem')->updateOrInsert(
+                ['nome' => $origem['nome']],
+                ['ativo' => $origem['ativo']]
+            );
+        }
     }
 }
