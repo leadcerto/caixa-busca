@@ -1,4 +1,4 @@
-<div class="max-w-[1600px] mx-auto py-10 px-6 lg:px-10 space-y-10">
+<div class="max-w-[1600px] mx-auto py-10 px-6 lg:px-10 space-y-10" wire:poll.3s>
 
     <!-- HEADER / HERO SECTION -->
     <div class="relative bg-gradient-to-r from-[#005CA9] via-blue-800 to-[#004A87] rounded-[2.5rem] p-8 md:p-10 text-white shadow-xl overflow-hidden group">
@@ -54,7 +54,13 @@
                     <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg flex items-center shrink-0">
                         Sincronizado
                     </span>
-                    <span class="text-[10px] text-slate-400 truncate">Total da lista carregada</span>
+                    <span class="text-[10px] text-slate-400 flex items-center gap-1 truncate font-medium">
+                        <span class="relative flex h-1.5 w-1.5 shrink-0">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-450 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                        </span>
+                        Atualizando ao vivo
+                    </span>
                 </div>
             </div>
         </div>
