@@ -25,7 +25,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
 // Define o caminho público correto em produção para resolver o Vite e carregamento de assets
 if (file_exists('/home/u541302702')) {
-    $app->usePublicPath('/home/u541302702/domains/imoveisdacaixa.com.br/public_html/venda/public');
+    $app->usePublicPath('/home/u541302702/public_html/venda/public');
 }
 
 return $app;

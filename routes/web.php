@@ -162,22 +162,13 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
     $municipiosCount = 0;
     $bairrosCount = 0;
     $imoveisCount = 0;
-    $diagnosticoCaminhos = '';
     try {
         $estadosCount = \App\Models\Estado::count();
         $municipiosCount = \App\Models\Municipio::count();
         $bairrosCount = \App\Models\Bairro::count();
         $imoveisCount = \App\Models\Imovel::count();
-        
-        $p1 = '/home/u541302702/public_html/venda/public/build/manifest.json';
-        $p2 = '/home/u541302702/domains/imoveisdacaixa.com.br/public_html/venda/public/build/manifest.json';
-        
-        $diagnosticoCaminhos = "Caminho Público Atual: " . public_path() . "\n"
-            . "Caminho Base: " . base_path() . "\n"
-            . "Manifesto 1 (public_html) Existe? " . (file_exists($p1) ? 'SIM' : 'NÃO') . " (Modificado em: " . (file_exists($p1) ? date('Y-m-d H:i:s', filemtime($p1)) : '-') . ")\n"
-            . "Manifesto 2 (domains) Existe? " . (file_exists($p2) ? 'SIM' : 'NÃO') . " (Modificado em: " . (file_exists($p2) ? date('Y-m-d H:i:s', filemtime($p2)) : '-') . ")\n";
     } catch (\Throwable $e) {
-        $diagnosticoCaminhos = "Erro ao coletar caminhos: " . $e->getMessage();
+        // Ignora caso tabelas estejam vazias/ausentes
     }
     
     $logPath = storage_path('logs/laravel.log');
@@ -291,11 +282,6 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
                 <div>
                     <label>Variáveis de Conexão no .env Ativo</label>
                     <div class='mono'>" . htmlspecialchars($envContentSnippet) . "</div>
-                </div>
-
-                <div>
-                    <label>Caminhos e Manifestos do Servidor (Vite Diagnostic)</label>
-                    <div class='mono' style='color: #38bdf8;'>" . htmlspecialchars($diagnosticoCaminhos) . "</div>
                 </div>
 
                 <div style='flex-grow: 1; display: flex; flex-direction: column;'>
