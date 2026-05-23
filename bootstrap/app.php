@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'imobiliaria' => \App\Http\Middleware\ImobiliariaAuthMiddleware::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            '/verificar-erro-sistema',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

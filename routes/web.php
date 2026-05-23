@@ -22,8 +22,8 @@ Route::get('/buscar', fn() => redirect()->route('imoveis.index'));
 Route::get('/bairros/{uf}/{municipio_slug}/{bairro_slug}', PaginaBairro::class)->name('bairro.show');
 Route::get('/images/imoveis/{slug}.jpg', [App\Http\Controllers\ImovelImageController::class, 'serve'])->name('imovel.imagem');
 
-// Rota de diagnóstico temporária segura para capturar o Erro 500 em produção
-Route::get('/verificar-erro-sistema', function () {
+// Rota de diagnóstico temporária segura para capturar o Erro 500 em produção e configurar banco
+Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
     if (request('token') !== 'lcps1974') {
         abort(403);
     }
@@ -31,48 +31,142 @@ Route::get('/verificar-erro-sistema', function () {
     $envPath = base_path('.env');
     $envExists = file_exists($envPath);
     
-    $dbConfig = config('database.connections.mysql');
-    
-    $envContentSnippet = '';
-    if ($envExists) {
-        $lines = file($envPath);
-        foreach ($lines as $line) {
-            $trimmed = trim($line);
-            if (str_starts_with($trimmed, 'DB_') || str_starts_with($trimmed, 'APP_')) {
-                // Ofuscar valores para segurança
-                $parts = explode('=', $line, 2);
-                $key = trim($parts[0]);
-                $val = isset($parts[1]) ? trim($parts[1]) : '';
-                if ($key === 'DB_PASSWORD' && strlen($val) > 2) {
-                    $val = substr($val, 0, 2) . '***' . substr($val, -2);
-                } elseif ($key === 'DB_PASSWORD') {
-                    $val = '***';
+    // Se for um envio de POST, atualiza as credenciais
+    if (request()->isMethod('POST')) {
+        $host = request('db_host', '127.0.0.1');
+        $port = request('db_port', '3306');
+        $database = request('db_database', '');
+        $username = request('db_username', '');
+        $password = request('db_password', '');
+        
+        if ($envExists) {
+            $lines = file($envPath, FILE_IGNORE_NEW_LINES);
+            $newLines = [];
+            $dbKeys = [
+                'DB_HOST' => $host,
+                'DB_PORT' => $port,
+                'DB_DATABASE' => $database,
+                'DB_USERNAME' => $username,
+                'DB_PASSWORD' => $password,
+            ];
+            $replaced = [];
+            foreach ($lines as $line) {
+                $matched = false;
+                foreach ($dbKeys as $key => $val) {
+                    if (str_starts_with(trim($line), $key . '=')) {
+                        $newLines[] = "{$key}={$val}";
+                        $replaced[$key] = true;
+                        $matched = true;
+                        break;
+                    }
                 }
-                $envContentSnippet .= "{$key}={$val}\n";
+                if (!$matched) {
+                    $newLines[] = $line;
+                }
             }
+            foreach ($dbKeys as $key => $val) {
+                if (!isset($replaced[$key])) {
+                    $newLines[] = "{$key}={$val}";
+                }
+            }
+            file_put_contents($envPath, implode("\n", $newLines) . "\n");
+            
+            // Limpa o cache de configurações na Hostinger
+            try {
+                \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                $message = "Configurações gravadas com sucesso! Caches limpos e banco de dados migrado para a versão mais recente.";
+                $success = true;
+            } catch (\Throwable $e) {
+                $message = "Configurações gravadas, mas ocorreu um erro no artisan: " . $e->getMessage();
+                $success = false;
+            }
+        } else {
+            $message = "Erro: Arquivo .env não encontrado no servidor.";
+            $success = false;
         }
+        
+        return "
+        <!DOCTYPE html>
+        <html lang='pt-BR'>
+        <head>
+            <meta charset='UTF-8'>
+            <title>Resultado da Configuração</title>
+            <link href='https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap' rel='stylesheet'>
+            <style>
+                body { font-family: 'Outfit', sans-serif; background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+                .card { background: #1e293b; padding: 40px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; max-width: 500px; border: 1px solid " . ($success ? '#10b981' : '#ef4444') . "; }
+                h1 { color: " . ($success ? '#10b981' : '#ef4444') . "; margin-bottom: 20px; }
+                p { line-height: 1.6; color: #cbd5e1; }
+                .btn { display: inline-block; margin-top: 30px; padding: 12px 24px; background: #005CA9; color: #fff; text-decoration: none; border-radius: 12px; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <div class='card'>
+                <h1>" . ($success ? '✅ Sucesso!' : '⚠️ Atenção!') . "</h1>
+                <p>{$message}</p>
+                <a href='https://venda.imoveisdacaixa.com.br' class='btn'>Acessar o Site</a>
+            </div>
+        </body>
+        </html>
+        ";
     }
     
-    $logPath = storage_path('logs/laravel.log');
-    $lastLogs = 'Nenhum log encontrado';
-    if (file_exists($logPath)) {
-        $lines = file($logPath);
-        $lastLines = array_slice($lines, -60);
-        $lastLogs = implode("", $lastLines);
-    }
-    
-    return response()->json([
-        'env_exists' => $envExists,
-        'env_path' => $envPath,
-        'loaded_db_config' => [
-            'host' => $dbConfig['host'] ?? null,
-            'database' => $dbConfig['database'] ?? null,
-            'username' => $dbConfig['username'] ?? null,
-            'password_masked' => isset($dbConfig['password']) ? (strlen($dbConfig['password']) > 2 ? substr($dbConfig['password'], 0, 2) . '***' . substr($dbConfig['password'], -2) : '***') : 'null',
-        ],
-        'env_file_db_variables' => $envContentSnippet,
-        'logs' => $lastLogs
-    ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    // Exibe o painel HTML de preenchimento seguro das credenciais
+    return "
+    <!DOCTYPE html>
+    <html lang='pt-BR'>
+    <head>
+        <meta charset='UTF-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <title>Configurador Seguro - Imóveis da Caixa</title>
+        <link href='https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap' rel='stylesheet'>
+        <style>
+            body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #020617 100%); color: #f8fafc; min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; padding: 20px; }
+            .container { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); padding: 40px; border-radius: 30px; width: 100%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+            h1 { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 5px; color: #38bdf8; }
+            p.subtitle { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
+            .form-group { margin-bottom: 20px; }
+            label { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; tracking: 0.05em; color: #94a3b8; margin-bottom: 6px; }
+            input { width: 100%; box-sizing: border-box; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; color: #fff; font-size: 15px; transition: all 0.3s; }
+            input:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
+            .btn { width: 100%; background: #005CA9; color: #fff; border: none; border-radius: 12px; padding: 15px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
+            .btn:hover { background: #004b87; transform: translateY(-1px); }
+            .btn:active { transform: translateY(0); }
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <h1>⚙️ Configurador de Banco de Dados</h1>
+            <p class='subtitle'>Preencha as credenciais da Hostinger para conectar o sistema</p>
+            <form method='POST'>
+                <input type='hidden' name='_token' value='" . csrf_token() . "'>
+                <div class='form-group'>
+                    <label>MySQL Host</label>
+                    <input type='text' name='db_host' value='127.0.0.1' required>
+                </div>
+                <div class='form-group'>
+                    <label>MySQL Port</label>
+                    <input type='text' name='db_port' value='3306' required>
+                </div>
+                <div class='form-group'>
+                    <label>Nome do Banco de Dados (DB_DATABASE)</label>
+                    <input type='text' name='db_database' placeholder='Ex: u541302702_venda' required>
+                </div>
+                <div class='form-group'>
+                    <label>Usuário do Banco (DB_USERNAME)</label>
+                    <input type='text' name='db_username' placeholder='Ex: u541302702_user' required>
+                </div>
+                <div class='form-group'>
+                    <label>Senha do Banco (DB_PASSWORD)</label>
+                    <input type='password' name='db_password' placeholder='Sua senha do MySQL' required>
+                </div>
+                <button type='submit' class='btn'>Salvar Configuração</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    ";
 });
 
 // Retrocompatibilidade: URLs antigas do diagnóstico redirecionam para o painel admin protegido
