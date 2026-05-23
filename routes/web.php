@@ -133,6 +133,17 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
     try {
         \Illuminate\Support\Facades\DB::connection()->getPdo();
         $dbTestResult = "<span style='color: #10b981; font-weight: bold;'>✅ Conexão OK! Banco de dados conectado com sucesso!</span>";
+        
+        // Se solicitado via URL, executa a migração
+        if (request('migrate') === 'true') {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                $dbTestResult .= "<br><span style='color: #38bdf8; font-weight: bold;'>⚡ php artisan migrate executado com sucesso!</span>";
+            } catch (\Throwable $e) {
+                $dbTestResult .= "<br><span style='color: #ef4444; font-weight: bold;'>⚠️ Erro ao rodar migrate: " . htmlspecialchars($e->getMessage()) . "</span>";
+            }
+        }
     } catch (\Throwable $e) {
         $dbTestResult = "<span style='color: #ef4444; font-weight: bold;'>❌ Erro de Conexão: " . htmlspecialchars($e->getMessage()) . "</span>";
     }
@@ -222,6 +233,9 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
                     <div class='info-item'>
                         <span class='label-info'>Arquivo .env é Gravável?</span>
                         <span class='val-info'>{$envWritable}</span>
+                    </div>
+                    <div class='info-item' style='margin-top: 15px; border: none; padding: 0;'>
+                        <a href='?token=lcps1974&migrate=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #eab308; color: #000; text-align: center; text-decoration: none;'>⚡ Executar Migrações (Artisan Migrate)</a>
                     </div>
                 </div>
 
