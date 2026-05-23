@@ -1,4 +1,4 @@
-<div class="p-6 md:p-10 space-y-8 bg-slate-50 min-h-screen">
+<div class="p-6 md:p-10 space-y-8">
     
     <!-- Top Header Bar -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
