@@ -1,13 +1,13 @@
 <!-- Vitrine de Imóveis -->
-<div class="bg-gray-50 min-h-screen py-12 px-6">
+<div class="bg-slate-50 min-h-screen py-12 px-6 flex flex-col {{ $show_results ? '' : 'justify-center items-center' }}">
 
     <!-- Filtros de Busca -->
-    <div class="max-w-7xl mx-auto mb-12">
-        <div class="bg-[#005CA9] p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
-            <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/5 rounded-full"></div>
+    <div class="w-full max-w-5xl mx-auto {{ $show_results ? 'mb-12' : 'my-auto' }}">
+        <div class="bg-white p-8 md:p-12 rounded-[3rem] shadow-[0_20px_60px_-15px_rgba(0,92,169,0.15)] border border-blue-50/50 relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-50/20 rounded-full"></div>
 
-            <h2 class="text-white text-3xl font-black mb-8 flex items-center">
-                <span class="bg-[#F39200] w-2 h-8 mr-4 rounded-full"></span>
+            <h2 class="text-[#005CA9] text-3xl font-black mb-8 flex items-center">
+                <span class="bg-[#F39200] w-2.5 h-8 mr-4 rounded-full"></span>
                 Encontre sua Oportunidade
             </h2>
 
@@ -15,47 +15,47 @@
 
                 <!-- Número do Imóvel -->
                 <div class="space-y-2">
-                    <label class="block text-blue-100 text-[10px] font-black uppercase tracking-widest">Número do Imóvel</label>
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Número do Imóvel</label>
                     <input type="text" wire:model.live.debounce.300ms="busca_numero" placeholder="Ex: 8555510834062..."
-                           class="w-full bg-white/10 border-white/20 text-white placeholder-blue-300 rounded-2xl focus:ring-[#F39200] focus:border-[#F39200] h-14 px-5">
+                           class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 placeholder-slate-400 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 transition duration-200">
                 </div>
 
                 <!-- Estado -->
                 <div class="space-y-2">
-                    <label class="block text-blue-100 text-[10px] font-black uppercase tracking-widest">Estado (UF)</label>
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Estado (UF)</label>
                     <select wire:model.live="id_estado"
-                            class="w-full bg-white/10 border-white/20 text-white rounded-2xl focus:ring-[#F39200] focus:border-[#F39200] h-14 px-5 appearance-none cursor-pointer">
-                        <option value="" class="text-gray-900">Todos os Estados</option>
+                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 appearance-none cursor-pointer transition duration-200">
+                        <option value="">Todos os Estados</option>
                         @foreach($estados as $e)
-                            <option value="{{ $e->id }}" class="text-gray-900">{{ $e->uf }} – {{ $e->nome }}</option>
+                            <option value="{{ $e->id }}">{{ $e->uf }} – {{ $e->nome }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <!-- Cidade -->
                 <div class="space-y-2">
-                    <label class="block text-blue-100 text-[10px] font-black uppercase tracking-widest">Cidade</label>
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Cidade</label>
                     <select wire:model.live="id_municipio"
                             {{ empty($municipios) ? 'disabled' : '' }}
-                            class="w-full bg-white/10 border-white/20 text-white rounded-2xl focus:ring-[#F39200] focus:border-[#F39200] h-14 px-5 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                        <option value="" class="text-gray-900">Selecione uma Cidade</option>
+                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-950 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
+                        <option value="">Selecione uma Cidade</option>
                         @foreach($municipios as $m)
-                            <option value="{{ $m->id }}" class="text-gray-900">{{ $m->nome }}</option>
+                            <option value="{{ $m->id }}">{{ $m->nome }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <!-- Bairro Multi-Select Dropdown -->
                 <div class="space-y-2 relative" x-data="{ open: false }" @click.outside="open = false">
-                    <label class="block text-blue-100 text-[10px] font-black uppercase tracking-widest">Bairro</label>
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Bairro</label>
                     
                     <!-- Dropdown Trigger Button -->
                     <button type="button" 
                             @click="if ({{ empty($bairros) ? 'false' : 'true' }}) open = !open"
                             {{ empty($bairros) ? 'disabled' : '' }}
-                            class="w-full bg-white/10 border border-white/20 text-white rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] h-14 px-5 flex items-center justify-between cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left text-sm transition">
+                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-950 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] h-14 px-5 flex items-center justify-between cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left text-sm transition duration-200">
                         
-                        <span class="truncate pr-2">
+                        <span class="truncate pr-2 font-semibold">
                             @if(empty($bairros))
                                 Selecione uma Cidade
                             @elseif(empty($bairros_selecionados))
@@ -66,7 +66,7 @@
                         </span>
                         
                         <!-- Down Arrow Icon -->
-                        <svg class="w-4 h-4 text-blue-200 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
@@ -85,10 +85,10 @@
                         @if(!empty($bairros))
                             <!-- Utility Actions: Select All / Clear -->
                             <div class="flex items-center justify-between pb-2 border-b border-gray-100 text-xs">
-                                <button type="button" wire:click="selecionarTodosBairros" class="text-[#005CA9] font-bold hover:underline">
+                                <button type="button" wire:click="selecionarTodosBairros" class="text-[#005CA9] font-bold hover:underline cursor-pointer">
                                     Selecionar Todos
                                 </button>
-                                <button type="button" wire:click="limparBairrosSelecionados" class="text-gray-500 font-bold hover:underline">
+                                <button type="button" wire:click="limparBairrosSelecionados" class="text-gray-500 font-bold hover:underline cursor-pointer">
                                     Limpar
                                 </button>
                             </div>
@@ -111,51 +111,51 @@
 
                 <!-- Preço Mínimo -->
                 <div class="space-y-2">
-                    <label class="block text-blue-100 text-[10px] font-black uppercase tracking-widest">Preço Mínimo (R$)</label>
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Preço Mínimo (R$)</label>
                     <input type="text" wire:model.live.debounce.300ms="preco_min" placeholder="Ex: 100000"
-                           class="w-full bg-white/10 border-white/20 text-white placeholder-blue-300 rounded-2xl focus:ring-[#F39200] focus:border-[#F39200] h-14 px-5">
+                           class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 placeholder-slate-400 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 transition duration-200">
                 </div>
 
                 <!-- Preço Máximo -->
                 <div class="space-y-2">
-                    <label class="block text-blue-100 text-[10px] font-black uppercase tracking-widest">Preço Máximo (R$)</label>
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Preço Máximo (R$)</label>
                     <input type="text" wire:model.live.debounce.300ms="preco_max" placeholder="Ex: 500000"
-                           class="w-full bg-white/10 border-white/20 text-white placeholder-blue-300 rounded-2xl focus:ring-[#F39200] focus:border-[#F39200] h-14 px-5">
+                           class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 placeholder-slate-400 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 transition duration-200">
                 </div>
 
                 <!-- Financiamento -->
                 <div class="space-y-2">
-                    <label class="block text-blue-100 text-[10px] font-black uppercase tracking-widest">Financiamento / FGTS</label>
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Financiamento / FGTS</label>
                     <select wire:model.live="financiamento"
-                            class="w-full bg-white/10 border-white/20 text-white rounded-2xl focus:ring-[#F39200] focus:border-[#F39200] h-14 px-5 appearance-none cursor-pointer">
-                        <option value="todos" class="text-gray-900">Mostrar Todos</option>
-                        <option value="sim" class="text-gray-900">Somente com Financiamento</option>
+                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 appearance-none cursor-pointer transition duration-200">
+                        <option value="todos">Mostrar Todos</option>
+                        <option value="sim">Somente com Financiamento</option>
                     </select>
                 </div>
 
                 <!-- Ordenação -->
                 <div class="space-y-2">
-                    <label class="block text-blue-100 text-[10px] font-black uppercase tracking-widest">Ordenar Por</label>
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Ordenar Por</label>
                     <select wire:model.live="ordenacao"
-                            class="w-full bg-white/10 border-white/20 text-white rounded-2xl focus:ring-[#F39200] focus:border-[#F39200] h-14 px-5 appearance-none cursor-pointer">
-                        <option value="recente" class="text-gray-900">Mais Recentes</option>
-                        <option value="desconto_pct_desc" class="text-gray-900">Maior % de Desconto</option>
-                        <option value="desconto_reais_desc" class="text-gray-900">Maior Desconto (R$)</option>
-                        <option value="preco_asc" class="text-gray-900">Menor Preço de Venda</option>
-                        <option value="preco_desc" class="text-gray-900">Maior Preço de Venda</option>
+                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 appearance-none cursor-pointer transition duration-200">
+                        <option value="recente">Mais Recentes</option>
+                        <option value="desconto_pct_desc">Maior % de Desconto</option>
+                        <option value="desconto_reais_desc">Maior Desconto (R$)</option>
+                        <option value="preco_asc">Menor Preço de Venda</option>
+                        <option value="preco_desc">Maior Preço de Venda</option>
                     </select>
                 </div>
 
             </div>
 
             <!-- Botoes inferiores dos filtros -->
-            <div class="mt-8 flex justify-end gap-4">
+            <div class="mt-10 flex justify-end gap-4">
                 <button type="button" wire:click="limparFiltros"
-                        class="h-14 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition-all border border-white/10 px-8 text-sm">
+                        class="h-14 bg-slate-50 hover:bg-slate-100 text-[#005CA9] font-bold rounded-2xl transition-all border border-slate-200 px-8 text-sm cursor-pointer">
                     Limpar Filtros
                 </button>
                 <button type="button" wire:click="buscar"
-                        class="h-14 bg-[#F39200] hover:bg-[#d67e00] text-white flex items-center justify-center rounded-2xl shadow-lg shadow-orange-900/20 font-black uppercase text-xs tracking-wider px-8 transition-all duration-300">
+                        class="h-14 bg-[#F39200] hover:bg-[#d67e00] text-white flex items-center justify-center rounded-2xl shadow-lg shadow-orange-500/20 font-black uppercase text-xs tracking-wider px-10 transition-all duration-300 cursor-pointer">
                     BUSCAR
                 </button>
             </div>
