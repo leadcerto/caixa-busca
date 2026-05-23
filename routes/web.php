@@ -154,6 +154,16 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
                 $dbTestResult .= "<br><span style='color: #ef4444; font-weight: bold;'>⚠️ Erro ao rodar seed: " . htmlspecialchars($e->getMessage()) . "</span>";
             }
         }
+
+        // Se solicitado via URL, executa a fila uma vez
+        if (request('work_queue') === 'true') {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('queue:work', ['--once' => true, '--stop-when-empty' => true]);
+                $dbTestResult .= "<br><span style='color: #10b981; font-weight: bold;'>⚙️ Fila processada (queue:work --once) executado com sucesso!</span>";
+            } catch (\Throwable $e) {
+                $dbTestResult .= "<br><span style='color: #ef4444; font-weight: bold;'>⚠️ Erro ao processar fila: " . htmlspecialchars($e->getMessage()) . "</span>";
+            }
+        }
     } catch (\Throwable $e) {
         $dbTestResult = "<span style='color: #ef4444; font-weight: bold;'>❌ Erro de Conexão: " . htmlspecialchars($e->getMessage()) . "</span>";
     }
@@ -162,11 +172,16 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
     $municipiosCount = 0;
     $bairrosCount = 0;
     $imoveisCount = 0;
+    $jobsCount = 0;
+    $failedJobsCount = 0;
+    $queueConnection = env('QUEUE_CONNECTION', 'database');
     try {
         $estadosCount = \App\Models\Estado::count();
         $municipiosCount = \App\Models\Municipio::count();
         $bairrosCount = \App\Models\Bairro::count();
         $imoveisCount = \App\Models\Imovel::count();
+        $jobsCount = \Illuminate\Support\Facades\DB::table('jobs')->count();
+        $failedJobsCount = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
     } catch (\Throwable $e) {
         // Ignora caso tabelas estejam vazias/ausentes
     }
@@ -240,7 +255,7 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
                     <button type='submit' class='btn'>Salvar Configuração</button>
                 </form>
             </div>
-
+ 
             <!-- Coluna Direita: Diagnóstico e Logs -->
             <div class='card' style='display: flex; flex-direction: column; gap: 20px;'>
                 <div>
@@ -258,6 +273,10 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
                         <span class='val-info'>{$envWritable}</span>
                     </div>
                     <div class='info-item'>
+                        <span class='label-info'>Conexão de Fila (QUEUE_CONNECTION):</span>
+                        <span class='val-info' style='color: #eab308; font-weight: bold;'>{$queueConnection}</span>
+                    </div>
+                    <div class='info-item'>
                         <span class='label-info'>Estados no Banco:</span>
                         <span class='val-info'>{$estadosCount}</span>
                     </div>
@@ -271,11 +290,20 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
                     </div>
                     <div class='info-item'>
                         <span class='label-info'>Imóveis no Banco:</span>
-                        <span class='val-info'>{$imoveisCount}</span>
+                        <span class='val-info' style='color: #38bdf8; font-weight: bold;'>{$imoveisCount}</span>
                     </div>
-                    <div class='info-item' style='margin-top: 15px; border: none; padding: 0; display: flex; gap: 10px;'>
-                        <a href='?token=lcps1974&migrate=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #eab308; color: #000; text-align: center; text-decoration: none; flex: 1;'>⚡ Migrar Banco</a>
-                        <a href='?token=lcps1974&seed=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #10b981; color: #fff; text-align: center; text-decoration: none; flex: 1;'>🌱 Popular Dados (Seed)</a>
+                    <div class='info-item'>
+                        <span class='label-info'>Trabalhos na Fila (jobs):</span>
+                        <span class='val-info' style='color: #eab308; font-weight: bold;'>{$jobsCount}</span>
+                    </div>
+                    <div class='info-item'>
+                        <span class='label-info'>Trabalhos Falhados (failed_jobs):</span>
+                        <span class='val-info' style='color: #ef4444;'>{$failedJobsCount}</span>
+                    </div>
+                    <div class='info-item' style='margin-top: 15px; border: none; padding: 0; display: flex; flex-wrap: wrap; gap: 10px;'>
+                        <a href='?token=lcps1974&migrate=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #eab308; color: #000; text-align: center; text-decoration: none; flex: 1; min-width: 120px;'>⚡ Migrar Banco & Limpar Cache</a>
+                        <a href='?token=lcps1974&seed=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #10b981; color: #fff; text-align: center; text-decoration: none; flex: 1; min-width: 120px;'>🌱 Popular Dados (Seed)</a>
+                        <a href='?token=lcps1974&work_queue=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #3b82f6; color: #fff; text-align: center; text-decoration: none; flex: 1; min-width: 120px;'>⚙️ Processar Fila</a>
                     </div>
                 </div>
 
