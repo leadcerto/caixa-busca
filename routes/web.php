@@ -144,6 +144,16 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
                 $dbTestResult .= "<br><span style='color: #ef4444; font-weight: bold;'>⚠️ Erro ao rodar migrate: " . htmlspecialchars($e->getMessage()) . "</span>";
             }
         }
+
+        // Se solicitado via URL, executa o seed
+        if (request('seed') === 'true') {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+                $dbTestResult .= "<br><span style='color: #10b981; font-weight: bold;'>🌱 php artisan db:seed executado com sucesso!</span>";
+            } catch (\Throwable $e) {
+                $dbTestResult .= "<br><span style='color: #ef4444; font-weight: bold;'>⚠️ Erro ao rodar seed: " . htmlspecialchars($e->getMessage()) . "</span>";
+            }
+        }
     } catch (\Throwable $e) {
         $dbTestResult = "<span style='color: #ef4444; font-weight: bold;'>❌ Erro de Conexão: " . htmlspecialchars($e->getMessage()) . "</span>";
     }
@@ -234,8 +244,9 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
                         <span class='label-info'>Arquivo .env é Gravável?</span>
                         <span class='val-info'>{$envWritable}</span>
                     </div>
-                    <div class='info-item' style='margin-top: 15px; border: none; padding: 0;'>
-                        <a href='?token=lcps1974&migrate=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #eab308; color: #000; text-align: center; text-decoration: none;'>⚡ Executar Migrações (Artisan Migrate)</a>
+                    <div class='info-item' style='margin-top: 15px; border: none; padding: 0; display: flex; gap: 10px;'>
+                        <a href='?token=lcps1974&migrate=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #eab308; color: #000; text-align: center; text-decoration: none; flex: 1;'>⚡ Migrar Banco</a>
+                        <a href='?token=lcps1974&seed=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #10b981; color: #fff; text-align: center; text-decoration: none; flex: 1;'>🌱 Popular Dados (Seed)</a>
                     </div>
                 </div>
 
