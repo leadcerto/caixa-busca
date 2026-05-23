@@ -141,7 +141,7 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
     $recentLogs = 'Nenhum log encontrado no servidor.';
     if (file_exists($logPath)) {
         $logLines = file($logPath);
-        $recentLogs = implode("", array_slice($logLines, -40));
+        $recentLogs = implode("", array_slice($logLines, -150));
     }
     
     return "
