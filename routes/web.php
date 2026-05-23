@@ -111,58 +111,130 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
         </html>
         ";
     }
+    // Exibe o painel HTML de preenchimento seguro das credenciais com painel de diagnósticos integrado
+    $envWritable = is_writable($envPath) ? "<span style='color: #10b981;'>SIM</span>" : "<span style='color: #ef4444;'>NÃO</span>";
+    $envContentSnippet = '';
+    if ($envExists) {
+        $lines = file($envPath);
+        foreach ($lines as $line) {
+            if (str_starts_with(trim($line), 'DB_')) {
+                if (str_contains($line, 'PASSWORD')) {
+                    $envContentSnippet .= "DB_PASSWORD=***\n";
+                } else {
+                    $envContentSnippet .= $line;
+                }
+            }
+        }
+    } else {
+        $envContentSnippet = "Arquivo .env não encontrado!";
+    }
     
-    // Exibe o painel HTML de preenchimento seguro das credenciais
+    $dbTestResult = '';
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        $dbTestResult = "<span style='color: #10b981; font-weight: bold;'>✅ Conexão OK! Banco de dados conectado com sucesso!</span>";
+    } catch (\Throwable $e) {
+        $dbTestResult = "<span style='color: #ef4444; font-weight: bold;'>❌ Erro de Conexão: " . htmlspecialchars($e->getMessage()) . "</span>";
+    }
+    
+    $logPath = storage_path('logs/laravel.log');
+    $recentLogs = 'Nenhum log encontrado no servidor.';
+    if (file_exists($logPath)) {
+        $logLines = file($logPath);
+        $recentLogs = implode("", array_slice($logLines, -40));
+    }
+    
     return "
     <!DOCTYPE html>
     <html lang='pt-BR'>
     <head>
         <meta charset='UTF-8'>
         <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-        <title>Configurador Seguro - Imóveis da Caixa</title>
-        <link href='https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap' rel='stylesheet'>
+        <title>Diagnóstico & Configurador Seguro</title>
+        <link href='https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap' rel='stylesheet'>
         <style>
-            body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #020617 100%); color: #f8fafc; min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; padding: 20px; }
-            .container { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); padding: 40px; border-radius: 30px; width: 100%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-            h1 { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 5px; color: #38bdf8; }
-            p.subtitle { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
-            .form-group { margin-bottom: 20px; }
-            label { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; tracking: 0.05em; color: #94a3b8; margin-bottom: 6px; }
-            input { width: 100%; box-sizing: border-box; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; color: #fff; font-size: 15px; transition: all 0.3s; }
+            body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #0b0f19 0%, #020617 100%); color: #f8fafc; min-height: 100vh; margin: 0; padding: 40px 20px; box-sizing: border-box; }
+            .grid { display: grid; grid-template-columns: 1fr; gap: 30px; max-width: 1200px; margin: 0 auto; }
+            @media (min-width: 992px) { .grid { grid-template-columns: 450px 1fr; } }
+            .card { background: rgba(30, 41, 59, 0.45); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); padding: 35px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+            h1 { font-size: 22px; font-weight: 700; color: #38bdf8; margin-top: 0; margin-bottom: 5px; }
+            h2 { font-size: 18px; font-weight: 700; color: #f43f5e; margin-top: 0; margin-bottom: 20px; }
+            p.subtitle { color: #94a3b8; font-size: 13px; margin-top: 0; margin-bottom: 25px; }
+            .form-group { margin-bottom: 18px; }
+            label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 6px; }
+            input { width: 100%; box-sizing: border-box; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; color: #fff; font-size: 14px; transition: all 0.3s; }
             input:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
-            .btn { width: 100%; background: #005CA9; color: #fff; border: none; border-radius: 12px; padding: 15px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
+            .btn { width: 100%; background: #005CA9; color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
             .btn:hover { background: #004b87; transform: translateY(-1px); }
             .btn:active { transform: translateY(0); }
+            .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #030712; border: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: 12px; overflow-x: auto; white-space: pre-wrap; color: #34d399; }
+            .logs-panel { color: #cbd5e1; max-height: 250px; overflow-y: auto; }
+            .info-item { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 10px 0; font-size: 14px; }
+            .info-item:last-child { border-bottom: none; }
+            .label-info { color: #94a3b8; font-weight: 500; }
+            .val-info { font-family: 'JetBrains Mono', monospace; color: #e2e8f0; }
         </style>
     </head>
     <body>
-        <div class='container'>
-            <h1>⚙️ Configurador de Banco de Dados</h1>
-            <p class='subtitle'>Preencha as credenciais da Hostinger para conectar o sistema</p>
-            <form method='POST'>
-                <input type='hidden' name='_token' value='" . csrf_token() . "'>
-                <div class='form-group'>
-                    <label>MySQL Host</label>
-                    <input type='text' name='db_host' value='127.0.0.1' required>
+        <div class='grid'>
+            <!-- Coluna Esquerda: Formulário -->
+            <div class='card'>
+                <h1>⚙️ Banco de Dados</h1>
+                <p class='subtitle'>Configure os dados do MySQL Hostinger</p>
+                <form method='POST'>
+                    <input type='hidden' name='_token' value='" . csrf_token() . "'>
+                    <div class='form-group'>
+                        <label>MySQL Host</label>
+                        <input type='text' name='db_host' value='127.0.0.1' required>
+                    </div>
+                    <div class='form-group'>
+                        <label>MySQL Port</label>
+                        <input type='text' name='db_port' value='3306' required>
+                    </div>
+                    <div class='form-group'>
+                        <label>Nome do Banco de Dados (DB_DATABASE)</label>
+                        <input type='text' name='db_database' placeholder='Ex: u541302702_venda' required>
+                    </div>
+                    <div class='form-group'>
+                        <label>Usuário do Banco (DB_USERNAME)</label>
+                        <input type='text' name='db_username' placeholder='Ex: u541302702_user' required>
+                    </div>
+                    <div class='form-group'>
+                        <label>Senha do Banco (DB_PASSWORD)</label>
+                        <input type='password' name='db_password' placeholder='Sua senha do MySQL' required>
+                    </div>
+                    <button type='submit' class='btn'>Salvar Configuração</button>
+                </form>
+            </div>
+
+            <!-- Coluna Direita: Diagnóstico e Logs -->
+            <div class='card' style='display: flex; flex-direction: column; gap: 20px;'>
+                <div>
+                    <h2>🔍 Diagnóstico da Aplicação</h2>
+                    <div class='info-item'>
+                        <span class='label-info'>Status de Conexão com o Banco:</span>
+                        <span class='val-info'>{$dbTestResult}</span>
+                    </div>
+                    <div class='info-item'>
+                        <span class='label-info'>Arquivo .env Existe?</span>
+                        <span class='val-info'>" . ($envExists ? "<span style='color: #10b981;'>SIM</span>" : "<span style='color: #ef4444;'>NÃO</span>") . "</span>
+                    </div>
+                    <div class='info-item'>
+                        <span class='label-info'>Arquivo .env é Gravável?</span>
+                        <span class='val-info'>{$envWritable}</span>
+                    </div>
                 </div>
-                <div class='form-group'>
-                    <label>MySQL Port</label>
-                    <input type='text' name='db_port' value='3306' required>
+
+                <div>
+                    <label>Variáveis de Conexão no .env Ativo</label>
+                    <div class='mono'>" . htmlspecialchars($envContentSnippet) . "</div>
                 </div>
-                <div class='form-group'>
-                    <label>Nome do Banco de Dados (DB_DATABASE)</label>
-                    <input type='text' name='db_database' placeholder='Ex: u541302702_venda' required>
+
+                <div style='flex-grow: 1; display: flex; flex-direction: column;'>
+                    <label>Últimos Logs do Servidor (laravel.log)</label>
+                    <div class='mono logs-panel flex-grow-1'>" . htmlspecialchars($recentLogs) . "</div>
                 </div>
-                <div class='form-group'>
-                    <label>Usuário do Banco (DB_USERNAME)</label>
-                    <input type='text' name='db_username' placeholder='Ex: u541302702_user' required>
-                </div>
-                <div class='form-group'>
-                    <label>Senha do Banco (DB_PASSWORD)</label>
-                    <input type='password' name='db_password' placeholder='Sua senha do MySQL' required>
-                </div>
-                <button type='submit' class='btn'>Salvar Configuração</button>
-            </form>
+            </div>
         </div>
     </body>
     </html>
