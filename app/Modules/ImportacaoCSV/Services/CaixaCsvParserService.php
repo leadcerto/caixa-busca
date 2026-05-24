@@ -14,6 +14,7 @@ use App\Models\Municipio;
 use App\Models\SubBairro;
 use App\Models\TipoImovel;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -34,12 +35,20 @@ class CaixaCsvParserService
     // Grupos carregados uma única vez no início do processo
     private array $grupos = [];
 
+    /**
+     * Chave de cache usada para expor o progresso em tempo real ao dashboard.
+     */
+    public const PROGRESS_CACHE_KEY = 'csv_import_progress';
+
     public function process(string $filePath): void
     {
         if (!file_exists($filePath)) {
             Log::error("CaixaCsvParser: Arquivo não encontrado em {$filePath}");
             return;
         }
+
+        // Conta o total de linhas para calcular percentual de progresso
+        $totalLines = $this->countLines($filePath);
 
         $handle = fopen($filePath, 'r');
         if (!$handle) {
@@ -50,7 +59,20 @@ class CaixaCsvParserService
         $this->etapaImportacaoId = ImovelEtapa::where('ordem', 1)->value('id');
         $this->grupos = ImovelGrupo::where('ativo', true)->orderBy('valor_minimo')->get()->all();
 
+        // Publica o estado inicial de progresso (TTL de 30 minutos)
+        Cache::put(self::PROGRESS_CACHE_KEY, [
+            'status'    => 'processing',
+            'file'      => basename($filePath),
+            'total'     => $totalLines,
+            'processed' => 0,
+            'inserted'  => 0,
+            'skipped'   => 0,
+            'started_at' => now()->toDateTimeString(),
+        ], 1800);
+
         $lineCount = 0;
+        $insertedCount = 0;
+        $skippedCount = 0;
         $headers = null;
 
         try {
@@ -112,19 +134,69 @@ class CaixaCsvParserService
 
                 try {
                     $this->processRow($data);
+                    $insertedCount++;
                 } catch (\Exception $e) {
+                    $skippedCount++;
                     $msg = "CaixaCsvParser: Falha na linha {$lineCount}: " . $e->getMessage();
                     Log::warning($msg);
                     if (app()->runningInConsole()) {
                         echo $msg . "\n";
                     }
                 }
+
+                // Atualiza progresso no cache a cada 50 linhas processadas
+                if ($lineCount % 50 === 0) {
+                    Cache::put(self::PROGRESS_CACHE_KEY, [
+                        'status'    => 'processing',
+                        'file'      => basename($filePath),
+                        'total'     => $totalLines,
+                        'processed' => $lineCount,
+                        'inserted'  => $insertedCount,
+                        'skipped'   => $skippedCount,
+                        'started_at' => Cache::get(self::PROGRESS_CACHE_KEY)['started_at'] ?? now()->toDateTimeString(),
+                    ], 1800);
+                }
             }
         } catch (\Exception $e) {
             Log::error("CaixaCsvParser: Erro crítico no processamento: " . $e->getMessage());
+            Cache::put(self::PROGRESS_CACHE_KEY, [
+                'status'    => 'error',
+                'error'     => $e->getMessage(),
+                'processed' => $lineCount,
+                'inserted'  => $insertedCount,
+                'skipped'   => $skippedCount,
+            ], 1800);
         } finally {
             fclose($handle);
         }
+
+        // Estado final: concluído
+        Cache::put(self::PROGRESS_CACHE_KEY, [
+            'status'      => 'completed',
+            'file'        => basename($filePath),
+            'total'       => $totalLines,
+            'processed'   => $lineCount,
+            'inserted'    => $insertedCount,
+            'skipped'     => $skippedCount,
+            'finished_at' => now()->toDateTimeString(),
+            'started_at'  => Cache::get(self::PROGRESS_CACHE_KEY)['started_at'] ?? now()->toDateTimeString(),
+        ], 300); // Mantém por 5 minutos após concluir
+    }
+
+    /**
+     * Conta linhas do arquivo CSV para cálculo de progresso.
+     */
+    private function countLines(string $filePath): int
+    {
+        $count = 0;
+        $handle = fopen($filePath, 'r');
+        if ($handle) {
+            while (fgets($handle) !== false) {
+                $count++;
+            }
+            fclose($handle);
+        }
+        return $count;
     }
 
     private function processRow(array $data): void

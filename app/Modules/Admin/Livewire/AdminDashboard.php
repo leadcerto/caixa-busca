@@ -6,10 +6,29 @@ use App\Models\Atendimento;
 use App\Models\Imobiliaria;
 use App\Models\Imovel;
 use App\Models\Lead;
+use App\Modules\ImportacaoCSV\Services\CaixaCsvParserService;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
 class AdminDashboard extends Component
 {
+    /**
+     * Progresso da importação CSV em tempo real (lido do cache).
+     * Retorna null se nenhuma importação ativa/recente.
+     */
+    public function getImportProgressProperty(): ?array
+    {
+        return Cache::get(CaixaCsvParserService::PROGRESS_CACHE_KEY);
+    }
+
+    /**
+     * Limpa o indicador de importação concluída do dashboard.
+     */
+    public function dismissImportProgress(): void
+    {
+        Cache::forget(CaixaCsvParserService::PROGRESS_CACHE_KEY);
+    }
+
     public function getMetricasProperty(): array
     {
         return [

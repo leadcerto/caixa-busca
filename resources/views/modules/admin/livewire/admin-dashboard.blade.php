@@ -30,6 +30,124 @@
         </div>
     </div>
 
+    <!-- IMPORT PROGRESS BANNER (Live) -->
+    @if($this->importProgress)
+        @php $progress = $this->importProgress; @endphp
+
+        @if($progress['status'] === 'processing')
+            <div class="relative bg-gradient-to-r from-[#005CA9] via-blue-700 to-indigo-800 rounded-[2rem] p-6 md:p-8 text-white shadow-xl overflow-hidden border border-blue-400/20">
+                <!-- Animated background pulse -->
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
+                <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-amber-400/15 blur-2xl animate-pulse"></div>
+
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="relative flex h-3.5 w-3.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F39200] opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#F39200]"></span>
+                            </span>
+                            <h3 class="text-lg font-black uppercase tracking-wider">Importação em Andamento</h3>
+                        </div>
+                        <span class="text-xs font-bold text-blue-200/80 bg-blue-900/40 px-3 py-1.5 rounded-full border border-blue-400/20">
+                            {{ $progress['file'] ?? 'CSV' }}
+                        </span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    @php
+                        $total = max($progress['total'] ?? 1, 1);
+                        $processed = $progress['processed'] ?? 0;
+                        $pct = min(round(($processed / $total) * 100), 100);
+                    @endphp
+                    <div class="w-full bg-blue-950/50 rounded-full h-4 mb-4 overflow-hidden border border-blue-400/10">
+                        <div class="h-full rounded-full bg-gradient-to-r from-[#F39200] via-amber-400 to-[#F39200] transition-all duration-700 ease-out relative"
+                             style="width: {{ $pct }}%">
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]"></div>
+                        </div>
+                    </div>
+
+                    <!-- Counters -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10 text-center">
+                            <p class="text-2xl font-black text-white tabular-nums">{{ $pct }}%</p>
+                            <p class="text-[9px] font-extrabold uppercase tracking-widest text-blue-200/80 mt-1">Progresso</p>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10 text-center">
+                            <p class="text-2xl font-black text-white tabular-nums">{{ number_format($processed) }}</p>
+                            <p class="text-[9px] font-extrabold uppercase tracking-widest text-blue-200/80 mt-1">Linhas Lidas</p>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10 text-center">
+                            <p class="text-2xl font-black text-emerald-400 tabular-nums">{{ number_format($progress['inserted'] ?? 0) }}</p>
+                            <p class="text-[9px] font-extrabold uppercase tracking-widest text-blue-200/80 mt-1">Inseridos</p>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10 text-center">
+                            <p class="text-2xl font-black text-amber-300 tabular-nums">{{ number_format($progress['skipped'] ?? 0) }}</p>
+                            <p class="text-[9px] font-extrabold uppercase tracking-widest text-blue-200/80 mt-1">Ignorados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        @elseif($progress['status'] === 'completed')
+            <div class="relative bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700 rounded-[2rem] p-6 md:p-8 text-white shadow-xl overflow-hidden border border-emerald-400/20">
+                <div class="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-emerald-300/15 blur-2xl"></div>
+
+                <div class="flex items-center justify-between relative z-10">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black">Importação Concluída!</h3>
+                            <p class="text-emerald-100/80 text-sm font-medium mt-0.5">
+                                <span class="font-black text-white">{{ number_format($progress['inserted'] ?? 0) }}</span> imóveis inseridos
+                                @if(($progress['skipped'] ?? 0) > 0)
+                                    · <span class="text-amber-200 font-bold">{{ number_format($progress['skipped']) }}</span> ignorados
+                                @endif
+                                · Arquivo: <span class="font-bold">{{ $progress['file'] ?? 'CSV' }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    <button wire:click="dismissImportProgress"
+                            class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center border border-white/20 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+        @elseif($progress['status'] === 'error')
+            <div class="relative bg-gradient-to-r from-rose-600 via-red-700 to-rose-800 rounded-[2rem] p-6 md:p-8 text-white shadow-xl overflow-hidden border border-rose-400/20">
+                <div class="flex items-center justify-between relative z-10">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black">Erro na Importação</h3>
+                            <p class="text-rose-100/80 text-sm font-medium mt-0.5">
+                                {{ $progress['error'] ?? 'Erro desconhecido' }}
+                                · <span class="font-bold">{{ number_format($progress['inserted'] ?? 0) }}</span> inseridos antes do erro
+                            </p>
+                        </div>
+                    </div>
+                    <button wire:click="dismissImportProgress"
+                            class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center border border-white/20 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        @endif
+    @endif
+
     <!-- METRIC CARDS DECK (4 COLUMNS) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 

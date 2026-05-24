@@ -11,3 +11,9 @@
     --color-caixa-blue: #005CA9;
     --color-caixa-orange: #F39200;
 }
+
+/* Shimmer animation for progress bars */
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
