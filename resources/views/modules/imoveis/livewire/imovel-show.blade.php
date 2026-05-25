@@ -1035,36 +1035,6 @@
                     </div>
                 </div>
 
-                <!-- Acesso Restrito / Regras de SEO (Fim do arquivo) -->
-                @auth
-                <div class="bg-gray-100/60 p-6 rounded-2xl border border-gray-200 text-sm text-gray-600 space-y-3 mt-4 leading-relaxed">
-                    <p class="font-black text-[#E50000] uppercase tracking-wider text-xs">🔒 ACESSO RESTRITO</p>
-                    <p>Somente os Gestores do sistema podem visualizar o conteúdo abaixo:</p>
-                    <p><strong>Regras de SEO:</strong> Segue os campos que estamos utilizando para facilitar nossa indexação nos sites de busca</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li>Link Permanente: {{ $imovel->slug }}</li>
-                        <li>Palavra Chave: {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
-                        <li>Descrição: {{ $imovel->meta_description ?? 'Oportunidade de investimento Caixa Adjudicados.' }}</li>
-                        <li>Título: {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
-                        <li>Imagem destaque: {{ asset("images/imoveis/{$imovel->slug}.jpg") }}</li>
-                        <li>Tag ALT da imagem destaque: Fachada do {{ $tipoNome }} em {{ $bairroNome }}</li>
-                        <li>Imagem do post: {{ $imovel->foto_fachada_url }}</li>
-                        <li>Tag ALT: {{ $tipoNome }} à venda</li>
-                        <li>Tag TITLE: Comprar {{ $tipoNome }} Caixa</li>
-                    </ul>
-                    <hr class="border-gray-200 my-2">
-                    <p class="font-black text-gray-900 text-xs uppercase">📊 Relatório de Desempenho:</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li>Visitas Totais: 500</li>
-                        <li>WhatsApp: 300</li>
-                        <li>Formulários: 50</li>
-                        <li>Cliques na página: 1500</li>
-                        <li>Novos Cadastros: 25</li>
-                    </ul>
-                    <p class="text-xs italic pt-1 text-gray-500">📝 LEGENDA: Visitas Totais: número total de visitantes | WhatsApp: clicaram no botão de WhatsApp para falar com o atendimento | Formulários: número de formulários enviados pedindo informação sobre este imóvel | Cliques na página: interações feitas pelos visitantes | Novos Cadastros: cadastros realizados a partir desta página.</p>
-                </div>
-                @endauth
-
                 <!-- Imobiliária Credenciada Responsável pelo Atendimento -->
                 <div class="bg-white p-8 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-5">
                     <h2 class="text-xl font-black text-gray-900 tracking-tight flex items-center">
@@ -1111,6 +1081,36 @@
                         </div>
                     @endif
                 </div>
+
+                <!-- Acesso Restrito / Regras de SEO (Fim do arquivo) -->
+                @auth
+                <div class="bg-gray-100/60 p-6 rounded-2xl border border-gray-200 text-sm text-gray-600 space-y-3 mt-4 leading-relaxed">
+                    <p class="font-black text-[#E50000] uppercase tracking-wider text-xs">🔒 ACESSO RESTRITO</p>
+                    <p>Somente os Gestores do sistema podem visualizar o conteúdo abaixo:</p>
+                    <p><strong>Regras de SEO:</strong> Segue os campos que estamos utilizando para facilitar nossa indexação nos sites de busca</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Link Permanente: {{ $imovel->slug }}</li>
+                        <li>Palavra Chave: {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
+                        <li>Descrição: {{ $imovel->meta_description ?? 'Oportunidade de investimento Caixa Adjudicados.' }}</li>
+                        <li>Título: {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
+                        <li>Imagem destaque: {{ asset("images/imoveis/{$imovel->slug}.jpg") }}</li>
+                        <li>Tag ALT da imagem destaque: Fachada do {{ $tipoNome }} em {{ $bairroNome }}</li>
+                        <li>Imagem do post: {{ $imovel->foto_fachada_url }}</li>
+                        <li>Tag ALT: {{ $tipoNome }} à venda</li>
+                        <li>Tag TITLE: Comprar {{ $tipoNome }} Caixa</li>
+                    </ul>
+                    <hr class="border-gray-200 my-2">
+                    <p class="font-black text-gray-900 text-xs uppercase">📊 Relatório de Desempenho:</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Visitas Totais: 500</li>
+                        <li>WhatsApp: 300</li>
+                        <li>Formulários: 50</li>
+                        <li>Cliques na página: 1500</li>
+                        <li>Novos Cadastros: 25</li>
+                    </ul>
+                    <p class="text-xs italic pt-1 text-gray-500">📝 LEGENDA: Visitas Totais: número total de visitantes | WhatsApp: clicaram no botão de WhatsApp para falar com o atendimento | Formulários: número de formulários enviados pedindo informação sobre este imóvel | Cliques na página: interações feitas pelos visitantes | Novos Cadastros: cadastros realizados a partir desta página.</p>
+                </div>
+                @endauth
 
             </div>
 
