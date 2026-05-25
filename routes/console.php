@@ -43,6 +43,7 @@ Schedule::command('optimize')->daily();
 // Limpa caches de dropdowns expirados (estados, tipos) — redundante mas garantido
 Schedule::call(function () {
     Cache::forget('dropdown_estados');
+    Cache::forget('dropdown_estados_com_imoveis');
     Cache::forget('dropdown_tipos_imovel');
 })->daily();
 

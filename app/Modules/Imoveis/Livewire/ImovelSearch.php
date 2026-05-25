@@ -47,7 +47,11 @@ class ImovelSearch extends Component
 
     public function mount(): void
     {
-        $this->estados = Estado::orderBy('nome')->get();
+        $this->estados = Cache::remember('dropdown_estados_com_imoveis', 3600, fn () =>
+            Estado::whereHas('imoveis', fn ($q) => $q->where('status', 'ativo'))
+                ->orderBy('nome')
+                ->get()
+        );
         $this->tipos = TipoImovel::where('ativo', true)->orderBy('nome')->get();
         $this->carregarMunicipios();
         $this->carregarBairros();

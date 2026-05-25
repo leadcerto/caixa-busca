@@ -169,6 +169,9 @@ class CaixaCsvParserService
             fclose($handle);
         }
 
+        // Invalida cache de estados do dropdown para refletir novos estados importados
+        Cache::forget('dropdown_estados_com_imoveis');
+
         // Estado final: concluído
         Cache::put(self::PROGRESS_CACHE_KEY, [
             'status'      => 'completed',
