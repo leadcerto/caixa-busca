@@ -1042,23 +1042,25 @@
                         🏢 Imobiliária Credenciada
                     </h2>
                     @if($resolvedImob)
+                        {{-- Logo + Nome --}}
                         <div class="flex items-center gap-4">
-                            @if($resolvedImob->imagem_botao)
-                                <img src="/storage/{{ $resolvedImob->imagem_botao }}" alt="{{ $resolvedImob->nome }}"
-                                     class="w-20 h-20 object-contain rounded-2xl border border-gray-200 bg-gray-50 p-1">
+                            @if($resolvedImob->logo_url)
+                                <img src="/storage/{{ $resolvedImob->logo_url }}" alt="Logo {{ $resolvedImob->nome }}"
+                                     class="w-16 h-16 object-cover rounded-2xl border border-gray-200 bg-gray-50 shadow-sm">
                             @else
                                 <div class="w-16 h-16 rounded-2xl bg-[#005CA9]/10 flex items-center justify-center text-2xl shrink-0">🏢</div>
                             @endif
                             <div>
                                 <p class="font-black text-gray-900 text-base">{{ $resolvedImob->nome }}</p>
                                 @if($resolvedImob->cnpj)<p class="text-sm text-gray-500">CNPJ: {{ $resolvedImob->cnpj }}</p>@endif
+                                @if($resolvedImob->creci)<p class="text-sm text-gray-500">CRECI: {{ $resolvedImob->creci }}</p>@endif
                             </div>
                         </div>
                         <hr class="border-gray-100">
                         <div class="space-y-1">
                             <span class="font-black text-gray-900 block text-xs uppercase tracking-wider">🕒 Horário de Atendimento</span>
                             <p class="text-sm text-gray-600 leading-relaxed">
-                                Segunda a Sexta-feira: 10:00 às 16:00<br>
+                                {{ $resolvedImob->horario_atendimento ?? 'Segunda a Sexta-feira: 10:00 às 16:00' }}<br>
                                 Telefone / WhatsApp: {{ $resolvedImob->whatsapp ?? '(21) 99788-2950' }}
                             </p>
                         </div>

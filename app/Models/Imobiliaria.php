@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class Imobiliaria extends Authenticatable
 {
     use HasFactory;
-    protected $fillable = ['nome', 'cnpj', 'email', 'senha', 'whatsapp', 'creci', 'imagem_botao', 'ativo'];
+    protected $fillable = ['nome', 'cnpj', 'email', 'senha', 'whatsapp', 'creci', 'imagem_botao', 'logo_url', 'horario_atendimento', 'ativo'];
 
     protected $hidden = ['senha'];
 

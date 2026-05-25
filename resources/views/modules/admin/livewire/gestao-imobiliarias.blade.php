@@ -247,6 +247,49 @@
                         </div>
                     </div>
 
+                    <!-- Horário de Atendimento -->
+                    <div>
+                        <label class="block text-slate-700 font-black text-[10px] uppercase tracking-wider mb-1.5 pl-1">🕒 Horário de Atendimento</label>
+                        <input type="text" wire:model="horario"
+                               placeholder="Ex: Segunda a Sexta-feira: 10:00 às 16:00"
+                               class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl focus:ring-2 focus:ring-[#005CA9] focus:border-[#005CA9] h-12 px-4 text-sm transition">
+                        @error('horario') <span class="text-red-600 text-xs mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Logo da Imobiliária (imagem quadrada) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
+                        <div>
+                            <label class="block text-slate-700 font-black text-[10px] uppercase tracking-wider mb-1.5 pl-1">🖼️ Logo da Imobiliária (imagem quadrada)</label>
+                            <p class="text-[10px] text-slate-400 mb-2 pl-1">PNG, JPG ou WEBP. Proporção quadrada recomendada (ex: 200×200px). Máx 5MB.</p>
+                            <div class="relative">
+                                <input type="file" wire:model="logo" accept="image/*"
+                                       class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-blue-50 file:text-[#005CA9] hover:file:bg-[#005CA9] hover:file:text-white transition-all cursor-pointer">
+                                <div wire:loading wire:target="logo" class="absolute right-3 top-2.5">
+                                    <svg class="animate-spin h-5 w-5 text-[#005CA9]" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            @error('logo') <span class="text-red-600 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="flex items-center justify-center p-4 bg-slate-50 border border-dashed border-slate-200 rounded-2xl min-h-[90px]">
+                            @if($logo)
+                                @php try { $logoPreview = $logo->temporaryUrl(); } catch(\Exception $e) { $logoPreview = null; } @endphp
+                                @if($logoPreview)
+                                    <img src="{{ $logoPreview }}" class="max-h-[70px] max-w-[70px] object-contain rounded-xl border border-white/50 bg-white p-1 shadow-sm">
+                                @endif
+                            @elseif($logoExistente)
+                                <div class="text-center">
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Logo Atual:</p>
+                                    <img src="{{ asset('storage/' . $logoExistente) }}" class="max-h-[70px] max-w-[70px] object-contain rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+                                </div>
+                            @else
+                                <span class="text-slate-400 italic text-xs text-center">Nenhuma logo cadastrada.</span>
+                            @endif
+                        </div>
+                    </div>
+
                     <!-- Upload da Imagem do Botão -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
                         <div>

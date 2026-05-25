@@ -21,12 +21,15 @@ class GestaoImobiliarias extends Component
     public $email = '';
     public $whatsapp = '';
     public $creci = '';
+    public $horario = 'Segunda a Sexta-feira: 10:00 às 16:00';
     public $senha = '';
     public $ativo = true;
-    public $imagem; // Temporário para o upload do botão
-    public $imagemExistente = ''; // Guarda o caminho da imagem atual caso esteja editando
-    
-    public array $selectedEstados = []; // IDs dos estados vinculados
+    public $imagem;         // upload do botão WhatsApp (PNG)
+    public $imagemExistente = '';
+    public $logo;           // upload da logo quadrada
+    public $logoExistente = '';
+
+    public array $selectedEstados = [];
 
     public $modalAberto = false;
     public $isEditMode = false;
@@ -72,14 +75,16 @@ class GestaoImobiliarias extends Component
         $this->resetCampos();
         $imobiliaria = Imobiliaria::with('estados')->findOrFail($id);
 
-        $this->idImobiliaria = $imobiliaria->id;
-        $this->nome = $imobiliaria->nome;
-        $this->cnpj = $imobiliaria->cnpj;
-        $this->email = $imobiliaria->email;
-        $this->whatsapp = $imobiliaria->whatsapp;
-        $this->creci = $imobiliaria->creci;
-        $this->ativo = (bool) $imobiliaria->ativo;
+        $this->idImobiliaria   = $imobiliaria->id;
+        $this->nome            = $imobiliaria->nome;
+        $this->cnpj            = $imobiliaria->cnpj;
+        $this->email           = $imobiliaria->email;
+        $this->whatsapp        = $imobiliaria->whatsapp;
+        $this->creci           = $imobiliaria->creci;
+        $this->horario         = $imobiliaria->horario_atendimento ?? 'Segunda a Sexta-feira: 10:00 às 16:00';
+        $this->ativo           = (bool) $imobiliaria->ativo;
         $this->imagemExistente = $imobiliaria->imagem_botao;
+        $this->logoExistente   = $imobiliaria->logo_url;
         $this->selectedEstados = $imobiliaria->estados->pluck('id')->toArray();
 
         $this->isEditMode = true;
@@ -94,16 +99,19 @@ class GestaoImobiliarias extends Component
 
     public function resetCampos(): void
     {
-        $this->idImobiliaria = null;
-        $this->nome = '';
-        $this->cnpj = '';
-        $this->email = '';
-        $this->whatsapp = '';
-        $this->creci = '';
-        $this->senha = '';
-        $this->ativo = true;
-        $this->imagem = null;
+        $this->idImobiliaria  = null;
+        $this->nome           = '';
+        $this->cnpj           = '';
+        $this->email          = '';
+        $this->whatsapp       = '';
+        $this->creci          = '';
+        $this->horario        = 'Segunda a Sexta-feira: 10:00 às 16:00';
+        $this->senha          = '';
+        $this->ativo          = true;
+        $this->imagem         = null;
         $this->imagemExistente = '';
+        $this->logo           = null;
+        $this->logoExistente  = '';
         $this->selectedEstados = [];
         $this->resetValidation();
     }
@@ -111,14 +119,15 @@ class GestaoImobiliarias extends Component
     public function salvar(): void
     {
         $regras = [
-            'nome' => 'required|string|max:150',
-            'cnpj' => 'nullable|string|max:20',
-            'email' => 'required|email|max:150|unique:imobiliarias,email,' . ($this->idImobiliaria ?? 'NULL'),
-            'whatsapp' => 'required|string|max:20',
-            'creci' => 'nullable|string|max:30',
-            'senha' => $this->isEditMode ? 'nullable|string|min:6' : 'required|string|min:6',
+            'nome'            => 'required|string|max:150',
+            'cnpj'            => 'nullable|string|max:20',
+            'email'           => 'required|email|max:150|unique:imobiliarias,email,' . ($this->idImobiliaria ?? 'NULL'),
+            'whatsapp'        => 'required|string|max:20',
+            'creci'           => 'nullable|string|max:30',
+            'horario'         => 'nullable|string|max:255',
+            'senha'           => $this->isEditMode ? 'nullable|string|min:6' : 'required|string|min:6',
             'selectedEstados' => 'array',
-            'imagem' => [
+            'imagem'          => [
                 'nullable',
                 function ($attribute, $value, $fail) {
                     if ($value) {
@@ -132,28 +141,39 @@ class GestaoImobiliarias extends Component
                     }
                 }
             ],
+            'logo' => 'nullable|image|max:5120',
         ];
 
         $this->validate($regras);
 
-        // Upload de imagem
+        // Upload do botão WhatsApp (PNG)
         $caminhoImagem = $this->imagemExistente;
         if ($this->imagem) {
-            // Se já tem imagem antiga, deleta para economizar espaço
             if ($this->imagemExistente && Storage::disk('public')->exists($this->imagemExistente)) {
                 Storage::disk('public')->delete($this->imagemExistente);
             }
             $caminhoImagem = $this->imagem->store('imobiliarias', 'public');
         }
 
+        // Upload da logo quadrada
+        $caminhoLogo = $this->logoExistente;
+        if ($this->logo) {
+            if ($this->logoExistente && Storage::disk('public')->exists($this->logoExistente)) {
+                Storage::disk('public')->delete($this->logoExistente);
+            }
+            $caminhoLogo = $this->logo->store('imobiliarias/logos', 'public');
+        }
+
         $dados = [
-            'nome' => $this->nome,
-            'cnpj' => $this->cnpj,
-            'email' => $this->email,
-            'whatsapp' => $this->whatsapp,
-            'creci' => $this->creci,
-            'ativo' => $this->ativo,
-            'imagem_botao' => $caminhoImagem ?: null,
+            'nome'                => $this->nome,
+            'cnpj'                => $this->cnpj,
+            'email'               => $this->email,
+            'whatsapp'            => $this->whatsapp,
+            'creci'               => $this->creci,
+            'horario_atendimento' => $this->horario ?: 'Segunda a Sexta-feira: 10:00 às 16:00',
+            'ativo'               => $this->ativo,
+            'imagem_botao'        => $caminhoImagem ?: null,
+            'logo_url'            => $caminhoLogo ?: null,
         ];
 
         // Se digitou uma nova senha (ou está cadastrando)
