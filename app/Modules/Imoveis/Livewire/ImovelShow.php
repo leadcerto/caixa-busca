@@ -9,6 +9,7 @@ use App\Models\Lead;
 use App\Models\WhatsappTemplate;
 use App\Modules\Imoveis\Jobs\DispatchCrmWebhookJob;
 use App\Modules\Imoveis\Services\UtmTrackerService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -39,6 +40,9 @@ class ImovelShow extends Component
             'ultimoHistorico.modalidade',
             'imobiliaria',
         ]);
+
+        // Incrementa contador de visitas de forma atômica (sem risco de race condition)
+        DB::table('imoveis')->where('id', $this->imovel->id)->increment('visitas');
 
         $utmTracker->captureFromRequest();
     }
@@ -159,7 +163,42 @@ class ImovelShow extends Component
         $tipo      = $this->imovel->tipoImovel?->nome ?? 'Imóvel';
         $municipio = $this->imovel->municipio?->nome ?? '';
 
-        return view('modules.imoveis.livewire.imovel-show')
+        // Recarrega visitas do banco (o increment não atualiza o objeto em memória)
+        $visitas         = DB::table('imoveis')->where('id', $this->imovel->id)->value('visitas') ?? 0;
+        $whatsappClicks  = DB::table('imoveis')->where('id', $this->imovel->id)->value('whatsapp_clicks') ?? 0;
+
+        // Métricas de atendimento (formulários preenchidos)
+        $totalFormularios   = Atendimento::where('id_imovel', $this->imovel->id)->count();
+        $formUltimos7Dias   = Atendimento::where('id_imovel', $this->imovel->id)->where('created_at', '>=', now()->subDays(7))->count();
+        $formUltimos30Dias  = Atendimento::where('id_imovel', $this->imovel->id)->where('created_at', '>=', now()->subDays(30))->count();
+        $whatsappEnviados   = Atendimento::where('id_imovel', $this->imovel->id)->where('whatsapp_enviado', true)->count();
+
+        // Taxa de conversão (formulários / visitas)
+        $taxaConversao = $visitas > 0 ? round(($totalFormularios / $visitas) * 100, 1) : 0;
+
+        // Histórico de preços
+        $historicos         = $this->imovel->historico;
+        $totalAtualizacoes  = $historicos->count();
+        $primeiroHistorico  = $historicos->last(); // ordenado desc, logo last() é o mais antigo
+        $ultimoHistorico    = $historicos->first();
+        $precoInicial       = $primeiroHistorico?->valor_venda ?? 0;
+        $precoAtual         = $ultimoHistorico?->valor_venda ?? 0;
+        $variacaoPreco      = ($precoInicial > 0 && $precoAtual > 0)
+            ? round((($precoAtual - $precoInicial) / $precoInicial) * 100, 1)
+            : 0;
+
+        // Dias na plataforma
+        $diasNaPlataforma = $this->imovel->created_at->diffInDays(now());
+
+        $stats = compact(
+            'visitas', 'whatsappClicks',
+            'totalFormularios', 'formUltimos7Dias', 'formUltimos30Dias',
+            'whatsappEnviados', 'taxaConversao',
+            'totalAtualizacoes', 'precoInicial', 'precoAtual', 'variacaoPreco',
+            'diasNaPlataforma'
+        );
+
+        return view('modules.imoveis.livewire.imovel-show', compact('stats'))
             ->layout('layouts.app', [
                 'meta_title'       => "{$tipo} em {$municipio} | Antigravity Imóveis",
                 'meta_description' => $this->imovel->meta_description

@@ -639,6 +639,8 @@ Route::middleware(['auth:imobiliaria', 'imobiliaria'])->prefix('parceiro')->name
 
 // Rota local de redirecionamento do WhatsApp para evitar bloqueio por Ad-Blockers (como uBlock, Brave Shield)
 Route::get('/contato-imovel/{imovel:id}', function (\App\Models\Imovel $imovel) {
+    \Illuminate\Support\Facades\DB::table('imoveis')->where('id', $imovel->id)->increment('whatsapp_clicks');
+
     $resolvedImob = $imovel->resolved_imobiliaria;
     if ($resolvedImob) {
         $whatsappFone = preg_replace('/\D/', '', $resolvedImob->whatsapp);

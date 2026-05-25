@@ -1085,30 +1085,114 @@
                 <!-- Acesso Restrito / Regras de SEO (Fim do arquivo) -->
                 @auth
                 <div class="bg-gray-100/60 p-6 rounded-2xl border border-gray-200 text-sm text-gray-600 space-y-3 mt-4 leading-relaxed">
-                    <p class="font-black text-[#E50000] uppercase tracking-wider text-xs">🔒 ACESSO RESTRITO</p>
-                    <p>Somente os Gestores do sistema podem visualizar o conteúdo abaixo:</p>
-                    <p><strong>Regras de SEO:</strong> Segue os campos que estamos utilizando para facilitar nossa indexação nos sites de busca</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li>Link Permanente: {{ $imovel->slug }}</li>
-                        <li>Palavra Chave: {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
-                        <li>Descrição: {{ $imovel->meta_description ?? 'Oportunidade de investimento Caixa Adjudicados.' }}</li>
-                        <li>Título: {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
-                        <li>Imagem destaque: {{ asset("images/imoveis/{$imovel->slug}.jpg") }}</li>
-                        <li>Tag ALT da imagem destaque: Fachada do {{ $tipoNome }} em {{ $bairroNome }}</li>
-                        <li>Imagem do post: {{ $imovel->foto_fachada_url }}</li>
-                        <li>Tag ALT: {{ $tipoNome }} à venda</li>
-                        <li>Tag TITLE: Comprar {{ $tipoNome }} Caixa</li>
-                    </ul>
-                    <hr class="border-gray-200 my-2">
-                    <p class="font-black text-gray-900 text-xs uppercase">📊 Relatório de Desempenho:</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li>Visitas Totais: 500</li>
-                        <li>WhatsApp: 300</li>
-                        <li>Formulários: 50</li>
-                        <li>Cliques na página: 1500</li>
-                        <li>Novos Cadastros: 25</li>
-                    </ul>
-                    <p class="text-xs italic pt-1 text-gray-500">📝 LEGENDA: Visitas Totais: número total de visitantes | WhatsApp: clicaram no botão de WhatsApp para falar com o atendimento | Formulários: número de formulários enviados pedindo informação sobre este imóvel | Cliques na página: interações feitas pelos visitantes | Novos Cadastros: cadastros realizados a partir desta página.</p>
+                    <p class="font-black text-[#E50000] uppercase tracking-wider text-xs">🔒 ACESSO RESTRITO — Visível apenas para Gestores</p>
+
+                    {{-- ── BLOCO 1: SEO ── --}}
+                    <div>
+                        <p class="font-black text-gray-900 text-xs uppercase tracking-wider mb-2">🔍 Dados de SEO</p>
+                        <ul class="space-y-1 text-xs text-gray-600">
+                            <li><strong>Slug:</strong> {{ $imovel->slug }}</li>
+                            <li><strong>Palavra-chave:</strong> {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
+                            <li><strong>Meta Descrição:</strong> {{ $imovel->meta_description ?? 'Oportunidade de investimento Caixa Adjudicados.' }}</li>
+                            <li><strong>Meta Título:</strong> {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
+                            <li><strong>OG Image (WhatsApp/redes):</strong> {{ $imovel->foto_fachada_url ?? '— sem imagem —' }}</li>
+                            <li><strong>Tag ALT:</strong> Fachada do {{ $tipoNome }} em {{ $bairroNome }}</li>
+                        </ul>
+                    </div>
+
+                    <hr class="border-gray-200">
+
+                    {{-- ── BLOCO 2: RELATÓRIO DE DESEMPENHO ── --}}
+                    <div>
+                        <p class="font-black text-gray-900 text-xs uppercase tracking-wider mb-3">📊 Relatório de Desempenho</p>
+
+                        {{-- Grade de métricas --}}
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+
+                            {{-- Visibilidade --}}
+                            <div class="col-span-2">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-[#005CA9] mb-1.5">👁️ Visibilidade</p>
+                            </div>
+
+                            <div class="bg-blue-50 rounded-xl p-3 border border-blue-100">
+                                <p class="text-2xl font-black text-[#005CA9]">{{ number_format($stats['visitas']) }}</p>
+                                <p class="font-bold text-gray-700 mt-0.5">Visitas Totais</p>
+                                <p class="text-gray-500 mt-1 leading-relaxed">Número total de acessos a esta página desde o início do monitoramento.</p>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-200">
+                                <p class="text-2xl font-black text-gray-700">{{ $stats['diasNaPlataforma'] }}</p>
+                                <p class="font-bold text-gray-700 mt-0.5">Dias na Plataforma</p>
+                                <p class="text-gray-500 mt-1 leading-relaxed">Há quantos dias este imóvel está publicado. Listado em {{ $imovel->created_at->format('d/m/Y') }}.</p>
+                            </div>
+
+                            {{-- Conversões --}}
+                            <div class="col-span-2 mt-1">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-[#005CA9] mb-1.5">🎯 Conversões</p>
+                            </div>
+
+                            <div class="bg-green-50 rounded-xl p-3 border border-green-100">
+                                <p class="text-2xl font-black text-green-700">{{ number_format($stats['totalFormularios']) }}</p>
+                                <p class="font-bold text-gray-700 mt-0.5">Formulários Enviados</p>
+                                <p class="text-gray-500 mt-1 leading-relaxed">Total de leads que preencheram o formulário de interesse neste imóvel.</p>
+                            </div>
+
+                            <div class="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
+                                <p class="text-2xl font-black text-emerald-700">{{ number_format($stats['whatsappClicks']) }}</p>
+                                <p class="font-bold text-gray-700 mt-0.5">Cliques no WhatsApp</p>
+                                <p class="text-gray-500 mt-1 leading-relaxed">Quantas vezes o botão flutuante de WhatsApp foi acionado nesta página.</p>
+                            </div>
+
+                            <div class="bg-orange-50 rounded-xl p-3 border border-orange-100">
+                                <p class="text-2xl font-black text-orange-600">{{ $stats['formUltimos7Dias'] }}</p>
+                                <p class="font-bold text-gray-700 mt-0.5">Formulários (7 dias)</p>
+                                <p class="text-gray-500 mt-1 leading-relaxed">Leads captados nos últimos 7 dias via formulário.</p>
+                            </div>
+
+                            <div class="bg-orange-50 rounded-xl p-3 border border-orange-100">
+                                <p class="text-2xl font-black text-orange-600">{{ $stats['formUltimos30Dias'] }}</p>
+                                <p class="font-bold text-gray-700 mt-0.5">Formulários (30 dias)</p>
+                                <p class="text-gray-500 mt-1 leading-relaxed">Leads captados nos últimos 30 dias via formulário.</p>
+                            </div>
+
+                            <div class="bg-purple-50 rounded-xl p-3 border border-purple-100">
+                                <p class="text-2xl font-black text-purple-700">{{ $stats['taxaConversao'] }}%</p>
+                                <p class="font-bold text-gray-700 mt-0.5">Taxa de Conversão</p>
+                                <p class="text-gray-500 mt-1 leading-relaxed">Percentual de visitantes que preencheram o formulário. (Formulários ÷ Visitas × 100).</p>
+                            </div>
+
+                            <div class="bg-teal-50 rounded-xl p-3 border border-teal-100">
+                                <p class="text-2xl font-black text-teal-700">{{ number_format($stats['whatsappEnviados']) }}</p>
+                                <p class="font-bold text-gray-700 mt-0.5">WhatsApp Enviados</p>
+                                <p class="text-gray-500 mt-1 leading-relaxed">Formulários nos quais a notificação de WhatsApp foi disparada ao consultor.</p>
+                            </div>
+
+                            {{-- Histórico de Preço --}}
+                            <div class="col-span-2 mt-1">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-[#005CA9] mb-1.5">💰 Histórico de Preço</p>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-200">
+                                <p class="text-2xl font-black text-gray-700">{{ $stats['totalAtualizacoes'] }}</p>
+                                <p class="font-bold text-gray-700 mt-0.5">Atualizações de Preço</p>
+                                <p class="text-gray-500 mt-1 leading-relaxed">Quantas vezes o valor de venda foi atualizado pela CAIXA desde o primeiro registro.</p>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-200">
+                                @php
+                                    $varIcon  = $stats['variacaoPreco'] < 0 ? '📉' : ($stats['variacaoPreco'] > 0 ? '📈' : '—');
+                                    $varColor = $stats['variacaoPreco'] < 0 ? 'text-green-600' : ($stats['variacaoPreco'] > 0 ? 'text-red-600' : 'text-gray-500');
+                                @endphp
+                                <p class="text-2xl font-black {{ $varColor }}">{{ $varIcon }} {{ $stats['variacaoPreco'] }}%</p>
+                                <p class="font-bold text-gray-700 mt-0.5">Variação de Preço</p>
+                                <p class="text-gray-500 mt-1 leading-relaxed">
+                                    Inicial: R$ {{ number_format($stats['precoInicial'], 2, ',', '.') }}<br>
+                                    Atual: R$ {{ number_format($stats['precoAtual'], 2, ',', '.') }}
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
                 @endauth
 
