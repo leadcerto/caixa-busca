@@ -1042,44 +1042,53 @@
                         🏢 Imobiliária Credenciada
                     </h2>
                     @if($resolvedImob)
-                        {{-- Logo + Nome --}}
-                        <div class="flex items-center gap-4">
-                            @if($resolvedImob->logo_url)
-                                <img src="/storage/{{ $resolvedImob->logo_url }}" alt="Logo {{ $resolvedImob->nome }}"
-                                     class="w-16 h-16 object-cover rounded-2xl border border-gray-200 bg-gray-50 shadow-sm">
-                            @else
-                                <div class="w-16 h-16 rounded-2xl bg-[#005CA9]/10 flex items-center justify-center text-2xl shrink-0">🏢</div>
-                            @endif
-                            <div>
-                                <p class="font-black text-gray-900 text-base">{{ $resolvedImob->nome }}</p>
-                                @if($resolvedImob->cnpj)<p class="text-sm text-gray-500">CNPJ: {{ $resolvedImob->cnpj }}</p>@endif
-                                @if($resolvedImob->creci)<p class="text-sm text-gray-500">CRECI: {{ $resolvedImob->creci }}</p>@endif
+                        <div class="flex gap-6 items-start">
+                            {{-- Coluna esquerda: logo --}}
+                            <div class="shrink-0">
+                                @if($resolvedImob->logo_url)
+                                    <img src="/storage/{{ $resolvedImob->logo_url }}" alt="Logo {{ $resolvedImob->nome }}"
+                                         class="w-24 h-24 object-cover rounded-2xl border border-gray-200 bg-gray-50 shadow-sm">
+                                @else
+                                    <div class="w-24 h-24 rounded-2xl bg-[#005CA9]/10 flex items-center justify-center text-4xl">🏢</div>
+                                @endif
                             </div>
-                        </div>
-                        <hr class="border-gray-100">
-                        <div class="space-y-1">
-                            <span class="font-black text-gray-900 block text-xs uppercase tracking-wider">🕒 Horário de Atendimento</span>
-                            <p class="text-sm text-gray-600 leading-relaxed">
-                                {{ $resolvedImob->horario_atendimento ?? 'Segunda a Sexta-feira: 10:00 às 16:00' }}<br>
-                                Telefone / WhatsApp: {{ $resolvedImob->whatsapp ?? '(21) 99788-2950' }}
-                            </p>
+                            {{-- Coluna direita: informações --}}
+                            <div class="flex flex-col gap-1">
+                                <p class="font-black text-gray-900 text-base leading-tight">{{ $resolvedImob->nome }}</p>
+                                @if($resolvedImob->cnpj)
+                                    <p class="text-sm text-gray-500">CNPJ: {{ $resolvedImob->cnpj }}</p>
+                                @endif
+                                @if($resolvedImob->creci)
+                                    <p class="text-sm text-gray-500">CRECI: {{ $resolvedImob->creci }}</p>
+                                @endif
+                                <div class="mt-3">
+                                    <span class="font-black text-gray-900 block text-xs uppercase tracking-wider">🕒 Horário de Atendimento</span>
+                                    <p class="text-sm text-gray-600 leading-relaxed mt-0.5">
+                                        {{ $resolvedImob->horario_atendimento ?? 'Segunda a Sexta-feira: 10:00 às 16:00' }}<br>
+                                        Telefone / WhatsApp: {{ $resolvedImob->whatsapp ?? '(21) 99788-2950' }}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     @else
-                        <div class="flex items-center gap-4">
-                            <div class="w-16 h-16 rounded-2xl bg-[#005CA9]/10 flex items-center justify-center text-2xl shrink-0">🏢</div>
-                            <div>
-                                <p class="font-black text-gray-900 text-base">Imóveis da Caixa LTDA</p>
+                        <div class="flex gap-6 items-start">
+                            {{-- Coluna esquerda: logo --}}
+                            <div class="shrink-0">
+                                <div class="w-24 h-24 rounded-2xl bg-[#005CA9]/10 flex items-center justify-center text-4xl">🏢</div>
+                            </div>
+                            {{-- Coluna direita: informações --}}
+                            <div class="flex flex-col gap-1">
+                                <p class="font-black text-gray-900 text-base leading-tight">Imóveis da Caixa LTDA</p>
                                 <p class="text-sm text-gray-500">CNPJ: 50.563.863/0001-45</p>
                                 <p class="text-sm text-gray-500">CRECI-PJ: 10.234/RJ</p>
+                                <div class="mt-3">
+                                    <span class="font-black text-gray-900 block text-xs uppercase tracking-wider">🕒 Horário de Atendimento</span>
+                                    <p class="text-sm text-gray-600 leading-relaxed mt-0.5">
+                                        Segunda a Sexta-feira: 10:00 às 16:00<br>
+                                        Telefone / WhatsApp: (21) 99788-2950
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                        <hr class="border-gray-100">
-                        <div class="space-y-1">
-                            <span class="font-black text-gray-900 block text-xs uppercase tracking-wider">🕒 Horário de Atendimento</span>
-                            <p class="text-sm text-gray-600 leading-relaxed">
-                                Segunda a Sexta-feira: 10:00 às 16:00<br>
-                                Telefone / WhatsApp: (21) 99788-2950
-                            </p>
                         </div>
                     @endif
                 </div>
