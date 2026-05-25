@@ -18,6 +18,7 @@ class AtendimentoOrigemSeeder extends Seeder
             ['nome' => 'WhatsApp do site',        'ativo' => true],
             ['nome' => 'E-mail',                  'ativo' => true],
             ['nome' => 'Blog',                    'ativo' => true],
+            ['nome' => 'API/Mobile',              'ativo' => true],
         ];
 
         foreach ($origens as $origem) {

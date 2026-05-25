@@ -79,7 +79,7 @@ class ImovelResource extends JsonResource
                     ? round((($ultimo->valor_avaliacao - $ultimo->valor_venda) / $ultimo->valor_avaliacao) * 100, 2)
                     : 0,
                 'modalidade_venda' => $ultimo?->modalidade?->nome,
-                'aceita_fgts' => (bool) $this->aceita_fgts,
+                'aceita_fgts' => $this->aceita_fgts === 'sim',
                 'aceita_financ_sbpe' => (bool) $this->aceita_financ_sbpe,
                 'aceita_financ_mcmv' => (bool) $this->aceita_financ_mcmv,
             ],

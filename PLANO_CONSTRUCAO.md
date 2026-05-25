@@ -20,13 +20,13 @@
 ### FASE 1 — Estabilização do Core
 **Objetivo:** Fechar o que está em andamento e limpar pendências antes de avançar.
 
-- [ ] **1.1** Revisar e finalizar `CaixaCsvParserService.php` (arquivo modificado — verificar correções pendentes no parser CSV)
-- [ ] **1.2** Revisar `DatabaseSeeder.php` (arquivo modificado — garantir seeders estáveis para produção)
-- [ ] **1.3** Revisar `routes/console.php` (arquivo modificado — verificar comandos artisan)
-- [ ] **1.4** Avaliar `print_mismatches.php` — integrar diagnóstico ao painel admin ou excluir arquivo avulso
-- [ ] **1.5** Remover ou proteger a rota `/test-log` (exposta em produção atualmente — somente para ambiente `local`)
-- [ ] **1.6** Confirmar que fila de jobs (`php artisan queue:work`) está configurada em produção (Supervisor ou similar)
-- [ ] **1.7** Confirmar `.env` de produção com todas as variáveis críticas: `DB_*`, `QUEUE_CONNECTION`, `CRM_WEBHOOK_URL`, `CRM_WEBHOOK_TOKEN`, `WHATSAPP_CENTRAL`, `MAIL_*`
+- [x] **1.1** Revisar e finalizar `CaixaCsvParserService.php` — 3 bugs corrigidos, parser sólido, sem pendências
+- [x] **1.2** Revisar `DatabaseSeeder.php` — credenciais de admin e imobiliária movidas para env vars (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `IMOBILIARIA_DEMO_*`)
+- [x] **1.3** Revisar `routes/console.php` — agendamentos corretos (`optimize::daily`, limpeza de cache), sem pendências
+- [x] **1.4** `print_mismatches.php` — arquivo já inexistente (excluído anteriormente)
+- [x] **1.5** `/test-log` já redireciona para `admin.diagnostico` (rota protegida por auth). Rota `/verificar-erro-sistema`: token movido de hardcoded para env var `DIAGNOSTICO_TOKEN` (deixar vazio desativa a rota em produção)
+- [x] **1.6** Configuração de fila documentada no `.env.example` com exemplo de Supervisor (`queue:work --tries=3 --max-time=3600`)
+- [x] **1.7** `.env.example` atualizado com todas as variáveis críticas: `DB_*`, `QUEUE_CONNECTION`, `CRM_*`, `WHATSAPP_CENTRAL`, `MAIL_*`, `ANTHROPIC_API_KEY`, `DIAGNOSTICO_TOKEN`, `ADMIN_*`, `IMOBILIARIA_DEMO_*`. Config `services.whatsapp.central` adicionada em `config/services.php`
 
 **Arquivos-chave:**
 - `app/Modules/ImportacaoCSV/Services/CaixaCsvParserService.php`
@@ -52,7 +52,7 @@
 - [x] **2.6** `imovel-search.blade.php` — já usa `foto_fachada_url` com fallback para placeholder SVG
 - [x] **2.7** `imovel-show.blade.php` — já usa `foto_fachada_url` + adicionado botão "Ver no site da Caixa"
 - [x] **2.8** Placeholder criado: `public/images/imovel-placeholder.svg` (SVG brandado Antigravity/Caixa)
-- [ ] **2.9** *(Pendente investigação)* Descobrir padrão de URL de imagens no site oficial da Caixa (`venda-imoveis.caixa.gov.br`) para automatizar via job. Inspecionar o HTML do site da Caixa na página de um imóvel para identificar o padrão `<img>` com a foto da fachada.
+- [x] **2.9** Padrão de URL confirmado: `https://venda-imoveis.caixa.gov.br/fotos/F{numero_13digitos}21.jpg` — sufixo `21` é fixo para a foto de fachada. Já implementado e gravado no banco via `CaixaCsvParserService.php` (linha 299) desde a importação do CSV.
 
 **Arquivos-chave:**
 - `resources/views/modules/imoveis/livewire/imovel-search.blade.php`
@@ -214,16 +214,11 @@
 ### FASE 11 — API REST (Opcional / Fase Futura)
 **Objetivo:** Expor dados para consumo por app mobile ou parceiros externos.
 
-- [ ] **11.1** Instalar Laravel Sanctum (`composer require laravel/sanctum`)
-- [ ] **11.2** Criar rotas em `routes/api.php`:
-  - `GET /api/imoveis` — listagem com filtros (estado, município, tipo, preço)
-  - `GET /api/imoveis/{slug}` — detalhes do imóvel
-  - `GET /api/estados` — lista de estados com imóveis
-  - `GET /api/municipios?estado=SP` — municípios de um estado
-  - `POST /api/leads` — registrar interesse (formulário mobile)
-- [ ] **11.3** Criar `ImovelResource` e `ImovelCollection` (API Resources)
-- [ ] **11.4** Implementar rate limiting: 60 req/min por IP (público) e 500 req/min (autenticado)
-- [ ] **11.5** Documentar endpoints com Scribe ou Swagger
+- [x] **11.1** Laravel Sanctum `^4.0` já instalado via composer
+- [x] **11.2** Rotas em `routes/api.php`: `GET /api/imoveis`, `GET /api/imoveis/{slug}`, `GET /api/estados`, `GET /api/municipios`, `POST /api/leads` — todas com `throttle:60,1`
+- [x] **11.3** `ImovelResource`, `ImovelCollection`, `EstadoResource`, `MunicipioResource` criados em `app/Modules/Imoveis/Resources/Api/`. Bug corrigido: `aceita_fgts === 'sim'` em vez de `(bool)` cast
+- [x] **11.4** Rate limiting: 60 req/min (público via `throttle:60,1`) + 5 req/min por IP no `POST /api/leads` via `RateLimiter`. Origin "API/Mobile" adicionada ao seeder
+- [x] **11.5** Documentação completa em `API.md` — todos os 5 endpoints com exemplos de request/response, parâmetros, códigos de erro e notas de integração
 
 ---
 

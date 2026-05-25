@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'whatsapp' => [
+        'central' => env('WHATSAPP_CENTRAL', '5511999999999'),
+    ],
+
 ];

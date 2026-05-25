@@ -24,7 +24,8 @@ Route::get('/images/imoveis/{slug}.jpg', [App\Http\Controllers\ImovelImageContro
 
 // Rota de diagnóstico temporária segura para capturar o Erro 500 em produção e configurar banco
 Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
-    if (request('token') !== 'lcps1974') {
+    $token = env('DIAGNOSTICO_TOKEN');
+    if (!$token || request('token') !== $token) {
         abort(403);
     }
     
@@ -301,9 +302,9 @@ Route::match(['GET', 'POST'], '/verificar-erro-sistema', function () {
                         <span class='val-info' style='color: #ef4444;'>{$failedJobsCount}</span>
                     </div>
                     <div class='info-item' style='margin-top: 15px; border: none; padding: 0; display: flex; flex-wrap: wrap; gap: 10px;'>
-                        <a href='?token=lcps1974&migrate=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #eab308; color: #000; text-align: center; text-decoration: none; flex: 1; min-width: 120px;'>⚡ Migrar Banco & Limpar Cache</a>
-                        <a href='?token=lcps1974&seed=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #10b981; color: #fff; text-align: center; text-decoration: none; flex: 1; min-width: 120px;'>🌱 Popular Dados (Seed)</a>
-                        <a href='?token=lcps1974&work_queue=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #3b82f6; color: #fff; text-align: center; text-decoration: none; flex: 1; min-width: 120px;'>⚙️ Processar Fila</a>
+                        <a href='?token=" . request('token') . "&migrate=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #eab308; color: #000; text-align: center; text-decoration: none; flex: 1; min-width: 120px;'>⚡ Migrar Banco & Limpar Cache</a>
+                        <a href='?token=" . request('token') . "&seed=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #10b981; color: #fff; text-align: center; text-decoration: none; flex: 1; min-width: 120px;'>🌱 Popular Dados (Seed)</a>
+                        <a href='?token=" . request('token') . "&work_queue=true' class='btn' style='margin-top: 0; padding: 10px; font-size: 13px; background: #3b82f6; color: #fff; text-align: center; text-decoration: none; flex: 1; min-width: 120px;'>⚙️ Processar Fila</a>
                     </div>
                 </div>
 
@@ -370,11 +371,37 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 } elseif ($action === 'seed') {
                     \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
                     $actionOutput = "=== php artisan db:seed --force ===\n" . \Illuminate\Support\Facades\Artisan::output();
+                } elseif ($action === 'queue') {
+                    \Illuminate\Support\Facades\Artisan::call('queue:work', [
+                        '--once'            => true,
+                        '--stop-when-empty' => true,
+                        '--tries'           => 3,
+                    ]);
+                    $actionOutput = "=== php artisan queue:work --once --stop-when-empty ===\n" . \Illuminate\Support\Facades\Artisan::output();
+                    $actionOutput .= "\nJobs restantes na fila: " . \Illuminate\Support\Facades\DB::table('jobs')->count();
+                } elseif ($action === 'queue_retry') {
+                    \Illuminate\Support\Facades\Artisan::call('queue:retry', ['id' => ['all']]);
+                    $actionOutput = "=== php artisan queue:retry all ===\n" . \Illuminate\Support\Facades\Artisan::output();
+                } elseif ($action === 'queue_flush') {
+                    \Illuminate\Support\Facades\Artisan::call('queue:flush');
+                    $actionOutput = "=== php artisan queue:flush (limpa failed_jobs) ===\n" . \Illuminate\Support\Facades\Artisan::output();
                 }
             } catch (\Throwable $e) {
                 $actionOutput = "Erro ao executar ação '$action':\n" . $e->getMessage() . "\n" . $e->getTraceAsString();
             }
         }
+
+        $jobsCount = 0;
+        $failedJobsCount = 0;
+        try {
+            $jobsCount = \Illuminate\Support\Facades\DB::table('jobs')->count();
+            $failedJobsCount = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+        } catch (\Throwable) {}
+
+        $scheduleLastRun = \Illuminate\Support\Facades\Cache::get('schedule_last_run');
+        $scheduleStatus = $scheduleLastRun
+            ? '✅ ' . $scheduleLastRun
+            : '❌ Nunca rodou (cron não configurado ou aguardando 1º minuto)';
 
         $logContent = '';
         $logPath = storage_path('logs/laravel.log');
@@ -492,11 +519,36 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                             <strong class="text-danger">Erro de Conexão com Banco de Dados:</strong><br>
                             <code class="text-danger" style="font-size:0.8rem; word-break: break-all;">' . htmlspecialchars($dbError) . '</code>
                         </div>' : '') . '
-                        <h4 class="mt-5 mb-3 text-warning">⚡ Ações de Manutenção</h4>
+                        <h4 class="mt-4 mb-2" style="font-size:0.95rem;color:#a78bfa;">🕐 Status do Cron (Schedule)</h4>
+                        <div class="mb-4 p-3" style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);border-radius:12px;font-family:\'JetBrains Mono\',monospace;font-size:0.8rem;color:#c4b5fd;">
+                            ' . htmlspecialchars($scheduleStatus) . '
+                            <div style="color:#6b7280;font-size:0.7rem;margin-top:4px;">Atualiza a cada minuto quando <code>schedule:run</code> está ativo no Cron Job</div>
+                        </div>
+                        <h4 class="mt-4 mb-2 text-info" style="font-size:0.95rem;">📊 Status da Fila</h4>
+                        <div class="row g-2 mb-4">
+                            <div class="col-6">
+                                <div style="background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);border-radius:12px;padding:12px;text-align:center;">
+                                    <div style="font-size:1.6rem;font-weight:700;color:#eab308;">' . $jobsCount . '</div>
+                                    <div style="font-size:0.75rem;color:#9ca3af;">Jobs aguardando</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;text-align:center;">
+                                    <div style="font-size:1.6rem;font-weight:700;color:#ef4444;">' . $failedJobsCount . '</div>
+                                    <div style="font-size:0.75rem;color:#9ca3af;">Jobs falhados</div>
+                                </div>
+                            </div>
+                        </div>
+                        <h4 class="mt-2 mb-3 text-warning">⚡ Ações de Manutenção</h4>
                         <div class="d-flex flex-wrap gap-2">
                             <a href="?action=clear" class="btn btn-outline-info btn-action">optimize:clear</a>
                             <a href="?action=migrate" class="btn btn-outline-warning btn-action">migrate --force</a>
                             <a href="?action=seed" class="btn btn-outline-success btn-action">db:seed --force</a>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <a href="?action=queue" class="btn btn-action" style="background:rgba(139,92,246,0.2);border-color:rgba(139,92,246,0.5);color:#a78bfa;" ' . ($jobsCount > 0 ? '' : 'style="opacity:0.5;"') . '>⚙️ Processar Fila (queue:work)</a>
+                            ' . ($failedJobsCount > 0 ? '<a href="?action=queue_retry" class="btn btn-action" style="background:rgba(249,115,22,0.15);border-color:rgba(249,115,22,0.4);color:#fb923c;">🔁 Retentar Jobs Falhados</a>
+                            <a href="?action=queue_flush" class="btn btn-action" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#f87171;">🗑️ Limpar Falhados</a>' : '') . '
                         </div>
                     </div>
                 </div>

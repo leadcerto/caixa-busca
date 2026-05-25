@@ -26,23 +26,23 @@ class DatabaseSeeder extends Seeder
             ImovelGrupoSeeder::class,
         ]);
 
-        // Criar administrador padrão para testes
+        // Criar administrador padrão
         \App\Models\User::firstOrCreate(
-            ['email' => 'icaixa.001@gmail.com'],
+            ['email' => env('ADMIN_EMAIL', 'admin@imoveisdacaixa.com.br')],
             [
                 'name' => 'Administrador',
-                'password' => \Illuminate\Support\Facades\Hash::make('lcps@1974VI'),
+                'password' => \Illuminate\Support\Facades\Hash::make(env('ADMIN_PASSWORD', \Illuminate\Support\Str::random(32))),
             ]
         );
 
         // Criar imobiliária parceira padrão para o Rio de Janeiro (RJ)
         $imobiliaria = \App\Models\Imobiliaria::firstOrCreate(
-            ['email' => 'imobiliaria@teste.com'],
+            ['email' => env('IMOBILIARIA_DEMO_EMAIL', 'parceiro@imoveisdacaixa.com.br')],
             [
-                'nome' => 'Imobiliária Teste RJ',
-                'senha' => \Illuminate\Support\Facades\Hash::make('senha123'),
-                'whatsapp' => '5521997882950',
-                'creci' => 'CRECI-12345-J',
+                'nome' => env('IMOBILIARIA_DEMO_NOME', 'Imobiliária Parceira Padrão'),
+                'senha' => \Illuminate\Support\Facades\Hash::make(env('IMOBILIARIA_DEMO_SENHA', \Illuminate\Support\Str::random(32))),
+                'whatsapp' => env('IMOBILIARIA_DEMO_WHATSAPP', '5521999999999'),
+                'creci' => env('IMOBILIARIA_DEMO_CRECI', 'CRECI-00000-J'),
                 'ativo' => true,
             ]
         );

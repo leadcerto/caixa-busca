@@ -32,6 +32,11 @@ Artisan::command('app:test-import', function (CaixaCsvParserService $service) {
 // Agendamentos
 // -------------------------------------------------------------------------
 
+// Heartbeat: grava timestamp a cada minuto — visível no /admin/diagnostico
+Schedule::call(function () {
+    Cache::put('schedule_last_run', now()->toDateTimeString(), 300);
+})->everyMinute()->name('heartbeat')->withoutOverlapping();
+
 // Recompila views e configurações diariamente (9.3 — Performance)
 Schedule::command('optimize')->daily();
 

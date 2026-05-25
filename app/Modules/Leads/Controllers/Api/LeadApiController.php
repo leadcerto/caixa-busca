@@ -162,7 +162,7 @@ class LeadApiController extends Controller
         $fallback = "Olá! Meu nome é {$validated['nome']}. Tenho interesse no {$vars['tipo_imovel']} (Cód: {$vars['codigo']}) em {$localidade}. Pode me ajudar?";
         $message = WhatsappTemplate::renderizarAtivo($vars, $fallback);
 
-        $numeroCentral = config('services.whatsapp.central', env('WHATSAPP_CENTRAL', '5511999999999'));
+        $numeroCentral = config('services.whatsapp.central');
         $whatsappUrl = 'https://api.whatsapp.com/send?phone=' . $numeroCentral . '&text=' . urlencode($message);
 
         return response()->json([
