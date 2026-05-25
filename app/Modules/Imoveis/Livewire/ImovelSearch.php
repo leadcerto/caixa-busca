@@ -7,6 +7,7 @@ use App\Models\Estado;
 use App\Models\Imovel;
 use App\Models\Municipio;
 use App\Models\TipoImovel;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 use Livewire\WithPagination;
 
