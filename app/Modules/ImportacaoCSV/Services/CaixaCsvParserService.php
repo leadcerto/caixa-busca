@@ -276,7 +276,8 @@ class CaixaCsvParserService
 
         $idGrupo = $valorAvaliacao > 0 ? $this->resolveGrupo($valorAvaliacao) : null;
 
-        // Bug fix: CSV não tem coluna "aceita_fgts" — a coluna real é "Financiamento"
+        // Coluna CSV "Financiamento" = aceita financiamento SBPE (banco), não FGTS.
+        // Mantemos aceita_fgts preenchido para compatibilidade com filtro de busca existente.
         $aceitaFgts = $this->parseAceitaFgts($data['financiamento'] ?? '');
 
         // Dados textuais necessários para gerar SEO dentro da transação
@@ -299,7 +300,8 @@ class CaixaCsvParserService
                 // Bug fix: coluna CSV é "link_de_acesso", não "link_edital"
                 'link_edital'        => $link ?: null,
                 'foto_fachada_url'   => "https://venda-imoveis.caixa.gov.br/fotos/F" . str_pad($idCaixa, 13, '0', STR_PAD_LEFT) . "21.jpg",
-                'aceita_fgts'        => $aceitaFgts,
+                'aceita_fgts'            => $aceitaFgts,
+                'aceita_financ_sbpe'     => ($aceitaFgts === 'sim'),
                 'status'             => 'ativo',
                 // updated_at só avança — importações de CSVs antigos não regridem a data
                 'updated_at'         => DB::raw("GREATEST(COALESCE(updated_at, '1970-01-01 00:00:00'), '{$this->dataGeracao}')"),
