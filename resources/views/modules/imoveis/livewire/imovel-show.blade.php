@@ -99,8 +99,7 @@
                 {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
             </h1>
             <p class="text-lg md:text-2xl text-white font-black max-w-2xl mx-auto">
-                Desconto imediato de <span class="text-yellow-300 underline decoration-wavy decoration-orange-400">R$ {{ number_format($valorLucro, 2, ',', '.') }}</span><br>
-                <span class="text-blue-100 font-bold text-base md:text-lg">({{ number_format($descontoPct, 0) }}% OFF) por tempo limitado!</span>
+                Lucro imediato de <span class="text-yellow-300 underline decoration-wavy decoration-orange-400">R$ {{ number_format($valorLucro, 2, ',', '.') }}</span>
             </p>
         </div>
     </div>
@@ -121,6 +120,13 @@
                         <div class="absolute top-6 left-6 bg-[#E50000] text-white font-black text-sm px-4 py-2 rounded-2xl shadow-xl border border-red-500 tracking-wider">
                             {{ number_format($descontoPct, 0) }}% DE DESCONTO
                         </div>
+
+                        <!-- Floating financing badge -->
+                        @if($aceitaFinanciamento)
+                        <div class="absolute top-6 right-6 bg-[#005CA9] text-white font-black text-sm px-4 py-2 rounded-2xl shadow-xl border border-blue-400 tracking-wider">
+                            ✅ ACEITA FINANCIAMENTO
+                        </div>
+                        @endif
                     </div>
                 </div>
 
@@ -129,7 +135,6 @@
                     <span class="font-black uppercase tracking-widest px-4 py-1.5 rounded-full inline-block text-xs" style="color: #111827; border: 1px solid #D1D5DB; background-color: #E5E7EB;">
                         LUCRO IMEDIATO
                     </span>
-                    <span class="block font-black uppercase tracking-wider text-sm" style="color: #374151;">Sua Margem Estimada</span>
                     <span class="font-black block tracking-tight leading-none text-3xl md:text-4xl" style="color: #E50000;">
                         R$ {{ number_format($valorLucro, 2, ',', '.') }}
                     </span>
@@ -138,6 +143,9 @@
                     </p>
                     <p class="font-bold text-sm" style="color: #111827;">
                         <strong>Por Apenas:</strong> R$ {{ number_format($valorVenda, 2, ',', '.') }}
+                    </p>
+                    <p class="font-bold text-sm pt-1" style="color: #6B7280;">
+                        ({{ number_format($descontoPct, 0) }}% OFF) por tempo limitado!
                     </p>
                 </div>
 
