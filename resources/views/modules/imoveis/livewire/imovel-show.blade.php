@@ -55,6 +55,19 @@
     $valOlx = $valorAvaliacao * 0.95;
     $valQuinto = $valorAvaliacao * 1.05;
 
+    // Imobiliária responsável pelo estado
+    $resolvedImob = $imovel->resolved_imobiliaria;
+    if ($resolvedImob) {
+        $imobFone = preg_replace('/\D/', '', $resolvedImob->whatsapp);
+        if (strlen($imobFone) > 0 && !str_starts_with($imobFone, '55')) {
+            if (strlen($imobFone) === 10 || strlen($imobFone) === 11) {
+                $imobFone = '55' . $imobFone;
+            }
+        }
+    } else {
+        $imobFone = preg_replace('/\D/', '', config('services.whatsapp.central', env('WHATSAPP_CENTRAL', '5521997882950')));
+    }
+
     // Opportunity tier definitions
     if ($descontoPct >= 40) {
         $badgeStyle = 'background: linear-gradient(135deg, #FEF08A 0%, #FBBF24 50%, #CA8A04 100%) !important; border: 1px solid #F59E0B !important; color: #78350F !important; font-weight: 900 !important; text-shadow: none !important;';
@@ -80,27 +93,24 @@
      x-data="{ activeTab: null }">
 
     <!-- Hero Header Banner Section -->
-    <div class="py-16 px-6 text-center text-white relative overflow-hidden border-b border-gray-100 shadow-md" style="background-color: #005CA9;">
-        <div class="max-w-7xl mx-auto space-y-5 relative z-10">
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight max-w-5xl mx-auto text-white">
+    <div class="py-8 px-6 text-center text-white relative overflow-hidden border-b border-gray-100 shadow-md" style="background-color: #005CA9;">
+        <div class="max-w-3xl mx-auto space-y-3 relative z-10">
+            <h1 class="text-base md:text-lg font-bold tracking-tight leading-snug text-white">
                 {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
             </h1>
-            <p class="text-lg md:text-xl text-blue-100 font-bold max-w-3xl mx-auto tracking-wide">
-                Desconto imediato de <span class="text-yellow-300 font-black underline decoration-wavy decoration-orange-400">R$ {{ number_format($valorLucro, 2, ',', '.') }}</span> ({{ number_format($descontoPct, 0) }}% OFF) por tempo limitado!
+            <p class="text-lg md:text-2xl text-white font-black max-w-2xl mx-auto">
+                Desconto imediato de <span class="text-yellow-300 underline decoration-wavy decoration-orange-400">R$ {{ number_format($valorLucro, 2, ',', '.') }}</span><br>
+                <span class="text-blue-100 font-bold text-base md:text-lg">({{ number_format($descontoPct, 0) }}% OFF) por tempo limitado!</span>
             </p>
         </div>
     </div>
 
     <!-- Main Content Container -->
-    <div class="max-w-7xl mx-auto py-12 px-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
-            <!-- Coluna Esquerda: Conteúdos, Sanfonas e Dados Técnicos (ColSpan 2) -->
-            <div class="lg:col-span-2 space-y-8">
+    <div class="max-w-4xl mx-auto py-10 px-4 sm:px-6 space-y-8">
 
                 <!-- Galeria / Imagem Fachada do Imóvel -->
-                <div class="bg-white p-6 rounded-[2.5rem] shadow-lg border border-gray-100 overflow-hidden relative group">
-                    <div class="relative aspect-video rounded-3xl overflow-hidden shadow-inner bg-gray-50">
+                <div class="overflow-hidden relative group">
+                    <div class="relative aspect-video rounded-2xl overflow-hidden bg-gray-50 border border-gray-200/60 shadow-sm">
                         <img src="{{ $imovel->foto_fachada_url ?? asset('images/imovel-placeholder.svg') }}"
                              alt="{{ $tipoNome }} em {{ $cidadeNome }}"
                              class="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-700 ease-out"
@@ -112,6 +122,23 @@
                             {{ number_format($descontoPct, 0) }}% DE DESCONTO
                         </div>
                     </div>
+                </div>
+
+                <!-- Bloco LUCRO IMEDIATO -->
+                <div class="p-6 rounded-2xl text-center space-y-2" style="background-color: #F3F4F6; border: 1px solid #E5E7EB;">
+                    <span class="font-black uppercase tracking-widest px-4 py-1.5 rounded-full inline-block text-xs" style="color: #111827; border: 1px solid #D1D5DB; background-color: #E5E7EB;">
+                        LUCRO IMEDIATO
+                    </span>
+                    <span class="block font-black uppercase tracking-wider text-sm" style="color: #374151;">Sua Margem Estimada</span>
+                    <span class="font-black block tracking-tight leading-none text-3xl md:text-4xl" style="color: #E50000;">
+                        R$ {{ number_format($valorLucro, 2, ',', '.') }}
+                    </span>
+                    <p class="font-bold text-sm" style="color: #4B5563;">
+                        <strong>De:</strong> R$ {{ number_format($valorAvaliacao, 2, ',', '.') }}
+                    </p>
+                    <p class="font-bold text-sm" style="color: #111827;">
+                        <strong>Por Apenas:</strong> R$ {{ number_format($valorVenda, 2, ',', '.') }}
+                    </p>
                 </div>
 
                 <!-- Endereço, Descrição e Dados Técnicos Físicos -->
@@ -278,6 +305,21 @@
                                 <span class="text-base sm:text-lg font-black text-gray-900">Não</span>
                             </div>
                         </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                            @if($imovel->link_edital)
+                            <a href="{{ $imovel->link_edital }}" target="_blank" rel="noopener noreferrer"
+                               class="flex-1 flex items-center justify-center gap-2 text-[#005CA9] border border-[#005CA9]/30 hover:bg-[#005CA9]/5 bg-white rounded-2xl py-3 transition-all text-sm font-extrabold shadow-sm">
+                                🌐 <span>Ver no Site Oficial da Caixa</span>
+                            </a>
+                            @endif
+                            @if($imovel->link_matricula)
+                            <a href="{{ $imovel->link_matricula }}" target="_blank" rel="noopener noreferrer"
+                               class="flex-1 flex items-center justify-center gap-2 text-emerald-700 border border-emerald-300/50 hover:bg-emerald-50 bg-white rounded-2xl py-3 transition-all text-sm font-extrabold shadow-sm">
+                                📋 <span>Visualizar Matrícula (RGI)</span>
+                            </a>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
@@ -390,6 +432,49 @@
                                 <p>Faça sua proposta de compra com a nossa imobiliária – <strong>Imóveis da Caixa LTDA CNPJ 50.563.863/0001-45 – CRECI-PJ 10.234/RJ</strong>, nós vamos te enviar um documento assegurando esta gratuidade do serviço prestado.</p>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Formulário de Captação de Leads -->
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6">
+                    <div class="space-y-1">
+                        <span class="text-[#005CA9] text-[9px] font-black uppercase tracking-widest block">FALAR COM CORRETOR CREDENCIADO</span>
+                        <h3 class="text-2xl font-black text-gray-900 tracking-tight leading-none">Tenho Interesse!</h3>
+                        <p class="text-xs text-gray-500">Preencha seus dados para receber o dossiê detalhado e agendar atendimento.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">Seu Nome Completo</label>
+                            <input type="text" wire:model="nome" placeholder="Ex: João da Silva..."
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
+                            @error('nome')<span class="text-red-600 text-xs mt-1 block font-medium">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">Seu E-mail Principal</label>
+                            <input type="email" wire:model="email" placeholder="Ex: joao@email.com..."
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
+                            @error('email')<span class="text-red-600 text-xs mt-1 block font-medium">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">WhatsApp com DDD</label>
+                            <input type="tel" wire:model="telefone" placeholder="Ex: 21999998888..."
+                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
+                            @error('telefone')<span class="text-red-600 text-xs mt-1 block font-medium">{{ $message }}</span>@enderror
+                        </div>
+                        <button wire:click="converterLead" wire:loading.attr="disabled"
+                                class="w-full bg-[#F39200] hover:bg-[#E08600] active:scale-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-orange-500/20 transition-all duration-300 flex items-center justify-center gap-3 text-base tracking-wider">
+                            <span wire:loading.remove wire:target="converterLead" class="flex items-center justify-center gap-2">
+                                FALAR COM CORRETOR <span class="bg-white/20 p-1 rounded-full">💬</span>
+                            </span>
+                            <span wire:loading wire:target="converterLead" class="flex items-center gap-3">
+                                <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                </svg>
+                                Conectando…
+                            </span>
+                        </button>
+                        <p class="text-[9px] text-gray-400 text-center uppercase tracking-wider pt-1">🔐 Seus dados estão 100% protegidos conforme a LGPD.</p>
                     </div>
                 </div>
 
@@ -953,11 +1038,57 @@
                 </div>
                 @endauth
 
+                <!-- Imobiliária Credenciada Responsável pelo Atendimento -->
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-5">
+                    <h2 class="text-xl font-black text-gray-900 tracking-tight flex items-center">
+                        <span class="bg-[#005CA9] w-2.5 h-6 mr-3 rounded-full"></span>
+                        🏢 Imobiliária Credenciada
+                    </h2>
+                    @if($resolvedImob)
+                        <div class="flex items-center gap-4">
+                            @if($resolvedImob->imagem_botao)
+                                <img src="/storage/{{ $resolvedImob->imagem_botao }}" alt="{{ $resolvedImob->nome }}"
+                                     class="w-20 h-20 object-contain rounded-2xl border border-gray-200 bg-gray-50 p-1">
+                            @else
+                                <div class="w-16 h-16 rounded-2xl bg-[#005CA9]/10 flex items-center justify-center text-2xl shrink-0">🏢</div>
+                            @endif
+                            <div>
+                                <p class="font-black text-gray-900 text-base">{{ $resolvedImob->nome }}</p>
+                                @if($resolvedImob->cnpj)<p class="text-sm text-gray-500">CNPJ: {{ $resolvedImob->cnpj }}</p>@endif
+                            </div>
+                        </div>
+                        <hr class="border-gray-100">
+                        <div class="space-y-1">
+                            <span class="font-black text-gray-900 block text-xs uppercase tracking-wider">🕒 Horário de Atendimento</span>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                Segunda a Sexta-feira: 10:00 às 16:00<br>
+                                Telefone / WhatsApp: {{ $resolvedImob->whatsapp ?? '(21) 99788-2950' }}
+                            </p>
+                        </div>
+                    @else
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-2xl bg-[#005CA9]/10 flex items-center justify-center text-2xl shrink-0">🏢</div>
+                            <div>
+                                <p class="font-black text-gray-900 text-base">Imóveis da Caixa LTDA</p>
+                                <p class="text-sm text-gray-500">CNPJ: 50.563.863/0001-45</p>
+                                <p class="text-sm text-gray-500">CRECI-PJ: 10.234/RJ</p>
+                            </div>
+                        </div>
+                        <hr class="border-gray-100">
+                        <div class="space-y-1">
+                            <span class="font-black text-gray-900 block text-xs uppercase tracking-wider">🕒 Horário de Atendimento</span>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                Segunda a Sexta-feira: 10:00 às 16:00<br>
+                                Telefone / WhatsApp: (21) 99788-2950
+                            </p>
+                        </div>
+                    @endif
+                </div>
+
             </div>
 
-            <!-- Coluna Direita: Sticky Sidebar (Calculadora, Form de Captação e CTAs) -->
-            <div class="space-y-6 sticky top-8">
-
+            {{-- SIDEBAR REMOVIDO: conteúdo migrado para coluna única --}}
+            @if(false)
                 <!-- Bloco de Lucro Imediato -->
                 <div class="p-8 rounded-[2.5rem] shadow-lg text-center relative overflow-hidden" style="background-color: #F3F4F6; border: 1px solid #E5E7EB;">
                     <div class="space-y-4">
@@ -1089,35 +1220,15 @@
                     </p>
                 </div>
 
-            </div>
-
-        </div>
-    </div>
+            @endif
 
     <!-- Botão Flutuante Dinâmico (Parceiros por Estado ou Central) -->
     @php
-        $resolvedImob = $imovel->resolved_imobiliaria;
-        
-        // Resolve o número de telefone, o nome e a imagem
-        if ($resolvedImob) {
-            $whatsappFone = preg_replace('/\D/', '', $resolvedImob->whatsapp);
-            $whatsappNome = $resolvedImob->nome;
-            $whatsappImg = $resolvedImob->imagem_botao;
-        } else {
-            $whatsappFone = preg_replace('/\D/', '', config('services.whatsapp.central', env('WHATSAPP_CENTRAL', '5521997882950')));
-            $whatsappNome = 'Imóveis da Caixa';
-            $whatsappImg = null;
-        }
-        
-        // Certifica de adicionar o DDI do Brasil (55) se estiver ausente
-        if (strlen($whatsappFone) > 0 && !str_starts_with($whatsappFone, '55')) {
-            if (strlen($whatsappFone) === 10 || strlen($whatsappFone) === 11) {
-                $whatsappFone = '55' . $whatsappFone;
-            }
-        }
-        
-        // Mensagem contendo o número do imóvel para fácil localização
-        $msgWhatsapp = "🎯 Olá! Entrei no site *Imóveis da Caixa* e quero mais informações sobre o imóvel nº *{$imovel->numero_original}*.";
+        // $resolvedImob já computado no @php do topo
+        $whatsappFone = $imobFone;
+        $whatsappNome = $resolvedImob?->nome ?? 'Imóveis da Caixa';
+        $whatsappImg  = $resolvedImob?->imagem_botao ?? null;
+        $msgWhatsapp  = "🎯 Olá! Entrei no site *Imóveis da Caixa* e quero mais informações sobre o imóvel nº *{$imovel->numero_original}*.";
     @endphp
     <div class="fixed bottom-6 left-0 right-0 flex justify-center" style="position: fixed !important; bottom: 24px !important; left: 0 !important; right: 0 !important; z-index: 9999999 !important; pointer-events: none !important; display: flex !important; justify-content: center !important;">
         <div class="w-[240px] h-[80px] md:w-[360px] md:h-[120px]" style="pointer-events: auto !important; display: block !important;">
