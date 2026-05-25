@@ -41,6 +41,7 @@ jobs:
             --exclude 'node_modules' \
             --exclude 'public' \
             --exclude '.env' \
+            --exclude 'storage' \
             -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
             ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/laravel-app/
 
@@ -98,6 +99,15 @@ jobs:
                 echo "Arquivo .env ja existe em laravel-app/.env"
                 chmod 644 /home/${{ secrets.SSH_USER }}/laravel-app/.env
             fi
+
+            # Garante estrutura de diretórios do storage (não é sincronizado pelo rsync)
+            mkdir -p storage/app/imports
+            mkdir -p storage/app/public
+            mkdir -p storage/framework/cache/data
+            mkdir -p storage/framework/sessions
+            mkdir -p storage/framework/views
+            mkdir -p storage/logs
+            chmod -R 775 storage || true
 
             $PHP_BIN artisan storage:link || true
             $PHP_BIN artisan migrate --force

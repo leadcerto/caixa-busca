@@ -43,8 +43,7 @@ class CaixaCsvParserService
     public function process(string $filePath): void
     {
         if (!file_exists($filePath)) {
-            Log::error("CaixaCsvParser: Arquivo não encontrado em {$filePath}");
-            return;
+            throw new \RuntimeException("CaixaCsvParser: Arquivo não encontrado em {$filePath}");
         }
 
         // Conta o total de linhas para calcular percentual de progresso
