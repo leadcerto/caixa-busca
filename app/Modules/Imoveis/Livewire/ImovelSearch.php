@@ -15,48 +15,33 @@ class ImovelSearch extends Component
 {
     use WithPagination;
 
-    // Filtros
+    // Filtros — únicos dados serializados pelo Livewire no snapshot
     public string $busca_numero = '';
     public ?int $id_estado = null;
     public ?int $id_municipio = null;
     public array $bairros_selecionados = [];
     public string $preco_min = '';
     public string $preco_max = '';
-    public string $financiamento = 'todos'; // 'todos' ou 'sim'
-    public string $ordenacao = 'recente'; // 'recente', 'desconto_pct_desc', 'desconto_reais_desc', 'preco_asc', 'preco_desc'
+    public string $financiamento = 'todos';
+    public string $ordenacao = 'recente';
     public string $tipo = '';
     public bool $show_results = false;
 
-    // Dados de dropdowns
-    public $estados = [];
-    public $municipios = [];
-    public $bairros = [];
-    public $tipos = [];
-
     protected $queryString = [
-        'busca_numero'  => ['except' => ''],
-        'id_estado'     => ['except' => null],
-        'id_municipio'  => ['except' => null],
+        'busca_numero'         => ['except' => ''],
+        'id_estado'            => ['except' => null],
+        'id_municipio'         => ['except' => null],
         'bairros_selecionados' => ['except' => []],
-        'preco_min'     => ['except' => ''],
-        'preco_max'     => ['except' => ''],
-        'financiamento' => ['except' => 'todos'],
-        'ordenacao'     => ['except' => 'recente'],
-        'tipo'          => ['except' => ''],
-        'show_results'  => ['except' => false],
+        'preco_min'            => ['except' => ''],
+        'preco_max'            => ['except' => ''],
+        'financiamento'        => ['except' => 'todos'],
+        'ordenacao'            => ['except' => 'recente'],
+        'tipo'                 => ['except' => ''],
+        'show_results'         => ['except' => false],
     ];
 
     public function mount(): void
     {
-        $this->estados = Cache::remember('dropdown_estados_com_imoveis', 3600, fn () =>
-            Estado::whereHas('imoveis', fn ($q) => $q->where('status', 'ativo'))
-                ->orderBy('nome')
-                ->get()
-        );
-        $this->tipos = TipoImovel::where('ativo', true)->orderBy('nome')->get();
-        $this->carregarMunicipios();
-        $this->carregarBairros();
-
         if ($this->busca_numero !== '' ||
             $this->id_estado !== null ||
             $this->id_municipio !== null ||
@@ -73,15 +58,12 @@ class ImovelSearch extends Component
     {
         $this->id_municipio = null;
         $this->bairros_selecionados = [];
-        $this->carregarMunicipios();
-        $this->carregarBairros();
         $this->resetPage();
     }
 
     public function updatedIdMunicipio(): void
     {
         $this->bairros_selecionados = [];
-        $this->carregarBairros();
         $this->resetPage();
     }
 
@@ -91,7 +73,6 @@ class ImovelSearch extends Component
             return;
         }
 
-        // Avoid infinite loop recursion when pagination properties are updated
         if (in_array($property, ['id_estado', 'id_municipio', 'page']) || str_starts_with($property, 'paginators')) {
             return;
         }
@@ -99,33 +80,14 @@ class ImovelSearch extends Component
         $this->resetPage();
     }
 
-    public function carregarMunicipios(): void
-    {
-        if ($this->id_estado) {
-            $this->municipios = Municipio::where('id_estado', $this->id_estado)->orderBy('nome')->get();
-        } else {
-            $this->municipios = [];
-        }
-    }
-
-    public function carregarBairros(): void
-    {
-        if ($this->id_municipio) {
-            $this->bairros = Bairro::where('id_municipio', $this->id_municipio)
-                ->whereHas('imoveis', function ($q) {
-                    $q->where('status', 'ativo');
-                })
-                ->orderBy('nome')
-                ->get();
-        } else {
-            $this->bairros = [];
-        }
-    }
-
     public function selecionarTodosBairros(): void
     {
-        if ($this->bairros) {
-            $this->bairros_selecionados = collect($this->bairros)->pluck('id')->toArray();
+        if ($this->id_municipio) {
+            $ids = Bairro::where('id_municipio', $this->id_municipio)
+                ->whereHas('imoveis', fn ($q) => $q->where('status', 'ativo'))
+                ->pluck('id')
+                ->toArray();
+            $this->bairros_selecionados = $ids;
         }
         $this->resetPage();
     }
@@ -156,13 +118,42 @@ class ImovelSearch extends Component
             'show_results',
         ]);
         $this->bairros_selecionados = [];
-        $this->municipios = [];
-        $this->bairros = [];
         $this->resetPage();
     }
 
     public function render()
     {
+        // Dropdowns carregados no render() — nunca serializados pelo Livewire.
+        // Cache armazena arrays simples (não Eloquent) para evitar falha no unserialize do Hostinger.
+        $estados = collect(Cache::remember('dropdown_estados_com_imoveis', 3600, fn () =>
+            Estado::whereHas('imoveis', fn ($q) => $q->where('status', 'ativo'))
+                ->orderBy('nome')
+                ->select('id', 'nome', 'uf')
+                ->get()
+                ->toArray()
+        ))->map(fn ($e) => (object) $e)->values();
+
+        $tipos = collect(Cache::remember('dropdown_tipos_imoveis', 86400, fn () =>
+            TipoImovel::where('ativo', true)->orderBy('nome')->select('id', 'nome')->get()->toArray()
+        ))->map(fn ($e) => (object) $e)->values();
+
+        $municipios = collect([]);
+        if ($this->id_estado) {
+            $municipios = Municipio::where('id_estado', $this->id_estado)
+                ->orderBy('nome')
+                ->select('id', 'nome')
+                ->get();
+        }
+
+        $bairros = collect([]);
+        if ($this->id_municipio) {
+            $bairros = Bairro::where('id_municipio', $this->id_municipio)
+                ->whereHas('imoveis', fn ($q) => $q->where('status', 'ativo'))
+                ->orderBy('nome')
+                ->select('id', 'nome')
+                ->get();
+        }
+
         $imoveis = null;
 
         if ($this->show_results) {
@@ -179,12 +170,10 @@ class ImovelSearch extends Component
                 })
                 ->where('imoveis.status', 'ativo');
 
-            // Filtro por Número do Imóvel
             if ($this->busca_numero) {
                 $query->where('imoveis.numero_original', 'like', "%{$this->busca_numero}%");
             }
 
-            // Filtros de Localização
             if ($this->id_estado) {
                 $query->where('imoveis.id_estado', $this->id_estado);
             }
@@ -195,12 +184,10 @@ class ImovelSearch extends Component
                 $query->whereIn('imoveis.id_bairro', $this->bairros_selecionados);
             }
 
-            // Filtro por Tipo de Imóvel
             if ($this->tipo) {
-                $query->whereHas('tipoImovel', fn($q) => $q->where('nome', $this->tipo));
+                $query->whereHas('tipoImovel', fn ($q) => $q->where('nome', $this->tipo));
             }
 
-            // Filtro por Faixa de Preço
             if ($this->preco_min) {
                 $query->where('latest_h.valor_venda', '>=', (float) str_replace(',', '.', $this->preco_min));
             }
@@ -208,12 +195,10 @@ class ImovelSearch extends Component
                 $query->where('latest_h.valor_venda', '<=', (float) str_replace(',', '.', $this->preco_max));
             }
 
-            // Filtro por Financiamento
             if ($this->financiamento === 'sim') {
                 $query->where('imoveis.aceita_fgts', 'sim');
             }
 
-            // Ordenação Dinâmica
             switch ($this->ordenacao) {
                 case 'desconto_pct_desc':
                     $query->orderBy('latest_h.desconto_percentual', 'desc');
@@ -237,6 +222,8 @@ class ImovelSearch extends Component
                 ->paginate(12);
         }
 
-        return view('modules.imoveis.livewire.imovel-search', compact('imoveis'));
+        return view('modules.imoveis.livewire.imovel-search', compact(
+            'imoveis', 'estados', 'tipos', 'municipios', 'bairros'
+        ));
     }
 }
