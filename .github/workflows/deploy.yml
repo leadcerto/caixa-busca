@@ -102,6 +102,7 @@ jobs:
 
             # Garante estrutura de diretórios do storage (não é sincronizado pelo rsync)
             mkdir -p storage/app/imports
+            mkdir -p storage/app/livewire-tmp
             mkdir -p storage/app/public
             mkdir -p storage/framework/cache/data
             mkdir -p storage/framework/sessions

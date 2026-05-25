@@ -59,7 +59,12 @@ class ImportacaoCsv extends Component
             // Salva o arquivo em storage/app/imports para processamento pelo Job
             // Especificar explicitamente o disco 'local' garante consistência independente do .env
             $fileName = 'caixa_import_' . now()->format('Ymd_His') . '.csv';
-            $this->csvFile->storeAs('imports', $fileName, 'local');
+            $saved = $this->csvFile->storeAs('imports', $fileName, 'local');
+
+            if (!$saved) {
+                throw new \RuntimeException('Falha ao salvar o arquivo no servidor. Verifique as permissões de storage/app/imports/.');
+            }
+
             $absolutePath = storage_path('app/imports/' . $fileName);
 
             // Dispara o Job para o Worker processar sem travar a interface
