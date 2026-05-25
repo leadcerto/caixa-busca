@@ -273,14 +273,21 @@
                             @if($imagem)
                                 <div class="text-center">
                                     <p class="text-[9px] text-emerald-600 font-bold uppercase mb-1">Pré-visualização do Upload:</p>
-                                    @try
-                                        <img src="{{ $imagem->temporaryUrl() }}" class="max-h-[60px] object-contain shadow-sm border border-white/50 bg-white p-1 rounded-lg">
-                                    @catch(\Exception $e)
+                                    @php
+                                        try {
+                                            $previewUrl = $imagem->temporaryUrl();
+                                        } catch (\Exception $e) {
+                                            $previewUrl = null;
+                                        }
+                                    @endphp
+                                    @if($previewUrl)
+                                        <img src="{{ $previewUrl }}" class="max-h-[60px] object-contain shadow-sm border border-white/50 bg-white p-1 rounded-lg">
+                                    @else
                                         <div class="text-xs font-bold text-slate-500">
                                             <span>{{ $imagem->getClientOriginalName() }}</span>
                                             <span class="block text-[10px] text-slate-400 font-medium">({{ round($imagem->getSize() / 1024) }} KB)</span>
                                         </div>
-                                    @endtry
+                                    @endif
                                 </div>
                             @elseif($imagemExistente)
                                 <div class="text-center">
