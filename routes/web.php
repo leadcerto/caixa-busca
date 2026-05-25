@@ -371,9 +371,36 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 } elseif ($action === 'storage_link') {
                     \Illuminate\Support\Facades\Artisan::call('storage:link', ['--force' => true]);
                     $actionOutput = "=== php artisan storage:link --force ===\n" . \Illuminate\Support\Facades\Artisan::output();
+
+                    // No Hostinger, public_html/venda/public/ é o web root real, diferente de laravel-app/public/.
+                    // Precisa criar o symlink storage/ também no web root para imagens carregarem.
+                    $storageTarget = storage_path('app/public');
+                    $scriptFile = $_SERVER['SCRIPT_FILENAME'] ?? '';
+                    $webRoot = $scriptFile ? (dirname(realpath($scriptFile) ?: $scriptFile)) : '';
+                    $webStorageLink = rtrim($webRoot, '/') . '/storage';
+                    $actionOutput .= "\n\n=== Symlink no web root ===";
+                    $actionOutput .= "\nWeb root detectado: $webRoot";
+                    $actionOutput .= "\nAlvo: $storageTarget";
+                    if ($webRoot) {
+                        if (is_link($webStorageLink)) {
+                            @unlink($webStorageLink);
+                        } elseif (is_dir($webStorageLink)) {
+                            @shell_exec('rm -rf ' . escapeshellarg($webStorageLink));
+                            if (is_dir($webStorageLink)) {
+                                @rmdir($webStorageLink);
+                            }
+                        }
+                        $ok = @symlink($storageTarget, $webStorageLink);
+                        $actionOutput .= "\nResultado: " . ($ok ? '✅ Symlink criado' : '❌ Falha — tente via SSH: ln -sfn ' . $storageTarget . ' ' . $webStorageLink);
+                    } else {
+                        $actionOutput .= "\n⚠️ Não foi possível detectar o web root via SCRIPT_FILENAME.";
+                    }
+
                     $storagePath = public_path('storage');
-                    $actionOutput .= "\nSymlink em public/storage: " . (is_link($storagePath) ? '✅ Existe → ' . readlink($storagePath) : '❌ NÃO existe');
-                    $actionOutput .= "\nArquivo de teste: " . (file_exists(storage_path('app/public')) ? '✅ storage/app/public existe' : '❌ Diretório ausente');
+                    $actionOutput .= "\n\n=== Status ===";
+                    $actionOutput .= "\nlaravel-app/public/storage: " . (is_link($storagePath) ? '✅ → ' . readlink($storagePath) : '❌ NÃO existe');
+                    $actionOutput .= "\nweb root/storage: " . (is_link($webStorageLink) ? '✅ → ' . readlink($webStorageLink) : (file_exists($webStorageLink) ? '⚠️ diretório (não symlink)' : '❌ NÃO existe'));
+                    $actionOutput .= "\nstorage/app/public: " . (file_exists($storageTarget) ? '✅ existe' : '❌ ausente');
                 } elseif ($action === 'seed') {
                     \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
                     $actionOutput = "=== php artisan db:seed --force ===\n" . \Illuminate\Support\Facades\Artisan::output();

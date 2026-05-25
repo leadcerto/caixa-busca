@@ -49,13 +49,15 @@ jobs:
         run: |
           ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /home/${{ secrets.SSH_USER }}/public_html/venda/public /home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/public"
           
-          # Sync to public_html segment
+          # Sync to public_html segment (exclui storage — symlink criado manualmente depois)
           rsync -az --delete \
+            --exclude='storage' \
             -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
             ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/public_html/venda/public/
-            
-          # Sync to domains segment
+
+          # Sync to domains segment (exclui storage — symlink criado manualmente depois)
           rsync -az --delete \
+            --exclude='storage' \
             -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
             ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/public/
 
@@ -111,6 +113,15 @@ jobs:
             chmod -R 775 storage || true
 
             $PHP_BIN artisan storage:link --force || true
+
+            # Hostinger: public_html/ e laravel-app/ são diretórios separados.
+            # O storage:link cria o symlink em laravel-app/public/storage (não acessível pelo Apache).
+            # Cria manualmente o symlink nas pastas reais servidas pelo Apache.
+            rm -rf /home/${{ secrets.SSH_USER }}/public_html/venda/public/storage 2>/dev/null || true
+            ln -sfn /home/${{ secrets.SSH_USER }}/laravel-app/storage/app/public /home/${{ secrets.SSH_USER }}/public_html/venda/public/storage || true
+            rm -rf /home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/public/storage 2>/dev/null || true
+            ln -sfn /home/${{ secrets.SSH_USER }}/laravel-app/storage/app/public /home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/public/storage || true
+
             $PHP_BIN artisan migrate --force
             $PHP_BIN artisan config:cache
             $PHP_BIN artisan route:cache
