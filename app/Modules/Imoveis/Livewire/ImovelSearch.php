@@ -226,7 +226,7 @@ class ImovelSearch extends Component
                 break;
             case 'recente':
             default:
-                $query->orderBy('imoveis.updated_at', 'desc');
+                $query->orderBy('latest_h.valor_venda', 'asc');
                 break;
         }
 
