@@ -126,7 +126,6 @@ jobs:
             $PHP_BIN artisan optimize:clear
             $PHP_BIN artisan config:cache
             $PHP_BIN artisan route:clear
-            $PHP_BIN artisan view:cache
 
             # Ajuste de permissões em pastas de escrita
             chmod -R 775 storage bootstrap/cache || true
