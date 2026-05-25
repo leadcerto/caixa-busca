@@ -174,6 +174,7 @@
                         @endphp
                         
                         <a href="{{ route('imovel.show', $imovel->slug) }}"
+                           target="_blank" rel="noopener noreferrer"
                            class="bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 group border border-gray-100 flex flex-col justify-between h-full">
 
                             <div>

@@ -17,9 +17,11 @@
     $cepFormatado = $imovel->cep ? preg_replace('/(\d{5})(\d{3})/', '$1-$2', $imovel->cep) : 'Não informado';
 
     $aceitaFgts = ($imovel->aceita_fgts === 'sim');
-    $aceitaFinanciamentoMcmv = $imovel->aceita_financ_mcmv;
-    $aceitaFinanciamentoSbpe = $imovel->aceita_financ_sbpe;
-    $aceitaFinanciamento = ($aceitaFinanciamentoMcmv || $aceitaFinanciamentoSbpe);
+    // CSV da Caixa não separa MCMV/SBPE — o campo "financiamento" do CSV = aceita_fgts.
+    // Se aceita FGTS, considera que aceita financiamento (SBPE/MCMV não temos dado separado).
+    $aceitaFinanciamentoMcmv = $imovel->aceita_financ_mcmv ?: $aceitaFgts;
+    $aceitaFinanciamentoSbpe = $imovel->aceita_financ_sbpe ?: $aceitaFgts;
+    $aceitaFinanciamento = ($aceitaFinanciamentoMcmv || $aceitaFinanciamentoSbpe || $aceitaFgts);
 
     // Morar calculations
     $morarRegistro = $valorAvaliacao * 0.05; 
