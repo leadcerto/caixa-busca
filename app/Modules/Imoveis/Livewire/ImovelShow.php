@@ -204,6 +204,7 @@ class ImovelShow extends Component
                 'meta_description' => $this->imovel->meta_description
                     ?? "Oportunidade de investimento em {$this->imovel->bairro?->nome}. Veja detalhes.",
                 'og_image'         => $this->imovel->foto_fachada_url ?? asset('images/imovel-placeholder.svg'),
+                'canonical'        => url('/' . $this->imovel->slug),
             ]);
     }
 }

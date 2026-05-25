@@ -27,6 +27,9 @@
         <meta name="twitter:image"       content="{{ $og_image }}">
         @endisset
 
+        {{-- Canonical URL — evita conteúdo duplicado (paginação, query strings, etc.) --}}
+        <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
+
         <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
         <link rel="shortcut icon" href="{{ asset('favicon.svg') }}">
 
