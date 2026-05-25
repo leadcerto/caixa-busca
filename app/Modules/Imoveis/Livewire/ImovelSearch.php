@@ -141,7 +141,7 @@ class ImovelSearch extends Component
         if ($this->id_estado) {
             $municipios = Municipio::where('id_estado', $this->id_estado)
                 ->orderBy('nome')
-                ->select('id', 'nome')
+                ->selectRaw('id, UPPER(nome) as nome')
                 ->get();
         }
 
@@ -150,7 +150,7 @@ class ImovelSearch extends Component
             $bairros = Bairro::where('id_municipio', $this->id_municipio)
                 ->whereHas('imoveis', fn ($q) => $q->where('status', 'ativo'))
                 ->orderBy('nome')
-                ->select('id', 'nome')
+                ->selectRaw('id, UPPER(nome) as nome')
                 ->get();
         }
 
