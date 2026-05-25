@@ -1,7 +1,7 @@
 # Plano de Construção — Antigravity Caixa-Busca
 
 > Guia sequencial de desenvolvimento. Cada fase deve ser concluída antes de iniciar a próxima.
-> Atualizado em: 2026-05-19
+> Atualizado em: 2026-05-25
 
 ---
 
@@ -255,14 +255,13 @@
 app/
 ├── Models/                          # 16 modelos Eloquent
 ├── Modules/
-│   ├── Admin/                       # ✅ Login + Importação CSV
-│   ├── Imoveis/                     # ✅ Vitrine + Show + UTM + Webhook
-│   ├── Imobiliaria/                 # ✅ Login + Painel de Leads
-│   ├── ImportacaoCSV/               # ✅ Parser + Job + Upload
-│   ├── BairrosDossie/               # ⬜ A implementar (Fase 8)
-│   ├── IntegracaoCRM/               # ⬜ A implementar (Fase 6)
-│   ├── Leads/                       # ⬜ A implementar (Fase 5)
-│   └── WhatsAppTemplates/           # ⬜ A implementar (Fase 7)
+│   ├── Admin/                       # ✅ Login + Dashboard + Importação CSV + CRM + WhatsApp
+│   ├── Imoveis/                     # ✅ Vitrine + Show + UTM + Webhook + API Resources
+│   ├── Imobiliaria/                 # ✅ Login + Painel de Leads filtrado + Exportação CSV
+│   ├── ImportacaoCSV/               # ✅ Parser + Job + Upload + Progress Banner
+│   ├── BairrosDossie/               # ✅ Geração IA + Página pública + Interface admin (Fase 8)
+│   ├── Leads/                       # ✅ Gestão centralizada admin + Exportação (Fase 5)
+│   └── WhatsAppTemplates/           # ✅ CRUD + Preview + Renderização ativa (Fase 7)
 └── Observers/
     └── AtendimentoObserver.php      # ✅ Email automático
 
