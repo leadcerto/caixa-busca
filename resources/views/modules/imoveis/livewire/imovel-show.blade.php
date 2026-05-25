@@ -122,7 +122,7 @@
                         </div>
 
                         <!-- Floating financing badge -->
-                        @if($aceitaFinanciamento)
+                        @if($aceitaFinanciamento || $imovel->aceita_fgts === 'sim')
                         <div class="absolute top-6 right-6 bg-[#005CA9] text-white font-black text-sm px-4 py-2 rounded-2xl shadow-xl border border-blue-400 tracking-wider">
                             ✅ ACEITA FINANCIAMENTO
                         </div>
@@ -838,6 +838,25 @@
                                 <p>Todas as custas de cartório, despachantes, diligências, e outras que se façam necessárias são de responsabilidade do comprador.</p>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Mapa do Google -->
+                <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-4">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
+                        <span class="bg-[#005CA9] w-2.5 h-6 mr-3 rounded-full"></span>
+                        🗺️ Localização: {{ $bairroNome }}, {{ $cidadeNome }} – {{ $uf }}
+                    </h2>
+                    <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+                        <iframe
+                            width="100%"
+                            height="350"
+                            style="border:0;"
+                            loading="lazy"
+                            allowfullscreen
+                            referrerpolicy="no-referrer-when-downgrade"
+                            src="https://maps.google.com/maps?q={{ urlencode($bairroNome . ', ' . $cidadeNome . ', ' . $uf . ', Brasil') }}&output=embed&z=14">
+                        </iframe>
                     </div>
                 </div>
 
