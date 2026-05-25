@@ -368,6 +368,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 } elseif ($action === 'clear') {
                     \Illuminate\Support\Facades\Artisan::call('optimize:clear');
                     $actionOutput = "=== php artisan optimize:clear ===\n" . \Illuminate\Support\Facades\Artisan::output();
+                } elseif ($action === 'storage_link') {
+                    \Illuminate\Support\Facades\Artisan::call('storage:link', ['--force' => true]);
+                    $actionOutput = "=== php artisan storage:link --force ===\n" . \Illuminate\Support\Facades\Artisan::output();
+                    $storagePath = public_path('storage');
+                    $actionOutput .= "\nSymlink em public/storage: " . (is_link($storagePath) ? '✅ Existe → ' . readlink($storagePath) : '❌ NÃO existe');
+                    $actionOutput .= "\nArquivo de teste: " . (file_exists(storage_path('app/public')) ? '✅ storage/app/public existe' : '❌ Diretório ausente');
                 } elseif ($action === 'seed') {
                     \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
                     $actionOutput = "=== php artisan db:seed --force ===\n" . \Illuminate\Support\Facades\Artisan::output();
@@ -559,6 +565,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                             <a href="?action=clear" class="btn btn-outline-info btn-action">optimize:clear</a>
                             <a href="?action=migrate" class="btn btn-outline-warning btn-action">migrate --force</a>
                             <a href="?action=seed" class="btn btn-outline-success btn-action">db:seed --force</a>
+                            <a href="?action=storage_link" class="btn btn-action" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#10b981;">🔗 storage:link --force</a>
                         </div>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <a href="?action=queue" class="btn btn-action" style="background:rgba(139,92,246,0.2);border-color:rgba(139,92,246,0.5);color:#a78bfa;" ' . ($jobsCount > 0 ? '' : 'style="opacity:0.5;"') . '>⚙️ Processar Fila (queue:work)</a>

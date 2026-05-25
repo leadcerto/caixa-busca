@@ -110,7 +110,7 @@ jobs:
             mkdir -p storage/logs
             chmod -R 775 storage || true
 
-            $PHP_BIN artisan storage:link || true
+            $PHP_BIN artisan storage:link --force || true
             $PHP_BIN artisan migrate --force
             $PHP_BIN artisan config:cache
             $PHP_BIN artisan route:cache
