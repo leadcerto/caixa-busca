@@ -124,7 +124,6 @@ jobs:
 
             $PHP_BIN artisan migrate --force
             $PHP_BIN artisan optimize:clear
-            $PHP_BIN artisan config:cache
             $PHP_BIN artisan route:clear
 
             # Ajuste de permissões em pastas de escrita
