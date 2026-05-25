@@ -163,75 +163,79 @@ class ImovelSearch extends Component
 
     public function render()
     {
-        $query = Imovel::query()
-            ->select('imoveis.*')
-            ->join('imoveis_historico as latest_h', function ($join) {
-                $join->on('latest_h.id_imovel', '=', 'imoveis.id')
-                    ->whereRaw('latest_h.id = (
-                        SELECT id FROM imoveis_historico 
-                        WHERE id_imovel = imoveis.id 
-                        ORDER BY created_at DESC, id DESC 
-                        LIMIT 1
-                    )');
-            })
-            ->where('imoveis.status', 'ativo');
+        $imoveis = null;
 
-        // Filtro por Número do Imóvel
-        if ($this->busca_numero) {
-            $query->where('imoveis.numero_original', 'like', "%{$this->busca_numero}%");
-        }
+        if ($this->show_results) {
+            $query = Imovel::query()
+                ->select('imoveis.*')
+                ->join('imoveis_historico as latest_h', function ($join) {
+                    $join->on('latest_h.id_imovel', '=', 'imoveis.id')
+                        ->whereRaw('latest_h.id = (
+                            SELECT id FROM imoveis_historico
+                            WHERE id_imovel = imoveis.id
+                            ORDER BY created_at DESC, id DESC
+                            LIMIT 1
+                        )');
+                })
+                ->where('imoveis.status', 'ativo');
 
-        // Filtros de Localização
-        if ($this->id_estado) {
-            $query->where('imoveis.id_estado', $this->id_estado);
-        }
-        if ($this->id_municipio) {
-            $query->where('imoveis.id_municipio', $this->id_municipio);
-        }
-        if ($this->bairros_selecionados) {
-            $query->whereIn('imoveis.id_bairro', $this->bairros_selecionados);
-        }
+            // Filtro por Número do Imóvel
+            if ($this->busca_numero) {
+                $query->where('imoveis.numero_original', 'like', "%{$this->busca_numero}%");
+            }
 
-        // Filtro por Tipo de Imóvel
-        if ($this->tipo) {
-            $query->whereHas('tipoImovel', fn($q) => $q->where('nome', $this->tipo));
-        }
+            // Filtros de Localização
+            if ($this->id_estado) {
+                $query->where('imoveis.id_estado', $this->id_estado);
+            }
+            if ($this->id_municipio) {
+                $query->where('imoveis.id_municipio', $this->id_municipio);
+            }
+            if ($this->bairros_selecionados) {
+                $query->whereIn('imoveis.id_bairro', $this->bairros_selecionados);
+            }
 
-        // Filtro por Faixa de Preço
-        if ($this->preco_min) {
-            $query->where('latest_h.valor_venda', '>=', (float) str_replace(',', '.', $this->preco_min));
-        }
-        if ($this->preco_max) {
-            $query->where('latest_h.valor_venda', '<=', (float) str_replace(',', '.', $this->preco_max));
-        }
+            // Filtro por Tipo de Imóvel
+            if ($this->tipo) {
+                $query->whereHas('tipoImovel', fn($q) => $q->where('nome', $this->tipo));
+            }
 
-        // Filtro por Financiamento
-        if ($this->financiamento === 'sim') {
-            $query->where('imoveis.aceita_fgts', 'sim');
-        }
+            // Filtro por Faixa de Preço
+            if ($this->preco_min) {
+                $query->where('latest_h.valor_venda', '>=', (float) str_replace(',', '.', $this->preco_min));
+            }
+            if ($this->preco_max) {
+                $query->where('latest_h.valor_venda', '<=', (float) str_replace(',', '.', $this->preco_max));
+            }
 
-        // Ordenação Dinâmica
-        switch ($this->ordenacao) {
-            case 'desconto_pct_desc':
-                $query->orderBy('latest_h.desconto_percentual', 'desc');
-                break;
-            case 'desconto_reais_desc':
-                $query->orderBy('latest_h.desconto_valor', 'desc');
-                break;
-            case 'preco_asc':
-                $query->orderBy('latest_h.valor_venda', 'asc');
-                break;
-            case 'preco_desc':
-                $query->orderBy('latest_h.valor_venda', 'desc');
-                break;
-            case 'recente':
-            default:
-                $query->orderBy('latest_h.valor_venda', 'asc');
-                break;
-        }
+            // Filtro por Financiamento
+            if ($this->financiamento === 'sim') {
+                $query->where('imoveis.aceita_fgts', 'sim');
+            }
 
-        $imoveis = $query->with(['tipoImovel', 'municipio', 'estado', 'bairro', 'ultimoHistorico'])
-            ->paginate(12);
+            // Ordenação Dinâmica
+            switch ($this->ordenacao) {
+                case 'desconto_pct_desc':
+                    $query->orderBy('latest_h.desconto_percentual', 'desc');
+                    break;
+                case 'desconto_reais_desc':
+                    $query->orderBy('latest_h.desconto_valor', 'desc');
+                    break;
+                case 'preco_asc':
+                    $query->orderBy('latest_h.valor_venda', 'asc');
+                    break;
+                case 'preco_desc':
+                    $query->orderBy('latest_h.valor_venda', 'desc');
+                    break;
+                case 'recente':
+                default:
+                    $query->orderBy('latest_h.valor_venda', 'asc');
+                    break;
+            }
+
+            $imoveis = $query->with(['tipoImovel', 'municipio', 'estado', 'bairro', 'ultimoHistorico'])
+                ->paginate(12);
+        }
 
         return view('modules.imoveis.livewire.imovel-search', compact('imoveis'));
     }
