@@ -385,6 +385,21 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                 } elseif ($action === 'queue_flush') {
                     \Illuminate\Support\Facades\Artisan::call('queue:flush');
                     $actionOutput = "=== php artisan queue:flush (limpa failed_jobs) ===\n" . \Illuminate\Support\Facades\Artisan::output();
+                } elseif ($action === 'delete_imovel') {
+                    $numero = request('numero');
+                    if ($numero) {
+                        $imovel = \App\Models\Imovel::where('numero_original', $numero)->first();
+                        if ($imovel) {
+                            $id    = $imovel->id;
+                            $slug  = $imovel->slug;
+                            $imovel->delete();
+                            $actionOutput = "=== Imóvel excluído (soft delete) ===\nNúmero original : {$numero}\nID no banco     : {$id}\nSlug            : {$slug}\nResultado       : ✅ Excluído com sucesso";
+                        } else {
+                            $actionOutput = "=== Imóvel não encontrado ===\nNúmero original buscado: {$numero}\nNenhum registro encontrado.";
+                        }
+                    } else {
+                        $actionOutput = "Parâmetro 'numero' não informado na URL.";
+                    }
                 }
             } catch (\Throwable $e) {
                 $actionOutput = "Erro ao executar ação '$action':\n" . $e->getMessage() . "\n" . $e->getTraceAsString();
