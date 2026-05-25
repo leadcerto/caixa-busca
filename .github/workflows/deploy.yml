@@ -123,8 +123,9 @@ jobs:
             ln -sfn /home/${{ secrets.SSH_USER }}/laravel-app/storage/app/public /home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/public/storage || true
 
             $PHP_BIN artisan migrate --force
+            $PHP_BIN artisan optimize:clear
             $PHP_BIN artisan config:cache
-            $PHP_BIN artisan route:cache
+            $PHP_BIN artisan route:clear
             $PHP_BIN artisan view:cache
 
             # Ajuste de permissões em pastas de escrita
