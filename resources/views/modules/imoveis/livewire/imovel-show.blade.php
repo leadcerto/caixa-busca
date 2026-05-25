@@ -1099,16 +1099,42 @@
                     <p class="font-black text-[#E50000] uppercase tracking-wider text-xs">🔒 ACESSO RESTRITO — Visível apenas para Gestores</p>
 
                     {{-- ── BLOCO 1: SEO ── --}}
-                    <div>
-                        <p class="font-black text-gray-900 text-xs uppercase tracking-wider mb-2">🔍 Dados de SEO</p>
-                        <ul class="space-y-1 text-xs text-gray-600">
-                            <li><strong>Slug:</strong> {{ $imovel->slug }}</li>
-                            <li><strong>Palavra-chave:</strong> {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
-                            <li><strong>Meta Descrição:</strong> {{ $imovel->meta_description ?? 'Oportunidade de investimento Caixa Adjudicados.' }}</li>
-                            <li><strong>Meta Título:</strong> {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}</li>
-                            <li><strong>OG Image (WhatsApp/redes):</strong> {{ $imovel->foto_fachada_url ?? '— sem imagem —' }}</li>
-                            <li><strong>Tag ALT:</strong> Fachada do {{ $tipoNome }} em {{ $bairroNome }}</li>
-                        </ul>
+                    <div class="space-y-4">
+                        <p class="font-black text-gray-900 text-xs uppercase tracking-wider">🔍 Dados de SEO</p>
+
+                        @php
+                            $altDestaque   = 'venda ' . strtolower($tipoNome) . ' ' . strtolower($cidadeNome) . ' ' . strtolower($uf) . ' ' . $codigo;
+                            $imgDestaque   = asset("images/imoveis/{$imovel->slug}.jpg");
+                            $imgCaixa      = $imovel->foto_fachada_url ?? '— sem imagem —';
+                        @endphp
+
+                        {{-- Campos de texto --}}
+                        @foreach([
+                            'Slug'            => $imovel->slug,
+                            'Palavra-chave'   => $tipoNome . ' em ' . $bairroNome . ', ' . $cidadeNome . ' - ' . $uf,
+                            'Meta Descrição'  => $imovel->meta_description ?? 'Oportunidade de investimento Caixa Adjudicados.',
+                            'Meta Título'     => $tipoNome . ' à venda em ' . $bairroNome . ', ' . $cidadeNome . ' - ' . $uf,
+                        ] as $label => $valor)
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ $label }}:</p>
+                            <p class="text-xs text-gray-700 break-all mt-0.5">{{ $valor }}</p>
+                        </div>
+                        @endforeach
+
+                        {{-- Imagem do Imóvel Caixa --}}
+                        <div class="bg-white rounded-xl p-3 border border-gray-200 space-y-1">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Imagem do Imóvel Caixa:</p>
+                            <p class="text-xs text-[#005CA9] break-all">{{ $imgCaixa }}</p>
+                            <p class="text-[10px] text-gray-500">Tag ALT: Fachada do {{ $tipoNome }} em {{ $bairroNome }}</p>
+                            <p class="text-[10px] text-gray-500">Tag TITLE: {{ $imovel->slug }}</p>
+                        </div>
+
+                        {{-- Imagem Destaque (nossa) --}}
+                        <div class="bg-white rounded-xl p-3 border border-gray-200 space-y-1">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Imagem Destaque:</p>
+                            <p class="text-xs text-[#005CA9] break-all">{{ $imgDestaque }}</p>
+                            <p class="text-[10px] text-gray-500">Tag ALT da imagem destaque: {{ $altDestaque }}</p>
+                        </div>
                     </div>
 
                     <hr class="border-gray-200">
