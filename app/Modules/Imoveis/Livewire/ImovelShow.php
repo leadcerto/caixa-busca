@@ -164,7 +164,7 @@ class ImovelShow extends Component
                 'meta_title'       => "{$tipo} em {$municipio} | Antigravity Imóveis",
                 'meta_description' => $this->imovel->meta_description
                     ?? "Oportunidade de investimento em {$this->imovel->bairro?->nome}. Veja detalhes.",
-                'og_image'         => asset("images/og/{$this->imovel->slug}.jpg"),
+                'og_image'         => $this->imovel->foto_fachada_url ?? asset('images/imovel-placeholder.svg'),
             ]);
     }
 }
