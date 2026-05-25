@@ -433,6 +433,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                     } else {
                         $actionOutput = "Parâmetro 'numero' não informado na URL.";
                     }
+                } elseif ($action === 'bairros_preview') {
+                    \Illuminate\Support\Facades\Artisan::call('bairros:limpar', ['--preview' => true]);
+                    $actionOutput = "=== PRÉVIA — nenhuma alteração feita ===\n" . \Illuminate\Support\Facades\Artisan::output();
+                } elseif ($action === 'bairros_executar') {
+                    \Illuminate\Support\Facades\Artisan::call('bairros:limpar');
+                    $actionOutput = "=== Limpeza de Bairros Executada ===\n" . \Illuminate\Support\Facades\Artisan::output();
+                    \Illuminate\Support\Facades\Cache::forget('dropdown_estados_com_imoveis');
+                    \Illuminate\Support\Facades\Cache::forget('dropdown_tipos_imoveis');
                 }
             } catch (\Throwable $e) {
                 $actionOutput = "Erro ao executar ação '$action':\n" . $e->getMessage() . "\n" . $e->getTraceAsString();
@@ -598,6 +606,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                             <a href="?action=queue" class="btn btn-action" style="background:rgba(139,92,246,0.2);border-color:rgba(139,92,246,0.5);color:#a78bfa;" ' . ($jobsCount > 0 ? '' : 'style="opacity:0.5;"') . '>⚙️ Processar Fila (queue:work)</a>
                             ' . ($failedJobsCount > 0 ? '<a href="?action=queue_retry" class="btn btn-action" style="background:rgba(249,115,22,0.15);border-color:rgba(249,115,22,0.4);color:#fb923c;">🔁 Retentar Jobs Falhados</a>
                             <a href="?action=queue_flush" class="btn btn-action" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#f87171;">🗑️ Limpar Falhados</a>' : '') . '
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <a href="?action=bairros_preview" class="btn btn-action" style="background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.4);color:#38bdf8;">🔍 Prévia Limpeza Bairros</a>
+                            <a href="?action=bairros_executar" class="btn btn-action" style="background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#f87171;" onclick="return confirm(\'Confirma a limpeza de bairros? Esta ação é irreversível.\')">🧹 Executar Limpeza Bairros</a>
                         </div>
                     </div>
                 </div>
