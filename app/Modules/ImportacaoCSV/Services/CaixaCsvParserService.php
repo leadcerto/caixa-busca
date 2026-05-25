@@ -298,7 +298,8 @@ class CaixaCsvParserService
                 'foto_fachada_url'   => "https://venda-imoveis.caixa.gov.br/fotos/F" . str_pad($idCaixa, 13, '0', STR_PAD_LEFT) . "21.jpg",
                 'aceita_fgts'        => $aceitaFgts,
                 'status'             => 'ativo',
-                'updated_at'         => $this->dataGeracao,
+                // updated_at só avança — importações de CSVs antigos não regridem a data
+                'updated_at'         => DB::raw("GREATEST(COALESCE(updated_at, '1970-01-01 00:00:00'), '{$this->dataGeracao}')"),
             ];
 
             // FKs opcionais: só atualiza se foram resolvidas (não sobrescreve valores existentes com null)
@@ -325,21 +326,27 @@ class CaixaCsvParserService
                 ));
             }
 
-            // Registra no histórico apenas quando o preço muda
-            $ultimoHistorico = ImovelHistorico::where('id_imovel', $imovel->id)
-                ->orderBy('created_at', 'desc')
+            // Registra no histórico: uma entrada por data de referência, somente se o preço difere
+            $historicoNestaData = ImovelHistorico::where('id_imovel', $imovel->id)
+                ->where('data_referencia', $this->dataGeracao)
                 ->first();
 
-            if (!$ultimoHistorico || (float) $ultimoHistorico->valor_venda !== $preco) {
-                ImovelHistorico::create([
-                    'id_imovel'           => $imovel->id,
-                    'id_modalidade'       => $idModalidade,
-                    'data_referencia'     => $this->dataGeracao,
-                    'valor_avaliacao'     => $valorAvaliacao,
-                    'valor_venda'         => $preco,
-                    'desconto_percentual' => $desconto,
-                    'desconto_valor'      => $valorAvaliacao - $preco,
-                ]);
+            if (!$historicoNestaData) {
+                $ultimoHistorico = ImovelHistorico::where('id_imovel', $imovel->id)
+                    ->orderBy('data_referencia', 'desc')
+                    ->first();
+
+                if (!$ultimoHistorico || (float) $ultimoHistorico->valor_venda !== $preco) {
+                    ImovelHistorico::create([
+                        'id_imovel'           => $imovel->id,
+                        'id_modalidade'       => $idModalidade,
+                        'data_referencia'     => $this->dataGeracao,
+                        'valor_avaliacao'     => $valorAvaliacao,
+                        'valor_venda'         => $preco,
+                        'desconto_percentual' => $desconto,
+                        'desconto_valor'      => $valorAvaliacao - $preco,
+                    ]);
+                }
             }
         });
     }
