@@ -45,69 +45,15 @@
                     </select>
                 </div>
 
-                <!-- Bairro Multi-Select Dropdown -->
-                <div class="space-y-2 relative" x-data="{ open: false }" @click.outside="open = false">
+                <!-- Bairro: placeholder no grid quando sem cidade -->
+                @if(empty($bairros))
+                <div class="space-y-2">
                     <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Bairro</label>
-                    
-                    <!-- Dropdown Trigger Button -->
-                    <button type="button" 
-                            @click="if ({{ empty($bairros) ? 'false' : 'true' }}) open = !open"
-                            {{ empty($bairros) ? 'disabled' : '' }}
-                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-950 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] h-14 px-5 flex items-center justify-between cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left text-sm transition duration-200">
-                        
-                        <span class="truncate pr-2 font-semibold">
-                            @if(empty($bairros))
-                                Selecione uma Cidade
-                            @elseif(empty($bairros_selecionados))
-                                Todos os Bairros
-                            @else
-                                {{ count($bairros_selecionados) }} bairro(s) selecionado(s)
-                            @endif
-                        </span>
-                        
-                        <!-- Down Arrow Icon -->
-                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <!-- Dropdown Content -->
-                    <div x-show="open" 
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="transform opacity-0 scale-95"
-                         x-transition:enter-end="transform opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="transform opacity-100 scale-100"
-                         x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute z-50 mt-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 max-h-64 overflow-y-auto p-4 space-y-3"
-                         style="display: none;">
-                        
-                        @if(!empty($bairros))
-                            <!-- Utility Actions: Select All / Clear -->
-                            <div class="flex items-center justify-between pb-2 border-b border-gray-100 text-xs">
-                                <button type="button" wire:click="selecionarTodosBairros" class="text-[#005CA9] font-bold hover:underline cursor-pointer">
-                                    Selecionar Todos
-                                </button>
-                                <button type="button" wire:click="limparBairrosSelecionados" class="text-gray-500 font-bold hover:underline cursor-pointer">
-                                    Limpar
-                                </button>
-                            </div>
-
-                            <!-- List of Checkboxes -->
-                            <div class="space-y-2 max-h-40 overflow-y-auto">
-                                @foreach($bairros as $b)
-                                    <label class="flex items-center space-x-3 cursor-pointer p-1.5 rounded-lg hover:bg-gray-50 transition">
-                                        <input type="checkbox" 
-                                               wire:model.live="bairros_selecionados" 
-                                               value="{{ $b->id }}"
-                                               class="rounded border-gray-300 text-[#005CA9] focus:ring-[#005CA9] w-4.5 h-4.5">
-                                        <span class="text-gray-700 text-xs font-semibold select-none">{{ $b->nome }}</span>
-                                    </label>
-                                @endforeach
-                            </div>
-                        @endif
+                    <div class="w-full bg-[#f8fafc] border border-slate-200 rounded-2xl h-14 px-5 flex items-center text-slate-400 text-sm font-semibold opacity-60 cursor-not-allowed select-none">
+                        Selecione uma Cidade
                     </div>
                 </div>
+                @endif
 
                 <!-- Preço Mínimo -->
                 <div class="space-y-2">
@@ -147,6 +93,40 @@
                 </div>
 
             </div>
+
+            <!-- Bairros: pills visíveis (exibido quando há cidade selecionada) -->
+            @if(!empty($bairros))
+            <div class="mt-8 pt-6 border-t border-blue-50">
+                <div class="flex items-center justify-between mb-3">
+                    <label class="text-[#005CA9] text-[10px] font-black uppercase tracking-widest">
+                        Bairro
+                        @if(!empty($bairros_selecionados))
+                            <span class="ml-2 bg-[#005CA9] text-white text-[9px] font-black px-2 py-0.5 rounded-full">{{ count($bairros_selecionados) }} selecionado(s)</span>
+                        @endif
+                    </label>
+                    <div class="flex gap-4 text-xs">
+                        <button type="button" wire:click="selecionarTodosBairros" class="text-[#005CA9] font-bold hover:underline cursor-pointer">Selecionar Todos</button>
+                        <button type="button" wire:click="limparBairrosSelecionados" class="text-gray-400 font-bold hover:text-red-500 hover:underline cursor-pointer transition-colors">Limpar</button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($bairros as $b)
+                        <label class="cursor-pointer">
+                            <input type="checkbox"
+                                   wire:model.live="bairros_selecionados"
+                                   value="{{ $b->id }}"
+                                   class="sr-only peer">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all duration-150 select-none cursor-pointer
+                                         border-slate-200 bg-[#f8fafc] text-slate-600
+                                         hover:border-[#F39200] hover:text-[#F39200]
+                                         peer-checked:bg-[#005CA9] peer-checked:text-white peer-checked:border-[#005CA9]">
+                                {{ $b->nome }}
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
             <!-- Botoes inferiores dos filtros -->
             <div class="mt-10 flex justify-end gap-4">
