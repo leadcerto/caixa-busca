@@ -1,2 +1,11 @@
 User-agent: *
-Disallow:
+Allow: /
+
+# Bloqueio de áreas privadas
+Disallow: /admin/
+Disallow: /parceiro/
+Disallow: /verificar-erro-sistema
+Disallow: /contato-imovel/
+
+# Sitemap
+Sitemap: https://venda.imoveisdacaixa.com.br/sitemap.xml

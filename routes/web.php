@@ -661,5 +661,36 @@ Route::get('/contato-imovel/{imovel:id}', function (\App\Models\Imovel $imovel) 
     return redirect()->away($whatsappUrl);
 })->name('imovel.whatsapp-redirect');
 
+// Sitemap dinâmico
+Route::get('/sitemap.xml', function () {
+    $imoveis = \App\Models\Imovel::where('status', 'ativo')
+        ->select('slug', 'updated_at')
+        ->orderBy('updated_at', 'desc')
+        ->get();
+
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+    // Homepage
+    $xml .= '<url>';
+    $xml .= '<loc>https://venda.imoveisdacaixa.com.br/</loc>';
+    $xml .= '<changefreq>daily</changefreq>';
+    $xml .= '<priority>1.0</priority>';
+    $xml .= '</url>';
+
+    foreach ($imoveis as $imovel) {
+        $xml .= '<url>';
+        $xml .= '<loc>https://venda.imoveisdacaixa.com.br/' . e($imovel->slug) . '</loc>';
+        $xml .= '<lastmod>' . $imovel->updated_at->toAtomString() . '</lastmod>';
+        $xml .= '<changefreq>weekly</changefreq>';
+        $xml .= '<priority>0.8</priority>';
+        $xml .= '</url>';
+    }
+
+    $xml .= '</urlset>';
+
+    return response($xml, 200)->header('Content-Type', 'application/xml');
+})->name('sitemap');
+
 // Wildcard de imóvel amigável (deve ficar por último para não interceptar outras rotas)
 Route::get('/{imovel:slug}', ModularImovelShow::class)->name('imovel.show');
