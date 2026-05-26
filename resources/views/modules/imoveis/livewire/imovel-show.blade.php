@@ -100,63 +100,43 @@
 @endif
 
 @push('schema')
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "RealEstateListing",
-  "name": "{{ e($tipoNome) }} em {{ e($bairroNome) }}, {{ e($cidadeNome) }} – {{ e($uf) }}",
-  "description": "{{ e(Str::limit(strip_tags($imovel->descricao_original ?? ''), 200)) }}",
-  "url": "{{ url('/' . $imovel->slug) }}",
-  "datePosted": "{{ $imovel->created_at?->toAtomString() }}",
-  "image": "{{ $imovel->foto_fachada_url ?? asset('images/imovel-placeholder.svg') }}",
-  "offers": {
-    "@type": "Offer",
-    "price": "{{ number_format($valorVenda, 2, '.', '') }}",
-    "priceCurrency": "BRL",
-    "availability": "https://schema.org/InStock"
-  },
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "{{ e($endereco) }}",
-    "addressLocality": "{{ e($cidadeNome) }}",
-    "addressRegion": "{{ e($uf) }}",
-    "postalCode": "{{ e($imovel->cep ?? '') }}",
-    "addressCountry": "BR"
-  }
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Início",
-      "item": "{{ url('/') }}"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "{{ e($uf) }} – Imóveis da Caixa",
-      "item": "{{ url('/') }}?estado={{ e($uf) }}"
-    },
-    {
-      "@type": "ListItem",
-      "position": 3,
-      "name": "{{ e($cidadeNome) }}",
-      "item": "{{ url('/') }}?estado={{ e($uf) }}&cidade={{ urlencode($cidadeNome) }}"
-    },
-    {
-      "@type": "ListItem",
-      "position": 4,
-      "name": "{{ e($tipoNome) }} em {{ e($bairroNome) }}",
-      "item": "{{ url('/' . $imovel->slug) }}"
-    }
-  ]
-}
-</script>
+@php
+$schemaListing = [
+    '@context'   => 'https://schema.org',
+    '@type'      => 'RealEstateListing',
+    'name'       => "{$tipoNome} em {$bairroNome}, {$cidadeNome} – {$uf}",
+    'description'=> mb_substr(strip_tags($imovel->descricao_original ?? ''), 0, 200),
+    'url'        => url('/' . $imovel->slug),
+    'datePosted' => $imovel->created_at?->toAtomString(),
+    'image'      => $imovel->foto_fachada_url ?? asset('images/imovel-placeholder.svg'),
+    'offers'     => [
+        '@type'        => 'Offer',
+        'price'        => number_format($valorVenda, 2, '.', ''),
+        'priceCurrency'=> 'BRL',
+        'availability' => 'https://schema.org/InStock',
+    ],
+    'address' => [
+        '@type'           => 'PostalAddress',
+        'streetAddress'   => $endereco,
+        'addressLocality' => $cidadeNome,
+        'addressRegion'   => $uf,
+        'postalCode'      => $imovel->cep ?? '',
+        'addressCountry'  => 'BR',
+    ],
+];
+$schemaBreadcrumb = [
+    '@context'        => 'https://schema.org',
+    '@type'           => 'BreadcrumbList',
+    'itemListElement' => [
+        ['@type' => 'ListItem', 'position' => 1, 'name' => 'Início',                          'item' => url('/')],
+        ['@type' => 'ListItem', 'position' => 2, 'name' => "{$uf} – Imóveis da Caixa",        'item' => url('/') . '?estado=' . urlencode($uf)],
+        ['@type' => 'ListItem', 'position' => 3, 'name' => $cidadeNome,                        'item' => url('/') . '?estado=' . urlencode($uf) . '&cidade=' . urlencode($cidadeNome)],
+        ['@type' => 'ListItem', 'position' => 4, 'name' => "{$tipoNome} em {$bairroNome}",    'item' => url('/' . $imovel->slug)],
+    ],
+];
+@endphp
+<script type="application/ld+json">{!! json_encode($schemaListing,    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}</script>
+<script type="application/ld+json">{!! json_encode($schemaBreadcrumb, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}</script>
 @endpush
 
 <!-- Página de Apresentação de Imóvel Premium -->
