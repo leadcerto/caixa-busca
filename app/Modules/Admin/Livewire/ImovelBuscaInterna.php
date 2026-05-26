@@ -173,7 +173,7 @@ class ImovelBuscaInterna extends Component
 
         // Filter by Financing
         if ($this->financiamento === 'sim') {
-            $query->where('imoveis.aceita_fgts', 'sim');
+            $query->where('latest_h.aceita_financ_sbpe', true);
         }
 
         // Apply Sorting

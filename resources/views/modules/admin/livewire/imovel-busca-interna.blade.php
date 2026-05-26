@@ -64,11 +64,11 @@
 
                 <!-- Financiamento -->
                 <div class="space-y-2">
-                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Financiamento / FGTS</label>
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Financiamento</label>
                     <select wire:model.live="financiamento"
                             class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 appearance-none cursor-pointer transition duration-200">
                         <option value="todos">Exibir Todos</option>
-                        <option value="sim">Somente que aceitam Financiamento / FGTS</option>
+                        <option value="sim">Somente com Financiamento</option>
                     </select>
                 </div>
 
@@ -154,7 +154,7 @@
                     $urlGerada = implode('/', $segs);
 
                     $qs = [];
-                    if ($financiamento === 'sim') $qs[] = 'financiamento[]=fgts';
+                    if ($financiamento === 'sim') $qs[] = 'financiamento[]=sbpe';
                     if ($preco_min)               $qs[] = 'preco_min=' . rawurlencode($preco_min);
                     if ($preco_max)               $qs[] = 'preco_max=' . rawurlencode($preco_max);
                     if ($qs) $urlGerada .= '?' . implode('&', $qs);
