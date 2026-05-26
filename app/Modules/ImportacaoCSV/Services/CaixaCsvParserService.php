@@ -511,7 +511,7 @@ class CaixaCsvParserService
         $ufLabel   = strtoupper($uf);
 
         $metaTitle = mb_substr(
-            "{$tipoLabel} em {$localLabel} - {$ufLabel} | Antigravity Imóveis",
+            "{$tipoLabel} em {$localLabel} - {$ufLabel} | Imóveis da Caixa",
             0, 160
         );
 

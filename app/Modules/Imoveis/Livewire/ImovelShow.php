@@ -198,11 +198,23 @@ class ImovelShow extends Component
             'diasNaPlataforma'
         );
 
+        $bairro        = strtoupper($this->imovel->bairro?->nome ?? '');
+        $uf            = strtoupper($this->imovel->estado?->uf ?? '');
+        $descontoValor = $this->imovel->ultimoHistorico?->desconto_valor ?? 0;
+        $descontoFmt   = 'R$ ' . number_format($descontoValor, 2, ',', '.');
+
+        $metaTitle = $descontoValor > 0
+            ? "Lucro imediato de {$descontoFmt} | Saiba Mais"
+            : "{$tipo} em {$municipio} | Imóveis da Caixa";
+
+        $metaDesc = "{$tipo} à venda em {$bairro}, {$municipio} - {$uf}"
+            . ($descontoValor > 0 ? " com desconto de {$descontoFmt}" : '')
+            . "; Clique no link para mais informações.";
+
         return view('modules.imoveis.livewire.imovel-show', compact('stats'))
             ->layout('layouts.app', [
-                'meta_title'       => "{$tipo} em {$municipio} | Antigravity Imóveis",
-                'meta_description' => $this->imovel->meta_description
-                    ?? "Oportunidade de investimento em {$this->imovel->bairro?->nome}. Veja detalhes.",
+                'meta_title'       => $metaTitle,
+                'meta_description' => $metaDesc,
                 'og_image'         => $this->imovel->foto_fachada_url ?? asset('images/imovel-placeholder.svg'),
                 'canonical'        => url('/' . $this->imovel->slug),
             ]);

@@ -39,6 +39,6 @@ class ImobiliariaLogin extends Component
     public function render()
     {
         return view('modules.imobiliaria.livewire.imobiliaria-login')
-            ->layout('layouts.app', ['meta_title' => 'Área do Parceiro — Antigravity']);
+            ->layout('layouts.app', ['meta_title' => 'Área do Parceiro — Imóveis da Caixa']);
     }
 }

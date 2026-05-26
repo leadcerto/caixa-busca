@@ -52,7 +52,7 @@ class PaginaBairro extends Component
             'titulo'   => $titulo,
             'texto'    => $texto,
         ])->layout('layouts.app', [
-            'meta_title'       => $titulo . ' | Antigravity',
+            'meta_title'       => $titulo . ' | Imóveis da Caixa',
             'meta_description' => $metaDesc,
             'og_image'         => asset('images/imovel-placeholder.svg'),
             'canonical'        => route('bairro.show', [$uf, $municipioSlug, $bairroSlug]),
