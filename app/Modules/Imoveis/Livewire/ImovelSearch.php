@@ -154,7 +154,7 @@ class ImovelSearch extends Component
                 ->get();
         }
 
-        $imoveis = null;
+        $imoveis = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12, 1);
 
         if ($this->show_results) {
             $query = Imovel::query()
