@@ -538,14 +538,28 @@ $schemaBreadcrumb = [
                     </div>
                 </div>
 
-                <!-- Análise do Comprador e Perfis Dinâmicos (Todos começam 100% FECHADOS!) -->
+                <!-- Análise do Comprador — Gated Content -->
+                {{--
+                    Equivalência arquitetural:
+                    · x-data { isUnlocked }          → useLeadAccess hook
+                    · <livewire:buyer-analysis-gate>  → LeadCaptureForm component
+                    · @buyer-analysis-unlocked.window → unlockAccess() callback
+                    · Lock overlay + accordions       → BuyerAnalysisSection parent
+                --}}
                 <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6"
-                     x-data="{ openPerfil: null }">
+                     x-data="{
+                         openPerfil: null,
+                         isUnlocked: !!localStorage.getItem('hasUnlockedBuyerAnalysis')
+                     }"
+                     @buyer-analysis-unlocked.window="
+                         localStorage.setItem('hasUnlockedBuyerAnalysis', 'true');
+                         isUnlocked = true;
+                     ">
                     <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
                         <span class="bg-[#005CA9] w-2.5 h-6 mr-3 rounded-full"></span>
                         👤 Análise do Comprador
                     </h2>
-                    
+
                     <p class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
                     </p>
@@ -553,17 +567,30 @@ $schemaBreadcrumb = [
                     <p class="text-gray-650 leading-relaxed text-justify text-sm">
                         Neste conteúdo estamos trazendo a maneira de se pensar de acordo com cada finalidade de compra do seu imóvel e para te ajudar nesta reflexão também vamos te dar uma visão geral das despesas, do lucro, e como nós fazemos estas formas distintas de processo de compra. Você terá acesso aos cálculos já prontos para que você tenha clareza do retorno financeiro que esta compra pode te trazer. São valores criados com base em experiências anteriores que servem para nos ajudar na tomada de decisão de compra.
                     </p>
-                    
-                    <div class="bg-gray-50 p-4.5 rounded-2xl border border-gray-200/60 text-xs text-gray-500 text-center font-extrabold">
-                        <p class="text-orange-600">⚠️ ESTE CONTEÚDO AINDA É GRATUITO ⚠️</p>
-                        <p class="text-gray-750">MAS SÓ ESTÁ DISPONÍVEL PARA PESSOAS CADASTRADAS</p>
+
+                    {{-- Gate: form quando bloqueado / hint quando desbloqueado --}}
+                    <div x-show="!isUnlocked" x-cloak>
+                        <livewire:buyer-analysis-gate :imovel-id="$imovel->numero_original" />
                     </div>
 
-                    <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
-                        👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
-                    </p>
+                    <div x-show="isUnlocked" x-cloak
+                         class="bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-3 flex items-center gap-3">
+                        <span class="text-xl">✅</span>
+                        <p class="text-xs font-black text-emerald-700 uppercase tracking-wide">Conteúdo desbloqueado! Clique nas opções abaixo.</p>
+                    </div>
 
-                    <div class="space-y-3">
+                    {{-- Accordions: bloqueados visualmente até unlock --}}
+                    <div class="space-y-3 relative">
+
+                        {{-- Overlay de bloqueio --}}
+                        <div x-show="!isUnlocked" x-cloak
+                             class="absolute inset-0 z-10 rounded-2xl flex flex-col items-center justify-center gap-3 py-8"
+                             style="background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.97) 40%);">
+                            <span class="text-4xl mt-16">🔒</span>
+                            <p class="text-sm font-black text-gray-500 text-center px-4">
+                                Preencha o formulário acima para desbloquear os cálculos
+                            </p>
+                        </div>
                         <!-- Perfil 1: Comprar para Morar -->
                         <div class="border border-gray-200 rounded-2xl overflow-hidden">
                             <button @click="openPerfil = openPerfil === 1 ? null : 1"
