@@ -704,5 +704,13 @@ Route::get('/sitemap.xml', function () {
     return response($xml, 200)->header('Content-Type', 'application/xml');
 })->name('sitemap');
 
+// Redireciona URLs de dois segmentos /{slug}/{extra} → /{slug} com 301
+// Ex: /{slug}/{hdnimovel} vindo de links externos ou do Caixa. Sem isso, o Hostinger retorna 500.
+Route::get('/{slug}/{extra}', function (string $slug) {
+    $imovel = \App\Models\Imovel::where('slug', $slug)->first();
+    abort_unless($imovel, 404);
+    return redirect('/' . $imovel->slug, 301);
+})->where('extra', '[^/]+');
+
 // Wildcard de imóvel amigável (deve ficar por último para não interceptar outras rotas)
 Route::get('/{imovel:slug}', ModularImovelShow::class)->name('imovel.show');

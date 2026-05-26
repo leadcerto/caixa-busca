@@ -52,7 +52,7 @@
             </div>
 
             <div>
-                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Status</label>
+                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Status Parceiro</label>
                 <select wire:model.live="statusFiltro"
                         class="w-full border border-gray-200 rounded-2xl h-12 px-5 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition appearance-none">
                     <option value="">Todos os status</option>
@@ -115,8 +115,9 @@
                             <th class="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Lead</th>
                             <th class="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Contato</th>
                             <th class="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Imóvel</th>
-                            <th class="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                            <th class="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Notif.</th>
+                            <th class="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Status CRM</th>
+                            <th class="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Parceiro</th>
+                            <th class="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Ações</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -170,7 +171,24 @@
                                     </div>
                                 </td>
 
-                                <!-- Status parceiro (dropdown inline) -->
+                                <!-- Status CRM (Lead.status) -->
+                                <td class="px-5 py-4 whitespace-nowrap">
+                                    @if($at->lead)
+                                        <select wire:change="atualizarStatusLead({{ $at->id }}, $event.target.value)"
+                                                class="text-xs font-bold rounded-full px-3 py-1.5 border-0 cursor-pointer focus:ring-2 focus:ring-[#005CA9] transition
+                                                       {{ $leadStatusCores[$at->lead->status ?? 'novo'] ?? 'bg-gray-100 text-gray-500' }}">
+                                            @foreach($leadStatusOpcoes as $valor => $label)
+                                                <option value="{{ $valor }}" {{ ($at->lead->status ?? 'novo') === $valor ? 'selected' : '' }}>
+                                                    {{ $label }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        <span class="text-xs text-gray-300">—</span>
+                                    @endif
+                                </td>
+
+                                <!-- Status Parceiro (status_parceiro) -->
                                 <td class="px-5 py-4 whitespace-nowrap">
                                     <select wire:change="atualizarStatus({{ $at->id }}, $event.target.value)"
                                             class="text-xs font-bold rounded-full px-3 py-1.5 border-0 cursor-pointer focus:ring-2 focus:ring-[#005CA9] transition
@@ -183,13 +201,19 @@
                                     </select>
                                 </td>
 
-                                <!-- Notificações enviadas -->
+                                <!-- Ações -->
                                 <td class="px-5 py-4 whitespace-nowrap">
                                     <div class="flex items-center gap-2">
+                                        <button wire:click="abrirNotas({{ $at->id_lead }})"
+                                                title="Ver notas do lead"
+                                                class="inline-flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1.5 rounded-full transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                            Notas
+                                        </button>
                                         <span title="WhatsApp {{ $at->whatsapp_enviado ? 'enviado' : 'não enviado' }}"
                                               class="w-2 h-2 rounded-full {{ $at->whatsapp_enviado ? 'bg-green-400' : 'bg-gray-200' }}"></span>
-                                        <span title="E-mail {{ $at->email_enviado ? 'enviado' : 'não enviado' }}"
-                                              class="w-2 h-2 rounded-full {{ $at->email_enviado ? 'bg-blue-400' : 'bg-gray-200' }}"></span>
                                     </div>
                                 </td>
 
@@ -201,7 +225,7 @@
 
             <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
                 <p class="text-xs text-gray-400">
-                    {{ $atendimentos->total() }} {{ Str::plural('atendimento', $atendimentos->total()) }} encontrado{{ $atendimentos->total() !== 1 ? 's' : '' }}
+                    {{ $atendimentos->total() }} {{ \Illuminate\Support\Str::plural('atendimento', $atendimentos->total()) }} encontrado{{ $atendimentos->total() !== 1 ? 's' : '' }}
                 </p>
                 {{ $atendimentos->links() }}
             </div>
@@ -209,3 +233,86 @@
     </div>
 
 </div>
+
+<!-- Painel de Notas (slide-over) -->
+@if($notasLeadId)
+    <div class="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true">
+
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+             wire:click="fecharNotas"></div>
+
+        <!-- Drawer -->
+        <div class="relative bg-white w-full max-w-md h-full shadow-2xl flex flex-col z-10">
+
+            <!-- Drawer header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                <div>
+                    <h2 class="text-base font-black text-gray-900">Notas do Lead</h2>
+                    <p class="text-sm text-gray-400 mt-0.5">{{ $notasLead?->nome }}</p>
+                </div>
+                <button wire:click="fecharNotas"
+                        class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Notas existentes -->
+            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+                @forelse($notas as $nota)
+                    <div class="bg-gray-50 rounded-2xl p-4">
+                        <div class="flex items-start gap-2.5">
+                            <span class="text-base leading-none mt-0.5">{{ $tipoIcons[$nota->tipo] ?? '📝' }}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-800 leading-relaxed">{{ $nota->conteudo }}</p>
+                                <p class="text-[11px] text-gray-400 mt-1.5 flex items-center gap-1.5">
+                                    <span>{{ $nota->created_at->format('d/m/Y H:i') }}</span>
+                                    @if($nota->autor)
+                                        <span>·</span>
+                                        <span>{{ $nota->autor->name }}</span>
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-12">
+                        <p class="text-sm text-gray-400">Nenhuma nota registrada ainda.</p>
+                    </div>
+                @endforelse
+            </div>
+
+            <!-- Formulário nova nota -->
+            <div class="border-t border-gray-100 px-6 py-5 space-y-3 bg-white">
+                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Nova anotação</p>
+
+                <select wire:model="notaTipo"
+                        class="w-full border border-gray-200 rounded-2xl h-10 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition appearance-none">
+                    @foreach($tiposNota as $valor => $label)
+                        <option value="{{ $valor }}">{{ $tipoIcons[$valor] ?? '' }} {{ $label }}</option>
+                    @endforeach
+                </select>
+
+                <textarea wire:model="novaNota"
+                          rows="3"
+                          placeholder="Escreva a anotação…"
+                          class="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-800 placeholder-gray-300 resize-none focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition"></textarea>
+
+                @error('novaNota')
+                    <p class="text-xs text-red-500 -mt-1">{{ $message }}</p>
+                @enderror
+
+                <button wire:click="salvarNota"
+                        wire:loading.attr="disabled"
+                        wire:target="salvarNota"
+                        class="w-full bg-[#005CA9] hover:bg-[#004a8a] disabled:opacity-60 text-white font-black text-sm py-3 rounded-2xl transition-all">
+                    <span wire:loading.remove wire:target="salvarNota">Salvar Nota</span>
+                    <span wire:loading wire:target="salvarNota">Salvando…</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+@endif

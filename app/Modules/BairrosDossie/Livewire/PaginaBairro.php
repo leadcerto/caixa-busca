@@ -42,6 +42,10 @@ class PaginaBairro extends Component
         $metaDesc = $conteudo['meta_description'] ?? "Imóveis da Caixa Econômica Federal em {$this->bairro->nome}, {$this->bairro->municipio?->nome}.";
         $texto    = $conteudo['texto']    ?? null;
 
+        $uf            = strtolower($this->bairro->municipio->estado->uf);
+        $municipioSlug = $this->bairro->municipio->slug;
+        $bairroSlug    = $this->bairro->slug;
+
         return view('modules.bairros-dossie.livewire.pagina-bairro', [
             'imoveis'  => $imoveis,
             'conteudo' => $conteudo,
@@ -50,6 +54,8 @@ class PaginaBairro extends Component
         ])->layout('layouts.app', [
             'meta_title'       => $titulo . ' | Antigravity',
             'meta_description' => $metaDesc,
+            'og_image'         => asset('images/imovel-placeholder.svg'),
+            'canonical'        => route('bairro.show', [$uf, $municipioSlug, $bairroSlug]),
         ]);
     }
 }

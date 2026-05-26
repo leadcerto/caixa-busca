@@ -1,3 +1,9 @@
+@if($imoveis->count() > 0)
+@push('preload')
+<link rel="preload" as="image" href="{{ $imoveis->first()->foto_fachada_url ?? asset('images/imovel-placeholder.svg') }}">
+@endpush
+@endif
+
 <!-- Vitrine de Imóveis -->
 <div class="bg-slate-50 min-h-screen py-12 px-6">
 
@@ -183,6 +189,8 @@
                                     <img src="{{ $imovel->foto_fachada_url ?? asset('images/imovel-placeholder.svg') }}"
                                          alt="{{ $tipoNome }} em {{ $cidadeNome }}"
                                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                         loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                         fetchpriority="{{ $loop->first ? 'high' : 'auto' }}"
                                          onerror="this.onerror=null;this.src='{{ asset('images/imovel-placeholder.svg') }}';">
                                 </div>
 
@@ -328,3 +336,30 @@
         </div>
     @endif
 </div>
+
+@push('schema')
+@php
+$listItems = [];
+foreach ($imoveis as $i => $item) {
+    $listItems[] = [
+        '@type'    => 'ListItem',
+        'position' => $imoveis->firstItem() + $i,
+        'url'      => url('/' . $item->slug),
+        'name'     => trim(($item->tipoImovel->nome ?? 'Imóvel') . ' em ' . ($item->municipio->nome ?? '') . ', ' . ($item->estado->uf ?? '')),
+    ];
+}
+$schemaPage = [
+    '@context'   => 'https://schema.org',
+    '@type'      => 'SearchResultsPage',
+    'name'       => 'Imóveis da Caixa Econômica Federal',
+    'url'        => url('/'),
+    'mainEntity' => [
+        '@type'           => 'ItemList',
+        'name'            => 'Resultados da busca de imóveis',
+        'numberOfItems'   => $imoveis->total(),
+        'itemListElement' => $listItems,
+    ],
+];
+@endphp
+<script type="application/ld+json">{!! json_encode($schemaPage, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}</script>
+@endpush

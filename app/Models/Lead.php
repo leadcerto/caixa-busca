@@ -23,10 +23,10 @@ class Lead extends Model
     ];
 
     const STATUS_CORES = [
-        'novo'           => 'blue',
-        'em_atendimento' => 'yellow',
-        'proposta'       => 'green',
-        'perda'          => 'red',
+        'novo'           => 'bg-blue-100 text-blue-700',
+        'em_atendimento' => 'bg-yellow-100 text-yellow-700',
+        'proposta'       => 'bg-green-100 text-green-700',
+        'perda'          => 'bg-red-100 text-red-700',
     ];
 
     protected $fillable = [

@@ -1,7 +1,7 @@
 # Plano de Construção — Antigravity Caixa-Busca
 
 > Guia sequencial de desenvolvimento. Cada fase deve ser concluída antes de iniciar a próxima.
-> Atualizado em: 2026-05-25
+> Atualizado em: 2026-05-25 (adicionadas FASE 12 — SEO e FASE 13 — Mini-CRM)
 
 ---
 
@@ -211,6 +211,71 @@
 
 ---
 
+### FASE 12 — SEO e Performance Web
+**Objetivo:** Garantir que os imóveis da plataforma sejam indexados corretamente e ranqueiem bem nos buscadores.
+
+- [x] **12.1** `public/robots.txt` completo — bloqueia `/admin/`, `/parceiro/` e rotas sensíveis; aponta `Sitemap:` para a URL de produção
+- [x] **12.2** Rota `/sitemap.xml` dinâmica — XML com homepage (priority 1.0) + todos os imóveis ativos (priority 0.8, `changefreq weekly`, slug + `updated_at`)
+- [x] **12.3** `<link rel="canonical">` no layout base — usa `$canonical` ou `url()->current()` como fallback
+- [x] **12.4** `ImovelShow` passa `canonical`, `meta_title`, `meta_description` e `og_image` (foto real ou placeholder) ao layout
+- [x] **12.5** `PaginaBairro` passa `meta_title` e `meta_description` (conteúdo IA ou fallback genérico)
+- [x] **12.6** Open Graph + Twitter Card no layout base — `og:title`, `og:description`, `og:image`, `og:url`
+- [x] **12.7** JSON-LD Schema.org `RealEstateListing` + `BreadcrumbList` na página do imóvel (via `json_encode()` sem HTML entities)
+- [x] **12.8** Security headers no `.htaccess` — HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, COOP, CSP básica
+- [x] **12.9** Performance LCP — `fetchpriority="high"` + `<link rel="preload">` na imagem hero da vitrine
+- [x] **12.10** Acessibilidade — `<main>` landmark, `title` em iframe Google Maps, hierarquia de headings corrigida (h6→`<p>`, h3→h2)
+- [x] **12.11** Gated content "Análise do Comprador" desbloqueada após captura de lead (`BuyerAnalysisGate` Livewire + Alpine.js localStorage)
+- [x] **12.12** `ImovelShow` — fallback automático de `meta_description` quando o campo está nulo no banco (`"Oportunidade de investimento em {bairro}. Veja detalhes."`)
+- [x] **12.13** HTTP 500 em URLs de dois segmentos `/{slug}/{hdnimovel}` — adicionado redirect 301 para `/{slug}` quando o primeiro segmento é um slug válido (antes da rota wildcard `/{imovel:slug}`)
+- [x] **12.14** `ImovelSearch` — `meta_title`, `meta_description`, `og_image` e `canonical` (`url('/')`) adicionados ao `render()` via `.layout('layouts.app', [...])`
+- [x] **12.15** `PaginaBairro` — `og_image` e `canonical` explícito adicionados via `route('bairro.show', [uf, municipioSlug, bairroSlug])`
+- [x] **12.16** JSON-LD `SearchResultsPage` + `ItemList` na vitrine — `@push('schema')` na view `imovel-search.blade.php` com `numberOfItems` total e `ListItem` por imóvel da página atual
+- [ ] **12.17** Enviar sitemap ao Google Search Console e monitorar indexação dos imóveis
+- [x] **12.18** Core Web Vitals — CLS: coberto pelo container `aspect-[4/3]` (espaço reservado antes do load). LCP: `fetchpriority="high"` + `loading="eager"` no primeiro card da vitrine + `<link rel="preload">` no `<head>` via `@push('preload')`. Demais cards: `loading="lazy"`.
+
+**Arquivos-chave:**
+- `public/robots.txt`, `public/.htaccess`
+- `routes/web.php` (rota `/sitemap.xml`)
+- `resources/views/layouts/app.blade.php`
+- `app/Modules/Imoveis/Livewire/ImovelShow.php` (meta tags + JSON-LD)
+- `app/Modules/BairrosDossie/Livewire/PaginaBairro.php` (meta tags)
+
+---
+
+### FASE 13 — Melhorias na Gestão de Leads (Mini-CRM)
+**Objetivo:** Evoluir a página de gestão de leads do admin para um Mini-CRM funcional com rastreamento de UTMs, status de atendimento, atribuição de responsável e histórico de interações.
+
+**Passo 1: Atualizações de Banco de Dados (Migrations e Models)**
+- [x] **13.1** Migration `2026_05_25_210001`: UTM fields (`utm_source`, `utm_medium`, `utm_campaign`) na tabela `leads`.
+- [x] **13.2** Migration `2026_05_25_210001`: campo `status` enum (novo/em_atendimento/proposta/perda), default `novo`.
+- [x] **13.3** Migration `2026_05_25_210001`: `user_id` nullable FK → `users` (nullOnDelete).
+- [x] **13.4** Migration `2026_05_25_210002` + Model `LeadNote` — tabela `lead_notes` com `lead_id`, `user_id`, `conteudo`, `tipo` (anotacao/ligacao/email/whatsapp/visita).
+- [x] **13.5** Model `Lead` atualizado: constantes `STATUS_*`, fillables, `notes()`, `responsavel()`. `LeadConversionService` persiste UTMs ao converter.
+
+**Passo 2: Componentes de Interface e Lógica Livewire (Ações Individuais)**
+- [ ] **13.6** Implementar Dropdown de Status (Inline Editable) via Livewire para atualizar o banco via AJAX.
+- [ ] **13.7** Implementar Dropdown de Responsável (Atribuição) via Livewire.
+- [ ] **13.8** Criar o componente de Modal/Tooltip para o "Preview do Imóvel" (buscando foto, título e preço do imóvel relacionado).
+- [ ] **13.9** Criar o painel lateral (Offcanvas ou Modal) para as "Notas Rápidas/Histórico de Interação".
+
+**Passo 3: Ações em Massa e Inteligência da Listagem**
+- [ ] **13.10** Adicionar checkboxes na tabela para seleção múltipla de leads.
+- [ ] **13.11** Criar funções de Ação em Massa no Livewire (Atualizar status em lote, Exportar selecionados).
+- [ ] **13.12** Implementar sistema de "Lead Score" visual (ícones 🔥/❄️ baseados em regras de negócio).
+- [ ] **13.13** Exibir a Origem (UTMs) visualmente na listagem.
+
+**Passo 4: Filtros e Dashboards**
+- [ ] **13.14** Criar barra de Filtros Avançados (por status, responsável, data e origem).
+- [ ] **13.15** Criar Cards de Indicadores de Performance (KPIs) no topo da página (Total de leads, Taxa de conversão, Leads por status).
+
+**Arquivos-chave:**
+- `app/Modules/Leads/Livewire/GestaoLeads.php`
+- `resources/views/modules/leads/livewire/gestao-leads.blade.php`
+- `app/Models/Lead.php`
+- `database/migrations/` (novas migrations de UTM, status, user_id, lead_notes)
+
+---
+
 ### FASE 11 — API REST (Opcional / Fase Futura)
 **Objetivo:** Expor dados para consumo por app mobile ou parceiros externos.
 
@@ -224,19 +289,21 @@
 
 ## Prioridade Resumida
 
-| Fase | Nome | Prioridade | Estimativa |
-|------|------|-----------|------------|
-| 1 | Estabilização do Core | 🔴 Urgente | 1 sessão |
-| 2 | Imagens dos Imóveis | 🔴 Alta | 2–3 sessões |
-| 3 | Dashboard Admin | 🟠 Alta | 2 sessões |
-| 4 | Melhorias Painel Imobiliária | 🟠 Alta | 2 sessões |
-| 5 | Módulo Leads (Admin) | 🟡 Média | 2 sessões |
-| 6 | Módulo Integração CRM | 🟡 Média | 2 sessões |
-| 7 | WhatsApp Templates | 🟡 Média | 1–2 sessões |
-| 8 | Bairros Dossiê (IA) | 🟢 Baixa | 3–4 sessões |
-| 9 | Performance e Qualidade | 🟠 Alta | 2 sessões |
-| 10 | Testes Automatizados | 🟠 Alta | 3 sessões |
-| 11 | API REST | 🟢 Baixa/Futuro | 3–4 sessões |
+| Fase | Nome | Status | Estimativa |
+|------|------|--------|------------|
+| 1 | Estabilização do Core | ✅ Concluída | — |
+| 2 | Imagens dos Imóveis | ✅ Concluída | — |
+| 3 | Dashboard Admin | ✅ Concluída | — |
+| 4 | Melhorias Painel Imobiliária | ✅ Concluída | — |
+| 5 | Módulo Leads (Admin) | ✅ Concluída | — |
+| 6 | Módulo Integração CRM | ✅ Concluída | — |
+| 7 | WhatsApp Templates | ✅ Concluída | — |
+| 8 | Bairros Dossiê (IA) | ✅ Concluída | — |
+| 9 | Performance e Qualidade | ✅ Concluída | — |
+| 10 | Testes Automatizados | ✅ Concluída | — |
+| 11 | API REST | ✅ Concluída | — |
+| 12 | SEO e Performance Web | 🟡 Em andamento (1 pendência — 12.17 Search Console) | — |
+| 13 | Melhorias Gestão de Leads (Mini-CRM) | 🔵 Próxima | 3–4 sessões |
 
 ---
 

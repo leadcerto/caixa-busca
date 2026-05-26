@@ -224,6 +224,11 @@ class ImovelSearch extends Component
 
         return view('modules.imoveis.livewire.imovel-search', compact(
             'imoveis', 'estados', 'tipos', 'municipios', 'bairros'
-        ));
+        ))->layout('layouts.app', [
+            'meta_title'       => 'Imóveis da Caixa Econômica Federal | Busca e Comparação',
+            'meta_description' => 'Encontre imóveis da Caixa Econômica Federal com descontos de até 50%. Busque por cidade, bairro, tipo e preço. Financiamento pelo FGTS e SBPE disponível.',
+            'og_image'         => asset('images/imovel-placeholder.svg'),
+            'canonical'        => url('/'),
+        ]);
     }
 }
