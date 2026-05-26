@@ -104,10 +104,10 @@ class BuscaImovelController extends Controller
             $query->where('imoveis.aceita_fgts', 'sim');
         }
         if (in_array('sbpe', $financiamentos)) {
-            $query->where('h.aceita_financ_sbpe', true);
+            $query->where('imoveis.aceita_financ_sbpe', true);
         }
         if (in_array('mcmv', $financiamentos)) {
-            $query->where('h.aceita_financ_mcmv', true);
+            $query->where('imoveis.aceita_financ_mcmv', true);
         }
 
         if ($request->filled('quartos')) {
