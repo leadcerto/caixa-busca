@@ -121,7 +121,7 @@ class ImovelSearch extends Component
                 $params = ['ordenar' => 'preco_asc'];
 
                 if ($this->financiamento === 'sim') {
-                    $params['financiamento'] = ['fgts'];
+                    $params['financiamento'] = ['sbpe'];
                 }
                 if ($this->preco_min) {
                     $params['preco_min'] = $this->preco_min;
