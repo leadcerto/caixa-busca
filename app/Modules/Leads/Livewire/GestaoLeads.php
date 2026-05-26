@@ -170,7 +170,8 @@ class GestaoLeads extends Component
 
             $imoveisInteresse = collect();
             if (!empty($lead->imoveis_interesse)) {
-                $imoveisInteresse = Imovel::whereIn('id', $lead->imoveis_interesse)
+                $numeros = collect($lead->imoveis_interesse)->pluck('numero')->filter()->values();
+                $imoveisInteresse = Imovel::whereIn('numero_original', $numeros)
                     ->with(['tipoImovel', 'municipio', 'estado'])
                     ->get();
             }
