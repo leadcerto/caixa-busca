@@ -151,6 +151,55 @@
 
     <!-- Resultados -->
     @if($show_results)
+
+        {{-- ── Gerador de URL para anúncios ──────────────────────────────────── --}}
+        @if($id_estado && $tipo)
+        @php
+            $urlEstadoObj    = collect($estados)->firstWhere('id', $id_estado);
+            $urlMunicipioObj = $id_municipio ? $municipios->firstWhere('id', $id_municipio) : null;
+            $urlGerada       = null;
+
+            if ($urlEstadoObj) {
+                $segs = [
+                    rtrim(url('/'), '/'),
+                    'imoveis',
+                    \Illuminate\Support\Str::slug($tipo),
+                    strtolower($urlEstadoObj->uf),
+                ];
+                if ($urlMunicipioObj) {
+                    $segs[] = \Illuminate\Support\Str::slug($urlMunicipioObj->nome);
+                }
+                $urlGerada = implode('/', $segs);
+
+                $qs = [];
+                if ($financiamento === 'sim') $qs[] = 'financiamento[]=fgts';
+                if ($preco_min)               $qs[] = 'preco_min=' . rawurlencode($preco_min);
+                if ($preco_max)               $qs[] = 'preco_max=' . rawurlencode($preco_max);
+                if ($qs) $urlGerada .= '?' . implode('&', $qs);
+            }
+        @endphp
+        @if($urlGerada)
+        <div class="max-w-7xl mx-auto px-6 mb-6"
+             x-data="{ copiado: false, urlAnuncio: {{ \Illuminate\Support\Js::from($urlGerada) }} }">
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div class="flex-1 min-w-0">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-[#005CA9] mb-1.5">
+                        🔗 Link pronto para anúncio
+                    </p>
+                    <p class="text-xs text-gray-700 font-mono break-all bg-white border border-blue-100 rounded-xl px-3 py-2 select-all"
+                       x-text="urlAnuncio"></p>
+                </div>
+                <button type="button"
+                        x-on:click="navigator.clipboard.writeText(urlAnuncio).then(() => { copiado = true; setTimeout(() => copiado = false, 2500) })"
+                        class="shrink-0 font-black text-xs px-5 py-3 rounded-xl transition-all cursor-pointer"
+                        :class="copiado ? 'bg-emerald-500 text-white' : 'bg-[#005CA9] text-white hover:bg-[#004a8a]'">
+                    <span x-text="copiado ? '✓ Copiado!' : 'Copiar link'"></span>
+                </button>
+            </div>
+        </div>
+        @endif
+        @endif
+
         <div class="max-w-7xl mx-auto" x-data x-init="$el.scrollIntoView({ behavior: 'smooth' })">
 
             @if($imoveis->count() > 0)
