@@ -41,7 +41,9 @@ class ImovelBuscaInterna extends Component
 
     public function mount(): void
     {
-        $this->estados = Estado::orderBy('nome')->get();
+        $this->estados = Estado::whereHas('imoveis', fn ($q) => $q->where('status', 'ativo'))
+            ->orderBy('nome')
+            ->get(['id', 'nome', 'uf']);
         $this->carregarMunicipios();
         $this->carregarBairros();
     }
