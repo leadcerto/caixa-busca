@@ -171,9 +171,9 @@ class ImovelBuscaInterna extends Component
             $query->where('latest_h.valor_venda', '<=', (float) str_replace(',', '.', $this->preco_max));
         }
 
-        // Filter by Financing
+        // Filter by Financing (CSV 'financiamento' = SBPE; data lives in aceita_fgts)
         if ($this->financiamento === 'sim') {
-            $query->where('imoveis.aceita_financ_sbpe', true);
+            $query->where('imoveis.aceita_fgts', 'sim');
         }
 
         // Apply Sorting
