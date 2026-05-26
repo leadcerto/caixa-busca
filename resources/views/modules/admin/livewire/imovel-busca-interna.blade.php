@@ -17,32 +17,31 @@
             </div>
         </div>
 
-        <!-- Painel de Filtros Superiores (Premium Glassmorphism Style) -->
-        <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 md:p-10 mb-8 relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-48 h-48 bg-blue-50/50 rounded-full -mt-24 -mr-24 transition-all duration-700 group-hover:scale-125"></div>
-            
-            <div class="flex items-center space-x-3 mb-6 relative">
-                <svg class="w-5 h-5 text-[#005CA9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-                <h2 class="text-xs font-black uppercase tracking-widest text-slate-400">Filtros de Pesquisa Avançados</h2>
-            </div>
+        <!-- Painel de Filtros -->
+        <div class="bg-white p-8 md:p-12 rounded-[3rem] shadow-[0_20px_60px_-15px_rgba(0,92,169,0.15)] border border-blue-50/50 relative overflow-hidden mb-8">
+            <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-50/20 rounded-full"></div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-                <!-- Busca por número -->
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Número do Imóvel</label>
+            <h2 class="text-[#005CA9] text-3xl font-black mb-8 flex items-center relative">
+                <span class="bg-[#F39200] w-2.5 h-8 mr-4 rounded-full"></span>
+                Filtros de Pesquisa Avançados
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+
+                <!-- Número do Imóvel -->
+                <div class="space-y-2">
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Número do Imóvel</label>
                     <input type="text"
                            wire:model.live.debounce.300ms="busca_numero"
                            placeholder="Ex: 8555510834062…"
-                           class="w-full border border-slate-200 rounded-2xl h-12 px-4 text-slate-800 text-sm focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition">
+                           class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 placeholder-slate-400 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 transition duration-200">
                 </div>
 
-                <!-- Dropdown Estado -->
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Estado (UF)</label>
+                <!-- Estado -->
+                <div class="space-y-2">
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Estado (UF)</label>
                     <select wire:model.live="id_estado"
-                            class="w-full border border-slate-200 rounded-2xl h-12 px-4 text-slate-800 text-sm focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition">
+                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 appearance-none cursor-pointer transition duration-200">
                         <option value="">Selecione um Estado</option>
                         @foreach($estados as $e)
                             <option value="{{ $e->id }}">{{ $e->nome }} ({{ $e->uf }})</option>
@@ -50,12 +49,12 @@
                     </select>
                 </div>
 
-                <!-- Dropdown Cidade -->
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Cidade</label>
+                <!-- Cidade -->
+                <div class="space-y-2">
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Cidade</label>
                     <select wire:model.live="id_municipio"
                             {{ empty($municipios) ? 'disabled' : '' }}
-                            class="w-full border border-slate-200 rounded-2xl h-12 px-4 text-slate-800 text-sm focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition disabled:bg-slate-50 disabled:text-slate-400">
+                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
                         <option value="">Selecione uma Cidade</option>
                         @foreach($municipios as $m)
                             <option value="{{ $m->id }}">{{ $m->nome }}</option>
@@ -63,111 +62,82 @@
                     </select>
                 </div>
 
-                <!-- Dropdown Bairro Multi-Select -->
-                <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Bairro</label>
-                    
-                    <!-- Dropdown Trigger Button -->
-                    <button type="button" 
-                            @click="if ({{ empty($bairros) ? 'false' : 'true' }}) open = !open"
-                            {{ empty($bairros) ? 'disabled' : '' }}
-                            class="w-full border border-slate-200 bg-white rounded-2xl h-12 px-4 flex items-center justify-between text-slate-800 text-sm focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition disabled:bg-slate-50 disabled:text-slate-400 text-left">
-                        
-                        <span class="truncate pr-2">
-                            @if(empty($bairros))
-                                Selecione uma Cidade
-                            @elseif(empty($bairros_selecionados))
-                                Todos os Bairros
-                            @else
-                                {{ count($bairros_selecionados) }} bairro(s) selecionado(s)
-                            @endif
-                        </span>
-                        
-                        <!-- Down Arrow Icon -->
-                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <!-- Dropdown Content -->
-                    <div x-show="open" 
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="transform opacity-0 scale-95"
-                         x-transition:enter-end="transform opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="transform opacity-100 scale-100"
-                         x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute right-0 left-0 z-50 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 max-h-64 overflow-y-auto p-4 space-y-3"
-                         style="display: none;">
-                        
-                        @if(!empty($bairros))
-                            <!-- Utility Actions: Select All / Clear -->
-                            <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
-                                <button type="button" wire:click="selecionarTodosBairros" class="text-[#005CA9] font-bold hover:underline">
-                                    Selecionar Todos
-                                </button>
-                                <button type="button" wire:click="limparBairrosSelecionados" class="text-gray-500 font-bold hover:underline">
-                                    Limpar
-                                </button>
-                            </div>
-
-                            <!-- List of Checkboxes -->
-                            <div class="space-y-2 max-h-40 overflow-y-auto">
-                                @foreach($bairros as $b)
-                                    <label class="flex items-center space-x-3 cursor-pointer p-1.5 rounded-lg hover:bg-slate-50 transition">
-                                        <input type="checkbox" 
-                                               wire:model.live="bairros_selecionados" 
-                                               value="{{ $b->id }}"
-                                               class="rounded border-slate-300 text-[#005CA9] focus:ring-[#005CA9] w-4.5 h-4.5">
-                                        <span class="text-slate-700 text-xs font-semibold select-none">{{ $b->nome }}</span>
-                                    </label>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Preço Mínimo -->
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Preço Mínimo (R$)</label>
-                    <input type="text"
-                           wire:model.live.debounce.300ms="preco_min"
-                           placeholder="Ex: 100000"
-                           class="w-full border border-slate-200 rounded-2xl h-12 px-4 text-slate-800 text-sm focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition">
-                </div>
-
-                <!-- Preço Máximo -->
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Preço Máximo (R$)</label>
-                    <input type="text"
-                           wire:model.live.debounce.300ms="preco_max"
-                           placeholder="Ex: 500000"
-                           class="w-full border border-slate-200 rounded-2xl h-12 px-4 text-slate-800 text-sm focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition">
-                </div>
-
                 <!-- Financiamento -->
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Opção de Financiamento</label>
+                <div class="space-y-2">
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Financiamento / FGTS</label>
                     <select wire:model.live="financiamento"
-                            class="w-full border border-slate-200 rounded-2xl h-12 px-4 text-slate-800 text-sm focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition">
+                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 appearance-none cursor-pointer transition duration-200">
                         <option value="todos">Exibir Todos</option>
                         <option value="sim">Somente que aceitam Financiamento / FGTS</option>
                     </select>
                 </div>
 
-                <!-- Ordenação Dinâmica -->
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Ordenar Resultados por</label>
+                <!-- Preço Mínimo -->
+                <div class="space-y-2">
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Preço Mínimo (R$)</label>
+                    <input type="text"
+                           wire:model.live.debounce.300ms="preco_min"
+                           placeholder="Ex: 100000"
+                           class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 placeholder-slate-400 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 transition duration-200">
+                </div>
+
+                <!-- Preço Máximo -->
+                <div class="space-y-2">
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Preço Máximo (R$)</label>
+                    <input type="text"
+                           wire:model.live.debounce.300ms="preco_max"
+                           placeholder="Ex: 500000"
+                           class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 placeholder-slate-400 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 transition duration-200">
+                </div>
+
+                <!-- Ordenar Por -->
+                <div class="space-y-2">
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Ordenar Resultados Por</label>
                     <select wire:model.live="ordenacao"
-                            class="w-full border border-slate-200 rounded-2xl h-12 px-4 text-slate-800 text-sm focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition font-semibold text-[#005CA9]">
+                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 appearance-none cursor-pointer transition duration-200">
                         <option value="recente">Mais Recentes</option>
-                        <option value="desconto_pct_desc">Maior % de Desconto (Descontões)</option>
+                        <option value="desconto_pct_desc">Maior % de Desconto</option>
                         <option value="desconto_reais_desc">Maior Valor R$ Economizado</option>
                         <option value="preco_asc">Menor Preço de Venda</option>
                         <option value="preco_desc">Maior Preço de Venda</option>
                     </select>
                 </div>
+
             </div>
+
+            <!-- Bairros em colunas (exibido quando há cidade selecionada) -->
+            @if(!empty($bairros))
+            <div class="mt-8 pt-6 border-t border-blue-50 relative">
+                <div class="flex items-center justify-between mb-4">
+                    <label class="text-[#005CA9] text-[10px] font-black uppercase tracking-widest">
+                        Bairro
+                        @if(!empty($bairros_selecionados))
+                            <span class="ml-2 bg-[#005CA9] text-white text-[9px] font-black px-2 py-0.5 rounded-full">{{ count($bairros_selecionados) }} selecionado(s)</span>
+                        @endif
+                    </label>
+                    <div class="flex gap-4 text-xs">
+                        <button type="button" wire:click="selecionarTodosBairros" class="text-[#005CA9] font-bold hover:underline cursor-pointer">Selecionar Todos</button>
+                        <button type="button" wire:click="limparBairrosSelecionados" class="text-gray-400 font-bold hover:text-red-500 hover:underline cursor-pointer transition-colors">Limpar</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    @foreach($bairros as $b)
+                        <label class="cursor-pointer">
+                            <input type="checkbox"
+                                   wire:model.live="bairros_selecionados"
+                                   value="{{ $b->id }}"
+                                   class="sr-only peer">
+                            <span class="block text-center px-2 py-2 rounded-xl text-[11px] font-bold border transition-all duration-150 select-none cursor-pointer truncate
+                                         border-slate-200 bg-[#f8fafc] text-slate-600
+                                         hover:border-[#F39200] hover:text-[#F39200]
+                                         peer-checked:bg-[#005CA9] peer-checked:text-white peer-checked:border-[#005CA9]">
+                                {{ $b->nome }}
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
             <!-- Gerador de URL para anúncios -->
             @if($id_estado)
@@ -191,36 +161,30 @@
                 }
             @endphp
             @if($urlGerada)
-            <div class="mt-6 pt-5 border-t border-slate-100 relative"
+            <div class="mt-8 pt-6 border-t border-blue-50 relative"
                  x-data="{ copiado: false, urlAnuncio: {{ \Illuminate\Support\Js::from($urlGerada) }} }">
-                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
-                    🔗 Link para anúncio
+                <p class="text-[#005CA9] text-[10px] font-black uppercase tracking-widest mb-3">
+                    Link para anúncio
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                    <p class="flex-1 text-xs text-slate-700 font-mono break-all bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 select-all"
+                    <p class="flex-1 text-xs text-slate-700 font-mono break-all bg-[#f8fafc] border border-slate-200 rounded-2xl px-5 py-3.5 select-all"
                        x-text="urlAnuncio"></p>
                     <button type="button"
                             x-on:click="navigator.clipboard.writeText(urlAnuncio).then(() => { copiado = true; setTimeout(() => copiado = false, 2500) })"
-                            class="shrink-0 font-black text-xs px-6 py-3 rounded-xl transition-all cursor-pointer"
-                            :class="copiado ? 'bg-emerald-500 text-white' : 'bg-[#005CA9] text-white hover:bg-[#004a8a]'">
-                        <span x-text="copiado ? '✓ Copiado!' : 'Copiar link'"></span>
+                            class="shrink-0 font-black text-xs px-6 h-14 rounded-2xl transition-all cursor-pointer"
+                            :class="copiado ? 'bg-emerald-500 text-white' : 'bg-[#F39200] text-white hover:bg-[#d67e00]'">
+                        <span x-text="copiado ? '✓ Copiado!' : 'Copiar Link'"></span>
                     </button>
                 </div>
             </div>
             @endif
             @endif
 
-            <!-- Botões de Ação do Painel -->
-            <div class="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between relative">
-                <div class="text-xs text-slate-400">
-                    Dica: selecione o Estado para liberar as Cidades e bairros correspondentes.
-                </div>
-                <button wire:click="limparFiltros"
-                        class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold px-6 py-3 rounded-2xl transition-all duration-200 text-xs flex items-center space-x-2">
-                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span>Limpar Filtros</span>
+            <!-- Botão Limpar -->
+            <div class="mt-10 flex justify-end relative">
+                <button type="button" wire:click="limparFiltros"
+                        class="h-14 bg-slate-50 hover:bg-slate-100 text-[#005CA9] font-bold rounded-2xl transition-all border border-slate-200 px-8 text-sm cursor-pointer">
+                    Limpar Filtros
                 </button>
             </div>
         </div>
