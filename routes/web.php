@@ -20,6 +20,18 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', ImovelSearch::class)->name('imoveis.index');
 Route::get('/buscar', fn() => redirect()->route('imoveis.index'));
 Route::get('/bairros/{uf}/{municipio_slug}/{bairro_slug}', PaginaBairro::class)->name('bairro.show');
+
+// Busca com URL amigável — SEO + tráfego pago
+// Padrão: /imoveis/{tipo}/{estado}/{cidade?}/{bairro?}?financiamento[]=fgts&quartos=2
+Route::get('/imoveis/{tipo}/{estado}/{cidade?}/{bairro?}',
+    [\App\Http\Controllers\BuscaImovelController::class, 'index'])
+    ->name('imoveis.busca')
+    ->where([
+        'tipo'   => '[a-z0-9-]+',
+        'estado' => '[a-z]{2}',
+        'cidade' => '[a-z0-9-]+',
+        'bairro' => '[a-z0-9-]+',
+    ]);
 Route::get('/images/imoveis/{slug}.jpg', [App\Http\Controllers\ImovelImageController::class, 'serve'])->name('imovel.imagem');
 
 // Rota de diagnóstico temporária segura para capturar o Erro 500 em produção e configurar banco
