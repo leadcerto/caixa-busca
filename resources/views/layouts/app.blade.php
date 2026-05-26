@@ -33,12 +33,17 @@
         <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
         <link rel="shortcut icon" href="{{ asset('favicon.svg') }}">
 
+        @stack('preload')
+        @stack('schema')
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         @livewireStyles
     </head>
     <body>
-        {{ $slot }}
+        <main>
+            {{ $slot }}
+        </main>
 
         @livewireScripts
     </body>

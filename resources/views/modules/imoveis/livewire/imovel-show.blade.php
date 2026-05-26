@@ -93,6 +93,72 @@
     }
 @endphp
 
+@if($imovel->foto_fachada_url)
+@push('preload')
+<link rel="preload" as="image" href="{{ $imovel->foto_fachada_url }}">
+@endpush
+@endif
+
+@push('schema')
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "RealEstateListing",
+  "name": "{{ e($tipoNome) }} em {{ e($bairroNome) }}, {{ e($cidadeNome) }} – {{ e($uf) }}",
+  "description": "{{ e(Str::limit(strip_tags($imovel->descricao_original ?? ''), 200)) }}",
+  "url": "{{ url('/' . $imovel->slug) }}",
+  "datePosted": "{{ $imovel->created_at?->toAtomString() }}",
+  "image": "{{ $imovel->foto_fachada_url ?? asset('images/imovel-placeholder.svg') }}",
+  "offers": {
+    "@type": "Offer",
+    "price": "{{ number_format($valorVenda, 2, '.', '') }}",
+    "priceCurrency": "BRL",
+    "availability": "https://schema.org/InStock"
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "{{ e($endereco) }}",
+    "addressLocality": "{{ e($cidadeNome) }}",
+    "addressRegion": "{{ e($uf) }}",
+    "postalCode": "{{ e($imovel->cep ?? '') }}",
+    "addressCountry": "BR"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Início",
+      "item": "{{ url('/') }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ e($uf) }} – Imóveis da Caixa",
+      "item": "{{ url('/') }}?estado={{ e($uf) }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ e($cidadeNome) }}",
+      "item": "{{ url('/') }}?estado={{ e($uf) }}&cidade={{ urlencode($cidadeNome) }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "{{ e($tipoNome) }} em {{ e($bairroNome) }}",
+      "item": "{{ url('/' . $imovel->slug) }}"
+    }
+  ]
+}
+</script>
+@endpush
+
 <!-- Página de Apresentação de Imóvel Premium -->
 <div class="bg-gray-50 min-h-screen text-gray-800 font-sans pb-24 selection:bg-[#F39200] selection:text-white"
      x-data="{ activeTab: null }">
@@ -119,19 +185,20 @@
                              alt="{{ $tipoNome }} em {{ $cidadeNome }}"
                              class="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-700 ease-out"
                              loading="eager"
+                             fetchpriority="high"
                              onerror="this.onerror=null;this.src='{{ asset('images/imovel-placeholder.svg') }}';">
                         
-                        <!-- Floating discount badge -->
-                        <div class="absolute top-6 left-6 bg-[#E50000] text-white font-black text-sm px-4 py-2 rounded-2xl shadow-xl border border-red-500 tracking-wider">
-                            {{ number_format($descontoPct, 0) }}% DE DESCONTO
+                        <!-- Floating badges row — stacks vertically on mobile, spreads apart on sm+ -->
+                        <div class="absolute top-4 left-4 right-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                            <div class="bg-[#E50000] text-white font-black text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-2xl shadow-xl border border-red-500 tracking-wider self-start">
+                                {{ number_format($descontoPct, 0) }}% DE DESCONTO
+                            </div>
+                            @if($aceitaFinanciamento || $imovel->aceita_fgts === 'sim')
+                            <div class="bg-[#005CA9] text-white font-black text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-2xl shadow-xl border border-blue-400 tracking-wider self-start sm:self-auto">
+                                ✅ ACEITA FINANCIAMENTO
+                            </div>
+                            @endif
                         </div>
-
-                        <!-- Floating financing badge -->
-                        @if($aceitaFinanciamento || $imovel->aceita_fgts === 'sim')
-                        <div class="absolute top-6 right-6 bg-[#005CA9] text-white font-black text-sm px-4 py-2 rounded-2xl shadow-xl border border-blue-400 tracking-wider">
-                            ✅ ACEITA FINANCIAMENTO
-                        </div>
-                        @endif
                     </div>
                 </div>
 
@@ -395,9 +462,9 @@
                         📈 Análise da Oportunidade
                     </h2>
                     
-                    <h6 class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
+                    <p class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
-                    </h6>
+                    </p>
 
                     <p class="text-gray-650 leading-relaxed text-justify text-sm">
                         Hoje este Imóvel da Caixa está avaliado pela equipe técnica da CAIXA pelo preço de mercado de <strong class="text-gray-900">R$ {{ number_format($valorAvaliacao, 2, ',', '.') }}</strong> e está sendo vendido hoje pelo valor de <strong class="text-gray-900">R$ {{ number_format($valorVenda, 2, ',', '.') }}</strong> o que é uma <strong class="text-emerald-600 font-extrabold">grande oportunidade</strong> para o comprador que vai economizar o valor de <strong class="text-emerald-650 font-black">R$ {{ number_format($valorLucro, 2, ',', '.') }}</strong>. Este percentual de <strong class="text-red-600 font-black">{{ number_format($descontoPct, 0) }}%</strong> de desconto na compra deste imóvel só é possível, porque <strong class="text-orange-600">ESTE IMÓVEL NÃO ESTÁ EM LEILÃO</strong>, este imóvel está sendo vendido hoje nas modalidades de venda da CAIXA e por isso o banco consegue oferecer descontos que não seriam possíveis caso este imóvel ainda estivesse “preso” à Lei de Alienação Fiduciária.
@@ -452,7 +519,7 @@
                 <div class="bg-white p-8 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6">
                     <div class="space-y-1">
                         <span class="text-[#005CA9] text-[9px] font-black uppercase tracking-widest block">FALAR COM CORRETOR CREDENCIADO</span>
-                        <h3 class="text-2xl font-black text-gray-900 tracking-tight leading-none">Tenho Interesse!</h3>
+                        <h2 class="text-2xl font-black text-gray-900 tracking-tight leading-none">Tenho Interesse!</h2>
                         <p class="text-xs text-gray-500">Preencha seus dados para receber o dossiê detalhado e agendar atendimento.</p>
                     </div>
                     <div class="space-y-4">
@@ -499,9 +566,9 @@
                         👤 Análise do Comprador
                     </h2>
                     
-                    <h6 class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
+                    <p class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
-                    </h6>
+                    </p>
 
                     <p class="text-gray-650 leading-relaxed text-justify text-sm">
                         Neste conteúdo estamos trazendo a maneira de se pensar de acordo com cada finalidade de compra do seu imóvel e para te ajudar nesta reflexão também vamos te dar uma visão geral das despesas, do lucro, e como nós fazemos estas formas distintas de processo de compra. Você terá acesso aos cálculos já prontos para que você tenha clareza do retorno financeiro que esta compra pode te trazer. São valores criados com base em experiências anteriores que servem para nos ajudar na tomada de decisão de compra.
@@ -619,9 +686,9 @@
                         💼 Nossos Serviços
                     </h2>
                     
-                    <h6 class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
+                    <p class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
-                    </h6>
+                    </p>
 
                     <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
@@ -772,9 +839,9 @@
                         ❓ FAQ 1 = Perguntas frequentes sobre os Imóveis Caixa
                     </h2>
                     
-                    <h6 class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
+                    <p class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
-                    </h6>
+                    </p>
 
                     <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
@@ -854,6 +921,7 @@
                     </h2>
                     <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
                         <iframe
+                            title="Mapa de localização: {{ $bairroNome }}, {{ $cidadeNome }} – {{ $uf }}"
                             width="100%"
                             height="350"
                             style="border:0;"
@@ -873,9 +941,9 @@
                         ❓ FAQ 2 = Perguntas Frequentes sobre o Bairro
                     </h2>
                     
-                    <h6 class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
+                    <p class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
-                    </h6>
+                    </p>
 
                     <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
@@ -992,9 +1060,9 @@
                         📅 Histórico de Atualizações
                     </h2>
                     
-                    <h6 class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
+                    <p class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
-                    </h6>
+                    </p>
 
                     <button @click="openHistorico = !openHistorico"
                             class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-850 text-sm rounded-2xl border border-gray-200">
