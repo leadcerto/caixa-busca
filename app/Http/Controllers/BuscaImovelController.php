@@ -68,6 +68,8 @@ class BuscaImovelController extends Controller
         }
         if ($bairroObj) {
             $query->where('imoveis.id_bairro', $bairroObj->id);
+        } elseif ($request->filled('bairros_ids')) {
+            $query->whereIn('imoveis.id_bairro', (array) $request->input('bairros_ids'));
         }
 
         // ── 3. Filtros de query string ────────────────────────────────────────
@@ -85,6 +87,12 @@ class BuscaImovelController extends Controller
 
         if ($request->filled('quartos')) {
             $query->where('imoveis.quartos', '>=', (int) $request->input('quartos'));
+        }
+
+        if ($request->filled('preco_min')) {
+            $query->where('h.valor_venda', '>=',
+                (float) str_replace(['.', ','], ['', '.'], $request->input('preco_min'))
+            );
         }
 
         if ($request->filled('preco_max')) {

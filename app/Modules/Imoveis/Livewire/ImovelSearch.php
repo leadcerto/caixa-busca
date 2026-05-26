@@ -98,10 +98,62 @@ class ImovelSearch extends Component
         $this->resetPage();
     }
 
-    public function buscar(): void
+    public function buscar(): mixed
     {
+        if ($this->tipo && $this->id_estado) {
+            $estado = Estado::find($this->id_estado);
+
+            if ($estado) {
+                $segments = [
+                    'imoveis',
+                    \Illuminate\Support\Str::slug($this->tipo),
+                    strtolower($estado->uf),
+                ];
+
+                if ($this->id_municipio) {
+                    $municipio = Municipio::find($this->id_municipio);
+                    if ($municipio) {
+                        $segments[] = \Illuminate\Support\Str::slug($municipio->nome);
+                    }
+                }
+
+                $params = [];
+
+                if ($this->financiamento === 'sim') {
+                    $params['financiamento'] = ['fgts'];
+                }
+                if ($this->preco_min) {
+                    $params['preco_min'] = $this->preco_min;
+                }
+                if ($this->preco_max) {
+                    $params['preco_max'] = $this->preco_max;
+                }
+                if (! empty($this->bairros_selecionados)) {
+                    $params['bairros_ids'] = $this->bairros_selecionados;
+                }
+
+                $ordenarMap = [
+                    'desconto_pct_desc'   => 'desconto_desc',
+                    'desconto_reais_desc' => 'desconto_desc',
+                    'preco_asc'           => 'preco_asc',
+                    'preco_desc'          => 'preco_desc',
+                ];
+                if (isset($ordenarMap[$this->ordenacao])) {
+                    $params['ordenar'] = $ordenarMap[$this->ordenacao];
+                }
+
+                $url = '/' . implode('/', $segments);
+                if ($params) {
+                    $url .= '?' . http_build_query($params);
+                }
+
+                return redirect()->to($url);
+            }
+        }
+
         $this->show_results = true;
         $this->resetPage();
+        return null;
     }
 
     public function limparFiltros(): void

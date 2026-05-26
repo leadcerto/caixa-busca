@@ -38,6 +38,18 @@
                     </select>
                 </div>
 
+                <!-- Tipo de Imóvel -->
+                <div class="space-y-2">
+                    <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Tipo de Imóvel</label>
+                    <select wire:model.live="tipo"
+                            class="w-full bg-[#f8fafc] border border-slate-200 text-slate-900 rounded-2xl focus:ring-2 focus:ring-[#F39200] focus:border-[#F39200] focus:bg-white h-14 px-5 appearance-none cursor-pointer transition duration-200">
+                        <option value="">Todos os Tipos</option>
+                        @foreach($tipos as $t)
+                            <option value="{{ $t->nome }}">{{ $t->nome }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <!-- Cidade -->
                 <div class="space-y-2">
                     <label class="block text-[#005CA9] text-[10px] font-black uppercase tracking-widest">Cidade</label>
