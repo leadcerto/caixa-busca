@@ -12,6 +12,15 @@ use Illuminate\Support\Str;
 
 class BuscaImovelController extends Controller
 {
+    public function semTipo(
+        Request $request,
+        string  $estado,
+        ?string $cidade = null,
+        ?string $bairro = null,
+    ) {
+        return $this->buildResults($request, null, $estado, $cidade, $bairro);
+    }
+
     public function index(
         Request $request,
         string  $tipo,
@@ -19,14 +28,28 @@ class BuscaImovelController extends Controller
         ?string $cidade = null,
         ?string $bairro = null,
     ) {
+        return $this->buildResults($request, $tipo, $estado, $cidade, $bairro);
+    }
+
+    private function buildResults(
+        Request $request,
+        ?string $tipo,
+        string  $estado,
+        ?string $cidade,
+        ?string $bairro,
+    ) {
         // ── 1. Resolve entidades a partir dos slugs da URL ────────────────────
-        $tipoObj = TipoImovel::where('ativo', true)
-            ->get(['id', 'nome'])
-            ->first(fn ($t) => Str::slug($t->nome) === $tipo);
+        $tipoObj = null;
+        if ($tipo) {
+            $tipoObj = TipoImovel::where('ativo', true)
+                ->get(['id', 'nome'])
+                ->first(fn ($t) => Str::slug($t->nome) === $tipo);
+
+            if (! $tipoObj) abort(404);
+        }
 
         $estadoObj = Estado::where('uf', strtoupper($estado))->first();
-
-        if (! $tipoObj || ! $estadoObj) abort(404);
+        if (! $estadoObj) abort(404);
 
         $municipioObj = null;
         if ($cidade) {
@@ -59,10 +82,12 @@ class BuscaImovelController extends Controller
                     )');
             })
             ->where('imoveis.status', 'ativo')
-            ->where('imoveis.id_tipo_imovel', $tipoObj->id)
             ->where('imoveis.id_estado', $estadoObj->id)
             ->with(['municipio', 'bairro', 'ultimoHistorico', 'tipoImovel']);
 
+        if ($tipoObj) {
+            $query->where('imoveis.id_tipo_imovel', $tipoObj->id);
+        }
         if ($municipioObj) {
             $query->where('imoveis.id_municipio', $municipioObj->id);
         }
@@ -106,13 +131,13 @@ class BuscaImovelController extends Controller
         }
 
         // ── 4. Ordenação ──────────────────────────────────────────────────────
-        $ordenar = $request->input('ordenar', 'desconto_desc');
+        $ordenar = $request->input('ordenar', 'preco_asc');
 
         match ($ordenar) {
-            'preco_asc'    => $query->orderBy('h.valor_venda', 'asc'),
             'preco_desc'   => $query->orderBy('h.valor_venda', 'desc'),
+            'desconto_desc' => $query->orderBy('h.desconto_percentual', 'desc'),
             'desconto_asc' => $query->orderBy('h.desconto_percentual', 'asc'),
-            default        => $query->orderBy('h.desconto_percentual', 'desc'),
+            default        => $query->orderBy('h.valor_venda', 'asc'),
         };
 
         // ── 5. Paginação — preserva query strings nos links ───────────────────
@@ -125,12 +150,14 @@ class BuscaImovelController extends Controller
             $estadoObj->nome,
         ]));
 
+        $tipoLabel = $tipoObj?->nome ?? 'Imóvel';
+
         $descontoMedio = $imoveis->isNotEmpty()
             ? round($imoveis->avg(fn ($i) => $i->ultimoHistorico?->desconto_percentual ?? 0))
             : 0;
 
-        $metaTitle = ucfirst($tipoObj->nome) . ' à venda em ' . $localidade . ' | Imóveis da Caixa';
-        $metaDesc  = "Encontre {$tipoObj->nome} à venda em {$localidade}"
+        $metaTitle = ucfirst($tipoLabel) . ' à venda em ' . $localidade . ' | Imóveis da Caixa';
+        $metaDesc  = "Encontre {$tipoLabel} à venda em {$localidade}"
             . ($descontoMedio > 0 ? " com até {$descontoMedio}% de desconto" : '')
             . '. Financiamento FGTS e SBPE disponível.';
 

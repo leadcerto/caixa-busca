@@ -12,7 +12,7 @@
     <meta property="og:description" content="{{ $metaDesc }}">
     <meta property="og:url"         content="{{ url()->current() }}">
 
-    <link rel="canonical" href="{{ route('imoveis.busca', array_filter([$tipo, $estado, $cidade, $bairro])) }}">
+    <link rel="canonical" href="{{ request()->url() }}">
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -53,8 +53,7 @@
         <nav class="text-xs text-gray-400 mb-2 flex flex-wrap gap-1 items-center">
             <a href="{{ route('imoveis.index') }}" class="hover:text-[#005CA9]">Início</a>
             <span>/</span>
-            <span class="capitalize">{{ $tipoObj->nome }}</span>
-            <span>/</span>
+            @if($tipoObj)<span class="capitalize">{{ $tipoObj->nome }}</span><span>/</span>@endif
             <span class="uppercase">{{ $estadoObj->uf }}</span>
             @if($municipioObj)
                 <span>/</span>
@@ -66,7 +65,7 @@
             @endif
         </nav>
         <h1 class="text-2xl font-black text-gray-900">
-            {{ ucfirst($tipoObj->nome) }} à venda em {{ $localidade }}
+            {{ $tipoObj ? ucfirst($tipoObj->nome) : 'Imóveis' }} à venda em {{ $localidade }}
         </h1>
         <p class="text-sm text-gray-400 mt-1">
             <strong class="text-[#005CA9]">{{ number_format($imoveis->total()) }}</strong>

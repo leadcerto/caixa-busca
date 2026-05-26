@@ -22,7 +22,17 @@ Route::get('/buscar', fn() => redirect()->route('imoveis.index'));
 Route::get('/bairros/{uf}/{municipio_slug}/{bairro_slug}', PaginaBairro::class)->name('bairro.show');
 
 // Busca com URL amigável — SEO + tráfego pago
-// Padrão: /imoveis/{tipo}/{estado}/{cidade?}/{bairro?}?financiamento[]=fgts&quartos=2
+// Sem tipo: /imoveis/{estado}/{cidade?}/{bairro?}  (estado = UF 2 letras)
+Route::get('/imoveis/{estado}/{cidade?}/{bairro?}',
+    [\App\Http\Controllers\BuscaImovelController::class, 'semTipo'])
+    ->name('imoveis.busca.sem-tipo')
+    ->where([
+        'estado' => '[a-z]{2}',
+        'cidade' => '[a-z0-9-]+',
+        'bairro' => '[a-z0-9-]+',
+    ]);
+
+// Com tipo: /imoveis/{tipo}/{estado}/{cidade?}/{bairro?}
 Route::get('/imoveis/{tipo}/{estado}/{cidade?}/{bairro?}',
     [\App\Http\Controllers\BuscaImovelController::class, 'index'])
     ->name('imoveis.busca')

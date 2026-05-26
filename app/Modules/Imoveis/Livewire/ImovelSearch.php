@@ -100,15 +100,16 @@ class ImovelSearch extends Component
 
     public function buscar(): mixed
     {
-        if ($this->tipo && $this->id_estado) {
+        if ($this->id_estado) {
             $estado = Estado::find($this->id_estado);
 
             if ($estado) {
-                $segments = [
-                    'imoveis',
-                    \Illuminate\Support\Str::slug($this->tipo),
-                    strtolower($estado->uf),
-                ];
+                // Monta segmentos: com tipo (/imoveis/casa/rj) ou sem (/imoveis/rj)
+                if ($this->tipo) {
+                    $segments = ['imoveis', \Illuminate\Support\Str::slug($this->tipo), strtolower($estado->uf)];
+                } else {
+                    $segments = ['imoveis', strtolower($estado->uf)];
+                }
 
                 if ($this->id_municipio) {
                     $municipio = Municipio::find($this->id_municipio);
@@ -117,7 +118,7 @@ class ImovelSearch extends Component
                     }
                 }
 
-                $params = [];
+                $params = ['ordenar' => 'preco_asc'];
 
                 if ($this->financiamento === 'sim') {
                     $params['financiamento'] = ['fgts'];
@@ -132,22 +133,7 @@ class ImovelSearch extends Component
                     $params['bairros_ids'] = $this->bairros_selecionados;
                 }
 
-                $ordenarMap = [
-                    'desconto_pct_desc'   => 'desconto_desc',
-                    'desconto_reais_desc' => 'desconto_desc',
-                    'preco_asc'           => 'preco_asc',
-                    'preco_desc'          => 'preco_desc',
-                ];
-                if (isset($ordenarMap[$this->ordenacao])) {
-                    $params['ordenar'] = $ordenarMap[$this->ordenacao];
-                }
-
-                $url = '/' . implode('/', $segments);
-                if ($params) {
-                    $url .= '?' . http_build_query($params);
-                }
-
-                return redirect()->to($url);
+                return redirect()->to('/' . implode('/', $segments) . '?' . http_build_query($params));
             }
         }
 
