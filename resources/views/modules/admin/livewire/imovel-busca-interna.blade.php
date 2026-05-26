@@ -169,6 +169,47 @@
                 </div>
             </div>
 
+            <!-- Gerador de URL para anúncios -->
+            @if($id_estado)
+            @php
+                $urlEstadoObj    = collect($estados)->firstWhere('id', $id_estado);
+                $urlMunicipioObj = $id_municipio ? collect($municipios)->firstWhere('id', $id_municipio) : null;
+                $urlGerada       = null;
+
+                if ($urlEstadoObj) {
+                    $segs = [rtrim(url('/'), '/'), 'imoveis', strtolower($urlEstadoObj->uf)];
+                    if ($urlMunicipioObj) {
+                        $segs[] = \Illuminate\Support\Str::slug($urlMunicipioObj->nome);
+                    }
+                    $urlGerada = implode('/', $segs);
+
+                    $qs = [];
+                    if ($financiamento === 'sim') $qs[] = 'financiamento[]=fgts';
+                    if ($preco_min)               $qs[] = 'preco_min=' . rawurlencode($preco_min);
+                    if ($preco_max)               $qs[] = 'preco_max=' . rawurlencode($preco_max);
+                    if ($qs) $urlGerada .= '?' . implode('&', $qs);
+                }
+            @endphp
+            @if($urlGerada)
+            <div class="mt-6 pt-5 border-t border-slate-100 relative"
+                 x-data="{ copiado: false, urlAnuncio: {{ \Illuminate\Support\Js::from($urlGerada) }} }">
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                    🔗 Link para anúncio
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                    <p class="flex-1 text-xs text-slate-700 font-mono break-all bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 select-all"
+                       x-text="urlAnuncio"></p>
+                    <button type="button"
+                            x-on:click="navigator.clipboard.writeText(urlAnuncio).then(() => { copiado = true; setTimeout(() => copiado = false, 2500) })"
+                            class="shrink-0 font-black text-xs px-6 py-3 rounded-xl transition-all cursor-pointer"
+                            :class="copiado ? 'bg-emerald-500 text-white' : 'bg-[#005CA9] text-white hover:bg-[#004a8a]'">
+                        <span x-text="copiado ? '✓ Copiado!' : 'Copiar link'"></span>
+                    </button>
+                </div>
+            </div>
+            @endif
+            @endif
+
             <!-- Botões de Ação do Painel -->
             <div class="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between relative">
                 <div class="text-xs text-slate-400">
