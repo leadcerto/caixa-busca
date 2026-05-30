@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Log;
 
 class ConteudoIaService
 {
-    // Campos FAQ obrigatórios na resposta da IA
     public const FAQ_CAMPOS = [
         'vizinhanca_localizacao',
         'beneficios',
@@ -20,7 +19,7 @@ class ConteudoIaService
         'dados_infraestrutura',
     ];
 
-    // Modelos em ordem de preferência — rotação automática com fallback
+    // Modelos com fallback — embaralhados por bairro para distribuir carga
     private const MODELOS = [
         'google/gemma-4-31b-it:free',
         'meta-llama/llama-3.3-70b-instruct:free',
@@ -56,9 +55,12 @@ class ConteudoIaService
             ->map(fn($qtd, $tipo) => "{$qtd} {$tipo}(s)")
             ->implode(', ');
 
-        $prompt = <<<PROMPT
-Você é um especialista imobiliário e urbanista profundo conhecedor do Brasil.
-Sua tarefa é fornecer informações detalhadas, realistas e atrativas sobre o bairro para quem deseja comprar ou investir em imóveis.
+        $systemPrompt = 'Você é um especialista imobiliário e urbanista com profundo conhecimento do Brasil. '
+            . 'Sempre responda SOMENTE com um objeto JSON válido, sem markdown, sem texto fora do JSON. '
+            . 'Escreva em português do Brasil, tom profissional voltado para comprador e investidor.';
+
+        $userPrompt = <<<PROMPT
+Gere conteúdo SEO detalhado e realista sobre o bairro abaixo.
 
 Dados disponíveis:
 - Bairro: {$nome}
@@ -67,9 +69,8 @@ Dados disponíveis:
 - Tipos de imóvel: {$tipos}
 - Faixa de preço: {$faixaPreco}
 
-Retorne SOMENTE um objeto JSON válido, sem markdown, sem texto antes ou depois do JSON.
-Tom: profissional, voltado para comprador/investidor.
-Se o bairro for de cidade menor, adapte a realidade para a escala da cidade.
+Se o bairro for de cidade menor, adapte a realidade para a escala local.
+Retorne SOMENTE o JSON abaixo, preenchido com informações detalhadas:
 
 {
   "titulo": "título H1 otimizado para SEO (máx 70 caracteres)",
@@ -92,9 +93,12 @@ PROMPT;
             throw new \RuntimeException('OPENROUTER_API_KEY não configurada.');
         }
 
-        // Monta lista de modelos: preferencial do .env primeiro, depois os fallbacks
+        // Rotação aleatória baseada no ID do bairro — distribui carga entre modelos
         $modeloPrincipal = config('services.openrouter.model', self::MODELOS[0]);
-        $modelos = array_unique(array_merge([$modeloPrincipal], self::MODELOS));
+        $fallbacks = self::MODELOS;
+        $offset = $bairro->id % count($fallbacks);
+        $fallbacks = array_merge(array_slice($fallbacks, $offset), array_slice($fallbacks, 0, $offset));
+        $modelos = array_unique(array_merge([$modeloPrincipal], $fallbacks));
 
         $ultimoErro = null;
 
@@ -107,14 +111,17 @@ PROMPT;
                     'X-Title'       => 'Imóveis da Caixa',
                 ])->post('https://openrouter.ai/api/v1/chat/completions', [
                     'model'       => $modelo,
-                    'messages'    => [['role' => 'user', 'content' => $prompt]],
+                    'messages'    => [
+                        ['role' => 'system', 'content' => $systemPrompt],
+                        ['role' => 'user',   'content' => $userPrompt],
+                    ],
                     'max_tokens'  => 2048,
                     'temperature' => 0.7,
                 ]);
 
-                // 429 = rate limit, 503 = upstream down → tenta próximo modelo
-                if (in_array($response->status(), [429, 503, 502])) {
-                    Log::warning("BairrosDossie: modelo {$modelo} indisponível ({$response->status()}), tentando próximo.");
+                // Rate limit ou upstream indisponível → tenta próximo modelo
+                if (in_array($response->status(), [429, 502, 503])) {
+                    Log::warning("BairrosDossie: {$modelo} indisponível ({$response->status()}), tentando próximo.");
                     $ultimoErro = "Modelo {$modelo} retornou {$response->status()}";
                     continue;
                 }
@@ -125,15 +132,22 @@ PROMPT;
 
                 $texto = $response->json('choices.0.message.content', '');
 
-                // Remove possível markdown ```json ... ``` que alguns modelos inserem
+                // Remove markdown ```json ... ``` que alguns modelos inserem
                 $texto = preg_replace('/^```(?:json)?\s*/i', '', trim($texto));
                 $texto = preg_replace('/\s*```$/', '', $texto);
 
                 $dados = json_decode(trim($texto), true);
 
+                // Valida estrutura e conteúdo mínimo
                 if (!is_array($dados) || empty($dados['titulo'])) {
-                    Log::warning("BairrosDossie: modelo {$modelo} retornou JSON inválido, tentando próximo.");
-                    $ultimoErro = "JSON inválido do modelo {$modelo}: {$texto}";
+                    Log::warning("BairrosDossie: {$modelo} retornou JSON inválido, tentando próximo.");
+                    $ultimoErro = "JSON inválido do modelo {$modelo}";
+                    continue;
+                }
+
+                if (strlen($dados['texto'] ?? '') < 200) {
+                    Log::warning("BairrosDossie: {$modelo} retornou conteúdo muito curto, tentando próximo.");
+                    $ultimoErro = "Conteúdo insuficiente do modelo {$modelo}";
                     continue;
                 }
 
@@ -144,13 +158,13 @@ PROMPT;
                     'gerado_em' => now()->toDateTimeString(),
                 ];
 
-                Log::info("BairrosDossie: conteúdo gerado para {$nome} usando {$modelo}.");
+                Log::info("BairrosDossie: {$nome} gerado com {$modelo}.");
 
                 return $dados;
 
             } catch (\Illuminate\Http\Client\ConnectionException $e) {
-                Log::warning("BairrosDossie: timeout no modelo {$modelo}, tentando próximo.");
-                $ultimoErro = "Timeout no modelo {$modelo}";
+                Log::warning("BairrosDossie: timeout em {$modelo}, tentando próximo.");
+                $ultimoErro = "Timeout em {$modelo}";
                 continue;
             }
         }

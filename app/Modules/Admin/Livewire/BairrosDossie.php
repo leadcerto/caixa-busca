@@ -46,12 +46,13 @@ class BairrosDossie extends Component
             return;
         }
 
-        foreach ($bairros as $bairro) {
-            GerarConteudoBairroJob::dispatch($bairro->id);
+        foreach ($bairros as $i => $bairro) {
+            // Delay escalonado: 1 job a cada 3s para não bater rate limit
+            GerarConteudoBairroJob::dispatch($bairro->id)->delay(now()->addSeconds($i * 3));
             $bairro->update(['ia_status' => 'pendente']);
         }
 
-        $this->mensagem = "{$bairros->count()} jobs enfileirados com sucesso.";
+        $this->mensagem = "{$bairros->count()} jobs enfileirados com sucesso (1 a cada 3s).";
         $this->sucesso  = true;
     }
 
