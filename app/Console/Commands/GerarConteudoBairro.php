@@ -72,8 +72,8 @@ class GerarConteudoBairro extends Command
         }
 
         // Só bairros com ao menos 1 imóvel ativo, ordenados do maior número de imóveis para o menor
-        $query->withCount(['imoveis' => fn($q) => $q->where('ativo', true)])
-              ->whereHas('imoveis', fn($q) => $q->where('ativo', true))
+        $query->withCount(['imoveis' => fn($q) => $q->where('status', 'ativo')])
+              ->whereHas('imoveis', fn($q) => $q->where('status', 'ativo'))
               ->orderByDesc('imoveis_count');
 
         $bairros = $query->with('municipio.estado')->get();

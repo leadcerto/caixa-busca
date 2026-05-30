@@ -37,7 +37,7 @@ class BairrosDossie extends Component
 
     public function gerarLote(): void
     {
-        $query = $this->queryBairros()->whereHas('imoveis', fn($q) => $q->where('ativo', true));
+        $query = $this->queryBairros()->whereHas('imoveis', fn($q) => $q->where('status', 'ativo'));
         $bairros = $query->get();
 
         if ($bairros->isEmpty()) {
@@ -74,7 +74,7 @@ class BairrosDossie extends Component
     private function queryBairros()
     {
         $query = Bairro::with(['municipio.estado'])
-            ->withCount(['imoveis' => fn($q) => $q->where('ativo', true)]);
+            ->withCount(['imoveis' => fn($q) => $q->where('status', 'ativo')]);
 
         if ($this->estadoId) {
             $query->whereHas('municipio', fn($q) => $q->where('id_estado', $this->estadoId));
@@ -88,7 +88,7 @@ class BairrosDossie extends Component
             $query->where('ia_status', $this->statusFiltro);
         }
 
-        return $query->orderByRaw('(SELECT COUNT(*) FROM imoveis WHERE imoveis.id_bairro = bairros.id AND ativo = 1) DESC')
+        return $query->orderByRaw('(SELECT COUNT(*) FROM imoveis WHERE imoveis.id_bairro = bairros.id AND status = \'ativo\' AND deleted_at IS NULL) DESC')
                      ->orderBy('ia_status')
                      ->orderBy('nome');
     }
