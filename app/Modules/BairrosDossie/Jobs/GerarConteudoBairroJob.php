@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Services\GooglePingService;
 use Illuminate\Support\Facades\Log;
 
 class GerarConteudoBairroJob implements ShouldQueue
@@ -37,6 +38,7 @@ class GerarConteudoBairroJob implements ShouldQueue
             ]);
 
             Log::info("BairrosDossie: conteúdo gerado para bairro #{$bairro->id} ({$bairro->nome}).");
+            GooglePingService::pingSitemap();
         } catch (\Throwable $e) {
             $bairro->update(['ia_status' => 'erro']);
             Log::error("BairrosDossie: falha no bairro #{$bairro->id}.", ['erro' => $e->getMessage()]);

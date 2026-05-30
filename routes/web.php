@@ -472,6 +472,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                     $actionOutput .= "config('services.openrouter.key'): " . (empty($key) ? '❌ VAZIO' : '✅ ' . substr($key, 0, 20) . '...') . "\n";
                     $actionOutput .= "config('services.openrouter.model'): " . ($model ?: '❌ VAZIO') . "\n";
                     $actionOutput .= "env('OPENROUTER_API_KEY'): " . (empty($envKey) ? '❌ VAZIO' : '✅ ' . substr($envKey, 0, 20) . '...') . "\n";
+                } elseif ($action === 'ping_google') {
+                    $result = \App\Services\GooglePingService::pingSitemap();
+                    $actionOutput  = "=== Ping Google Sitemap ===\n";
+                    $actionOutput .= $result
+                        ? "✅ Google notificado com sucesso!\nURL: https://www.google.com/ping?sitemap=https://venda.imoveisdacaixa.com.br/sitemap.xml"
+                        : "⚠️ Ping enviado mas resposta não foi 200. Verifique os logs.";
                 } elseif ($action === 'show_env') {
                     $envPath = base_path('.env');
                     $actionOutput  = "=== Arquivo .env ===\n";
@@ -617,6 +623,12 @@ Route::get('/sitemap.xml', function () {
         ->orderBy('updated_at', 'desc')
         ->get();
 
+    $bairros = \App\Models\Bairro::where('ia_status', 'gerado')
+        ->whereNotNull('slug')
+        ->with(['municipio.estado'])
+        ->select('id', 'slug', 'id_municipio', 'ia_gerado_em', 'updated_at')
+        ->get();
+
     $xml = '<?xml version="1.0" encoding="UTF-8"?>';
     $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
@@ -627,6 +639,21 @@ Route::get('/sitemap.xml', function () {
     $xml .= '<priority>1.0</priority>';
     $xml .= '</url>';
 
+    // Bairros com conteúdo IA gerado
+    foreach ($bairros as $bairro) {
+        $uf = strtolower($bairro->municipio?->estado?->uf ?? '');
+        $municipioSlug = $bairro->municipio?->slug ?? '';
+        if (!$uf || !$municipioSlug || !$bairro->slug) continue;
+        $lastmod = ($bairro->ia_gerado_em ?? $bairro->updated_at)?->toAtomString();
+        $xml .= '<url>';
+        $xml .= '<loc>https://venda.imoveisdacaixa.com.br/bairros/' . e($uf) . '/' . e($municipioSlug) . '/' . e($bairro->slug) . '</loc>';
+        if ($lastmod) $xml .= '<lastmod>' . $lastmod . '</lastmod>';
+        $xml .= '<changefreq>monthly</changefreq>';
+        $xml .= '<priority>0.7</priority>';
+        $xml .= '</url>';
+    }
+
+    // Imóveis ativos
     foreach ($imoveis as $imovel) {
         $xml .= '<url>';
         $xml .= '<loc>https://venda.imoveisdacaixa.com.br/' . e($imovel->slug) . '</loc>';

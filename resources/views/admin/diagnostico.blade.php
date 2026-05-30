@@ -107,6 +107,10 @@
                        class="btn-diag bg-red-500/15 text-red-300 border-red-500/30 hover:bg-red-500/25">Executar Limpeza Bairros</a>
                 </div>
                 <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
+                    <span class="text-xs font-semibold text-gray-500 self-center w-full mb-1">SEO — Google</span>
+                    <a href="?action=ping_google" class="btn-diag bg-blue-500/20 text-blue-300 border-blue-500/40 hover:bg-blue-500/30">Pingar Google (Sitemap)</a>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-2 pt-2 border-t border-white/5">
                     <span class="text-xs font-semibold text-gray-500 self-center w-full mb-1">Diagnóstico OpenRouter</span>
                     <a href="?action=check_openrouter" class="btn-diag bg-green-500/20 text-green-300 border-green-500/40 hover:bg-green-500/30">Verificar Chave</a>
                     <a href="?action=show_env" class="btn-diag bg-sky-500/15 text-sky-300 border-sky-500/30 hover:bg-sky-500/25">Ler .env (OPENROUTER)</a>
