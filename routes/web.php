@@ -483,18 +483,31 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             : '❌ Nunca rodou (cron não configurado ou aguardando 1º minuto)';
 
         $logContent = '';
+        $errorLines = '';
         $logPath = storage_path('logs/laravel.log');
         if (file_exists($logPath)) {
             $lines = file($logPath);
-            $lastLines = array_slice($lines, -150);
+            $lastLines = array_slice($lines, -300);
             $logContent = implode("", $lastLines);
+            // Filtra apenas linhas de erro e as 3 linhas seguintes (contexto)
+            $errorBuffer = [];
+            foreach ($lastLines as $i => $line) {
+                if (str_contains($line, '.ERROR') || str_contains($line, 'BairrosDossie') || str_contains($line, 'OpenRouter')) {
+                    $errorBuffer[] = rtrim($line);
+                    if (isset($lastLines[$i + 1])) $errorBuffer[] = rtrim($lastLines[$i + 1]);
+                    if (isset($lastLines[$i + 2])) $errorBuffer[] = rtrim($lastLines[$i + 2]);
+                    $errorBuffer[] = '---';
+                }
+            }
+            $errorLines = implode("\n", array_unique($errorBuffer)) ?: 'Nenhum erro encontrado nas últimas 300 linhas.';
         } else {
             $logContent = "Arquivo laravel.log não existe em: " . $logPath;
+            $errorLines = $logContent;
         }
 
         return view('admin.diagnostico', compact(
             'dbStatus', 'dbError', 'actionOutput',
-            'jobsCount', 'failedJobsCount', 'scheduleStatus', 'logContent'
+            'jobsCount', 'failedJobsCount', 'scheduleStatus', 'logContent', 'errorLines'
         ));
     })->name('diagnostico');
 });

@@ -128,9 +128,15 @@
         </div>
     </div>
 
+    {{-- Erros Filtrados --}}
+    <div class="bg-gray-900 border border-red-500/20 rounded-2xl p-6 shadow-xl">
+        <h3 class="text-base font-black text-red-400 mb-4">⚠️ Últimos Erros (filtrado)</h3>
+        <div class="bg-gray-950 border border-white/8 rounded-xl p-5 font-mono text-xs text-red-300 overflow-y-auto whitespace-pre-wrap leading-relaxed" style="max-height:300px">{{ $errorLines }}</div>
+    </div>
+
     {{-- Logs --}}
     <div class="bg-gray-900 border border-white/5 rounded-2xl p-6 shadow-xl">
-        <h3 class="text-base font-black text-red-400 mb-4">Histórico de Logs do Laravel</h3>
+        <h3 class="text-base font-black text-red-400 mb-4">Histórico de Logs do Laravel (últimas 300 linhas)</h3>
         <div class="bg-gray-950 border border-white/8 rounded-xl p-5 font-mono text-xs text-slate-400 overflow-y-auto whitespace-pre-wrap leading-relaxed" style="max-height:450px">{{ $logContent }}</div>
     </div>
 
