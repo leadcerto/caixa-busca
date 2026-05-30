@@ -370,7 +370,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/whatsapp-templates', WhatsappTemplates::class)->name('whatsapp');
     Route::get('/bairros-conteudo', BairrosDossie::class)->name('bairros');
     Route::redirect('/bairros-dossie', '/admin/bairros-conteudo');
-    Route::get('/diagnostico', function () {
+    Route::match(['GET', 'POST'], '/diagnostico', function () {
         $dbStatus = 'Desconhecido';
         $dbError = null;
         try {
