@@ -88,7 +88,9 @@ class BairrosDossie extends Component
             $query->where('ia_status', $this->statusFiltro);
         }
 
-        return $query->orderByDesc('imoveis_count')->orderBy('ia_status')->orderBy('nome');
+        return $query->orderByRaw('(SELECT COUNT(*) FROM imoveis WHERE imoveis.id_bairro = bairros.id AND ativo = 1) DESC')
+                     ->orderBy('ia_status')
+                     ->orderBy('nome');
     }
 
     public function render()
