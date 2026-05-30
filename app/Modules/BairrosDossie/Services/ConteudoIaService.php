@@ -22,7 +22,7 @@ class ConteudoIaService
 
     public function gerarParaBairro(Bairro $bairro): array
     {
-        $bairro->load(['municipio.estado', 'imoveis' => fn($q) => $q->where('ativo', true)->limit(100)]);
+        $bairro->load(['municipio.estado', 'imoveis' => fn($q) => $q->where('status', 'ativo')->limit(100)]);
 
         $municipio = $bairro->municipio?->nome ?? 'cidade';
         $uf        = $bairro->municipio?->estado?->uf ?? '';
@@ -113,6 +113,13 @@ PROMPT;
         if (!is_array($dados) || empty($dados['titulo'])) {
             throw new \RuntimeException("Resposta da IA inválida ou fora do formato JSON esperado: {$texto}");
         }
+
+        $dados['_meta'] = [
+            'modelo'    => $model,
+            'data'      => now()->format('d/m/Y'),
+            'hora'      => now()->format('H:i:s'),
+            'gerado_em' => now()->toDateTimeString(),
+        ];
 
         return $dados;
     }
