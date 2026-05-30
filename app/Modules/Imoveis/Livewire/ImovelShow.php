@@ -7,6 +7,7 @@ use App\Models\AtendimentoOrigem;
 use App\Models\Imovel;
 use App\Models\Lead;
 use App\Models\WhatsappTemplate;
+use App\Modules\BairrosDossie\Services\ConteudoIaService;
 use App\Modules\Imoveis\Jobs\DispatchCrmWebhookJob;
 use App\Modules\Imoveis\Services\UtmTrackerService;
 use Illuminate\Support\Facades\DB;
@@ -211,7 +212,12 @@ class ImovelShow extends Component
             . ($descontoValor > 0 ? " com desconto de {$descontoFmt}" : '')
             . "; Clique no link para mais informações.";
 
-        return view('modules.imoveis.livewire.imovel-show', compact('stats'))
+        // Conteúdo rico do bairro (gerado pela IA — Fase 14)
+        $conteudoIaBairro = $this->imovel->bairro?->conteudo_ia ?? [];
+        $temFaqBairro = is_array($conteudoIaBairro)
+            && !empty(array_intersect_key($conteudoIaBairro, array_flip(ConteudoIaService::FAQ_CAMPOS)));
+
+        return view('modules.imoveis.livewire.imovel-show', compact('stats', 'conteudoIaBairro', 'temFaqBairro'))
             ->layout('layouts.app', [
                 'meta_title'       => $metaTitle,
                 'meta_description' => $metaDesc,

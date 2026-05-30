@@ -957,105 +957,30 @@ $schemaBreadcrumb = [
                     </p>
 
                     <div class="space-y-3">
-                        @php $conteudoIA = $imovel->bairro?->conteudo_ia; @endphp
-
-                        <!-- Aba 1 -->
-                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
-                            <button @click="openFaq2 = openFaq2 === 1 ? null : 1"
-                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
-                                <span>🔖 Vizinhança e Localização</span>
-                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 1 ? 'rotate-180' : ''">▼</span>
-                            </button>
-                            <div x-show="openFaq2 === 1" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
-                                <p>{{ $conteudoIA['vizinhanca'] ?? 'Vizinhança tranquila e residencial, excelente localização.' }}</p>
+                        @php
+                        $faqItens = [
+                            ['vizinhanca_localizacao', 'Vizinhança e Localização',  'Vizinhança tranquila e residencial, excelente localização.'],
+                            ['beneficios',             'Benefícios',                'Proximidade com estabelecimentos comerciais, áreas verdes e praças.'],
+                            ['acessos_transporte',     'Acessos e Transporte',      'Bairro bem conectado com linhas de ônibus e acesso a vias arteriais.'],
+                            ['comercio_conveniencia',  'Comércio e Conveniência',   'Supermercados, farmácias e comércio local nas proximidades.'],
+                            ['educacao',               'Educação',                  'Escolas municipais, estaduais e particulares nas proximidades.'],
+                            ['saude',                  'Saúde',                     'Postos de saúde, UPAs e hospitais na região.'],
+                            ['lazer_cultura',          'Lazer e Cultura',           'Praças, parques e opções de lazer ao ar livre.'],
+                            ['dados_infraestrutura',   'Infraestrutura',            'Bairro com saneamento básico e boa iluminação pública.'],
+                        ];
+                        @endphp
+                        @foreach($faqItens as $i => [$campo, $label, $fallback])
+                            <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                                <button @click="openFaq2 = openFaq2 === {{ $i }} ? null : {{ $i }}"
+                                        class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                    <span>🔖 {{ $label }}</span>
+                                    <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === {{ $i }} ? 'rotate-180' : ''">▼</span>
+                                </button>
+                                <div x-show="openFaq2 === {{ $i }}" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-sm text-gray-600 leading-relaxed">
+                                    <p>{{ $conteudoIaBairro[$campo] ?? $fallback }}</p>
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- Aba 2 -->
-                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
-                            <button @click="openFaq2 = openFaq2 === 2 ? null : 2"
-                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
-                                <span>🔖 Benefícios</span>
-                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 2 ? 'rotate-180' : ''">▼</span>
-                            </button>
-                            <div x-show="openFaq2 === 2" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
-                                <p>{{ $conteudoIA['beneficios'] ?? 'Proximidade com variados estabelecimentos comerciais, áreas verdes e praças públicas.' }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Aba 3 -->
-                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
-                            <button @click="openFaq2 = openFaq2 === 3 ? null : 3"
-                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
-                                <span>🔖 Acessos & Transporte</span>
-                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 3 ? 'rotate-180' : ''">▼</span>
-                            </button>
-                            <div x-show="openFaq2 === 3" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
-                                <p>{{ $conteudoIA['acesso_transporte'] ?? 'Bairro bem conectado com linhas urbanas de ônibus e acesso ágil a vias arteriais municipais.' }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Aba 4 -->
-                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
-                            <button @click="openFaq2 = openFaq2 === 4 ? null : 4"
-                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
-                                <span>🔖 Comércio & Conveniência</span>
-                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 4 ? 'rotate-180' : ''">▼</span>
-                            </button>
-                            <div x-show="openFaq2 === 4" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-2 leading-relaxed">
-                                <p><strong>Comércio local:</strong> {{ $conteudoIA['comercio'] ?? 'Excelente comércio de bairro.' }}</p>
-                                <p><strong>Supermercado & Shoppings:</strong> {{ $conteudoIA['supermercado_shopping'] ?? 'Supermercados e shoppings a poucos minutos.' }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Aba 5 -->
-                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
-                            <button @click="openFaq2 = openFaq2 === 5 ? null : 5"
-                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
-                                <span>🔖 Educação</span>
-                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 5 ? 'rotate-180' : ''">▼</span>
-                            </button>
-                            <div x-show="openFaq2 === 5" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
-                                <p>{{ $conteudoIA['educacao'] ?? 'Diversas escolas municipais, estaduais e particulares nas proximidades do endereço.' }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Aba 6 -->
-                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
-                            <button @click="openFaq2 = openFaq2 === 6 ? null : 6"
-                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
-                                <span>🔖 Saúde</span>
-                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 6 ? 'rotate-180' : ''">▼</span>
-                            </button>
-                            <div x-show="openFaq2 === 6" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
-                                <p>{{ $conteudoIA['saude'] ?? 'Postos de saúde e hospitais na região.' }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Aba 7 -->
-                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
-                            <button @click="openFaq2 = openFaq2 === 7 ? null : 7"
-                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
-                                <span>🔖 Lazer & Cultura</span>
-                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 7 ? 'rotate-180' : ''">▼</span>
-                            </button>
-                            <div x-show="openFaq2 === 7" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 leading-relaxed">
-                                <p>{{ $conteudoIA['lazer'] ?? 'Espaços recreativos ao ar livre, quadras e praças.' }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Aba 8 -->
-                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
-                            <button @click="openFaq2 = openFaq2 === 8 ? null : 8"
-                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
-                                <span>🔖 Dados de Infraestrutura</span>
-                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq2 === 8 ? 'rotate-180' : ''">▼</span>
-                            </button>
-                            <div x-show="openFaq2 === 8" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-2 leading-relaxed">
-                                <p><strong>Localização:</strong> {{ $conteudoIA['localizacao'] ?? 'Bairro bem estruturado.' }}</p>
-                                <p><strong>Transporte:</strong> {{ $conteudoIA['transporte'] ?? 'Linhas de ônibus e vias integradas.' }}</p>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
 

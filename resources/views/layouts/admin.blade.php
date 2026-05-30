@@ -105,8 +105,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                 </svg>
                 <div class="flex flex-col min-w-0">
-                    <span class="truncate">Bairros IA (Dossiê)</span>
-                    <span class="text-[9px] opacity-70 font-normal truncate">Descrições enriquecidas</span>
+                    <span class="truncate">Bairros - Conteúdo IA</span>
+                    <span class="text-[9px] opacity-70 font-normal truncate">Gerar descrições via OpenRouter</span>
                 </div>
             </a>
 
@@ -295,7 +295,7 @@
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                 </svg>
-                <span>Bairros IA</span>
+                <span>Bairros - Conteúdo IA</span>
             </a>
 
             <a href="{{ route('admin.whatsapp') }}"

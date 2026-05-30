@@ -55,6 +55,22 @@ class BairrosDossie extends Component
         $this->sucesso  = true;
     }
 
+    public function resetarParaFaq(): void
+    {
+        // Marca como pendente bairros com conteúdo gerado mas sem os novos campos FAQ
+        $count = Bairro::where('ia_status', 'gerado')
+            ->whereNotNull('conteudo_ia')
+            ->get()
+            ->filter(fn($b) => empty(($b->conteudo_ia)['vizinhanca_localizacao']))
+            ->each(fn($b) => $b->update(['ia_status' => 'pendente', 'conteudo_ia' => null]))
+            ->count();
+
+        $this->mensagem = $count > 0
+            ? "{$count} bairro(s) com conteúdo antigo resetados — use 'Gerar em Lote' para regerá-los."
+            : 'Todos os bairros já possuem o conteúdo no novo formato.';
+        $this->sucesso = $count > 0;
+    }
+
     private function queryBairros()
     {
         $query = Bairro::with(['municipio.estado'])
@@ -72,7 +88,7 @@ class BairrosDossie extends Component
             $query->where('ia_status', $this->statusFiltro);
         }
 
-        return $query->orderBy('ia_status')->orderBy('nome');
+        return $query->orderByDesc('imoveis_count')->orderBy('ia_status')->orderBy('nome');
     }
 
     public function render()

@@ -39,4 +39,9 @@ return [
         'central' => env('WHATSAPP_CENTRAL', '5511999999999'),
     ],
 
+    'openrouter' => [
+        'key'   => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'meta-llama/llama-3-8b-instruct:free'),
+    ],
+
 ];

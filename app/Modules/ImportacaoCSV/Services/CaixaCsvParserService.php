@@ -20,6 +20,45 @@ use Illuminate\Support\Facades\Log;
 
 class CaixaCsvParserService
 {
+    /**
+     * Dicionário de normalização de bairros.
+     * Chave: grafia incorreta/truncada (UPPERCASE, sem acento ou com variação).
+     * Valor: nome canônico que será gravado no banco.
+     *
+     * Adicione novas entradas conforme forem identificadas inconsistências.
+     * O comando `php artisan app:sanitizar-bairros` usa este mesmo mapa
+     * para corrigir registros já existentes no banco.
+     */
+    public const BAIRRO_ALIASES = [
+        // ── Rio de Janeiro — Jacarepaguá ────────────────────────────────────
+        'JACARAPAGUA'                => 'JACAREPAGUÁ',
+        'JACAREPAGUA'                => 'JACAREPAGUÁ',
+        'JACAREPAGU'                 => 'JACAREPAGUÁ',
+        'FREGUESIA JACAREPAGU'       => 'JACAREPAGUÁ',
+        'FREGUESIA JACAREPAGUA'      => 'JACAREPAGUÁ',
+        'FREGUESIA JACAREPAGUÁ'      => 'JACAREPAGUÁ',
+
+        // ── Rio de Janeiro — Campo Grande (CSV trunca o nome) ───────────────
+        'FREGUESIA DE CAMPO G'       => 'CAMPO GRANDE',
+        'FREGUESIA DE CAMPO GR'      => 'CAMPO GRANDE',
+        'FREGUESIA DE CAMPO GRANDE'  => 'CAMPO GRANDE',
+
+        // ── Rio de Janeiro — Guaratiba (3 grafias para o mesmo bairro) ────────
+        'BARRA DE GUARATIBA'         => 'GUARATIBA',
+        'FREGUESIA DE GUARATI'       => 'GUARATIBA',
+        'FREGUESIA DE GUARATIBA'     => 'GUARATIBA',
+
+        // ── Rio de Janeiro — Engenho Novo ───────────────────────────────────────
+        'FREGUESIA DO ENGENHO NOVO'  => 'ENGENHO NOVO',
+
+        // ── Rio de Janeiro — Freguesia (Ilha do Governador) ────────────────────
+        'N SRA DA AJUDA'             => 'FREGUESIA ILHA DO GOVERNADOR',
+        'NOSSA SENHORA DA AJUDA'     => 'FREGUESIA ILHA DO GOVERNADOR',
+
+        // Adicione outros bairros conforme necessário:
+        // 'NOME ERRADO'             => 'NOME CORRETO',
+    ];
+
     private ?string $dataGeracao = null;
     private ?int $etapaImportacaoId = null;
 
@@ -429,7 +468,8 @@ class CaixaCsvParserService
 
     private function resolveBairro(string $nome, int $idMunicipio): int
     {
-        $key = "{$idMunicipio}|{$nome}";
+        $nome = $this->normalizeBairro($nome);
+        $key  = "{$idMunicipio}|{$nome}";
         if (!array_key_exists($key, $this->bairroCache)) {
             $bairro = Bairro::firstOrCreate(
                 ['id_municipio' => $idMunicipio, 'nome' => $nome]
@@ -437,6 +477,12 @@ class CaixaCsvParserService
             $this->bairroCache[$key] = $bairro->id;
         }
         return $this->bairroCache[$key];
+    }
+
+    private function normalizeBairro(string $nome): string
+    {
+        $upper = mb_strtoupper(trim($nome));
+        return self::BAIRRO_ALIASES[$upper] ?? $nome;
     }
 
     private function resolveSubBairro(string $nome, int $idBairro): int

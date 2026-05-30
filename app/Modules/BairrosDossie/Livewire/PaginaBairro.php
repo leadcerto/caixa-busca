@@ -6,6 +6,7 @@ use App\Models\Bairro;
 use App\Models\Estado;
 use App\Models\Municipio;
 use App\Models\Imovel;
+use App\Modules\BairrosDossie\Services\ConteudoIaService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -37,20 +38,23 @@ class PaginaBairro extends Component
             ->orderByDesc('created_at')
             ->paginate(12);
 
-        $conteudo = $this->bairro->conteudo_ia ?? [];
-        $titulo   = $conteudo['titulo']   ?? "Imóveis em {$this->bairro->nome}";
-        $metaDesc = $conteudo['meta_description'] ?? "Imóveis da Caixa Econômica Federal em {$this->bairro->nome}, {$this->bairro->municipio?->nome}.";
-        $texto    = $conteudo['texto']    ?? null;
+        $conteudo  = $this->bairro->conteudo_ia ?? [];
+        $titulo    = $conteudo['titulo']           ?? "Imóveis em {$this->bairro->nome}";
+        $metaDesc  = $conteudo['meta_description'] ?? "Imóveis da Caixa Econômica Federal em {$this->bairro->nome}, {$this->bairro->municipio?->nome}.";
+        $texto     = $conteudo['texto']            ?? null;
+        $temFaq    = is_array($conteudo)
+            && !empty(array_intersect_key($conteudo, array_flip(ConteudoIaService::FAQ_CAMPOS)));
 
         $uf            = strtolower($this->bairro->municipio->estado->uf);
         $municipioSlug = $this->bairro->municipio->slug;
         $bairroSlug    = $this->bairro->slug;
 
         return view('modules.bairros-dossie.livewire.pagina-bairro', [
-            'imoveis'  => $imoveis,
-            'conteudo' => $conteudo,
-            'titulo'   => $titulo,
-            'texto'    => $texto,
+            'imoveis'   => $imoveis,
+            'conteudo'  => $conteudo,
+            'titulo'    => $titulo,
+            'texto'     => $texto,
+            'temFaq'    => $temFaq,
         ])->layout('layouts.app', [
             'meta_title'       => $titulo . ' | Imóveis da Caixa',
             'meta_description' => $metaDesc,

@@ -69,6 +69,44 @@
         </div>
     </div>
 
+    {{-- Accordion FAQ do Bairro (exibido só quando o conteúdo novo da IA estiver disponível) --}}
+    @if($temFaq)
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8" x-data="{ openFaq: null }">
+            <h2 class="text-xl font-black text-gray-900 mb-6 flex items-center gap-3">
+                <span class="bg-[#F39200] w-2 h-7 rounded-full"></span>
+                Conheça o Bairro {{ $bairro->nome }}
+            </h2>
+            <div class="space-y-3">
+                @php
+                $faqItens = [
+                    ['vizinhanca_localizacao', 'Vizinhança e Localização'],
+                    ['beneficios',             'Benefícios'],
+                    ['acessos_transporte',     'Acessos e Transporte'],
+                    ['comercio_conveniencia',  'Comércio e Conveniência'],
+                    ['educacao',               'Educação'],
+                    ['saude',                  'Saúde'],
+                    ['lazer_cultura',          'Lazer e Cultura'],
+                    ['dados_infraestrutura',   'Infraestrutura'],
+                ];
+                @endphp
+                @foreach($faqItens as $i => [$campo, $label])
+                    @if(!empty($conteudo[$campo]))
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <button @click="openFaq = openFaq === {{ $i }} ? null : {{ $i }}"
+                                    class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm">
+                                <span>{{ $label }}</span>
+                                <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openFaq === {{ $i }} ? 'rotate-180' : ''">▼</span>
+                            </button>
+                            <div x-show="openFaq === {{ $i }}" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-sm text-gray-600 leading-relaxed">
+                                <p>{{ $conteudo[$campo] }}</p>
+                            </div>
+                        </div>
+                    @endif
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     {{-- Grid de imóveis --}}
     @if($imoveis->isNotEmpty())
         <div>

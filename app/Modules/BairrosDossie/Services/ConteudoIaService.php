@@ -8,16 +8,27 @@ use Illuminate\Support\Facades\Log;
 
 class ConteudoIaService
 {
-    private string $modelo = 'claude-haiku-4-5-20251001';
+    // Campos FAQ obrigatórios na resposta da IA
+    public const FAQ_CAMPOS = [
+        'vizinhanca_localizacao',
+        'beneficios',
+        'acessos_transporte',
+        'comercio_conveniencia',
+        'educacao',
+        'saude',
+        'lazer_cultura',
+        'dados_infraestrutura',
+    ];
 
     public function gerarParaBairro(Bairro $bairro): array
     {
         $bairro->load(['municipio.estado', 'imoveis' => fn($q) => $q->where('ativo', true)->limit(100)]);
 
+        $municipio = $bairro->municipio?->nome ?? 'cidade';
+        $uf        = $bairro->municipio?->estado?->uf ?? '';
+        $nome      = $bairro->nome;
+
         $totalImoveis = $bairro->imoveis->count();
-        $municipio    = $bairro->municipio?->nome ?? 'cidade';
-        $uf           = $bairro->municipio?->estado?->uf ?? '';
-        $nome         = $bairro->nome;
 
         $precos = $bairro->imoveis
             ->map(fn($i) => $i->ultimoHistorico?->valor_venda ?? null)
@@ -37,50 +48,70 @@ class ConteudoIaService
             ->implode(', ');
 
         $prompt = <<<PROMPT
-Você é um especialista em mercado imobiliário brasileiro. Crie um conteúdo informativo e otimizado para SEO sobre imóveis disponíveis no bairro.
+Você é um especialista imobiliário e urbanista profundo conhecedor do Brasil.
+Sua tarefa é fornecer informações detalhadas, realistas e atrativas sobre o bairro para quem deseja comprar ou investir em imóveis.
 
-Dados do bairro:
+Dados disponíveis:
 - Bairro: {$nome}
 - Município: {$municipio} — {$uf}
-- Total de imóveis disponíveis (Caixa Econômica Federal): {$totalImoveis}
-- Tipos: {$tipos}
+- Imóveis disponíveis (Caixa Econômica Federal): {$totalImoveis}
+- Tipos de imóvel: {$tipos}
 - Faixa de preço: {$faixaPreco}
 
-Retorne SOMENTE um JSON válido com esta estrutura (sem markdown, sem texto antes ou depois):
+Retorne SOMENTE um objeto JSON válido, sem markdown, sem texto antes ou depois do JSON.
+Tom: profissional, voltado para comprador/investidor.
+Se o bairro for de cidade menor, adapte a realidade para a escala da cidade.
+
 {
   "titulo": "título H1 otimizado para SEO (máx 70 caracteres)",
   "meta_description": "meta description para Google (máx 155 caracteres)",
-  "texto": "texto informativo de 3 a 4 parágrafos sobre o bairro, oportunidades imobiliárias e público-alvo, em português do Brasil, tom informativo e profissional"
+  "texto": "texto de 2 a 3 parágrafos sobre o bairro e as oportunidades imobiliárias",
+  "vizinhanca_localizacao": "2 parágrafos sobre perfil da vizinhança, história breve e posição na cidade",
+  "beneficios": "principais benefícios de morar ou investir neste bairro",
+  "acessos_transporte": "principais vias, rodovias próximas e oferta de transporte público",
+  "comercio_conveniencia": "supermercados, shoppings, farmácias, padarias e comércio local",
+  "educacao": "escolas públicas e particulares, creches e universidades na região",
+  "saude": "hospitais, clínicas, UPAs e postos de saúde",
+  "lazer_cultura": "praças, parques, praias, cinemas, vida noturna e restaurantes",
+  "dados_infraestrutura": "saneamento, segurança geral, pavimentação e iluminação"
 }
 PROMPT;
 
-        $apiKey = config('services.anthropic.key', env('ANTHROPIC_API_KEY'));
+        $apiKey = config('services.openrouter.key', env('OPENROUTER_API_KEY'));
+        $model  = config('services.openrouter.model', 'meta-llama/llama-3-8b-instruct:free');
 
         if (empty($apiKey)) {
-            throw new \RuntimeException('ANTHROPIC_API_KEY não configurada.');
+            throw new \RuntimeException('OPENROUTER_API_KEY não configurada.');
         }
 
-        $response = Http::timeout(30)->withHeaders([
-            'x-api-key'         => $apiKey,
-            'anthropic-version' => '2023-06-01',
-            'Content-Type'      => 'application/json',
-        ])->post('https://api.anthropic.com/v1/messages', [
-            'model'      => $this->modelo,
-            'max_tokens' => 1024,
-            'messages'   => [
+        $response = Http::timeout(60)->withHeaders([
+            'Authorization' => 'Bearer ' . $apiKey,
+            'Content-Type'  => 'application/json',
+            'HTTP-Referer'  => config('app.url', 'https://venda.imoveisdacaixa.com.br'),
+            'X-Title'       => 'Imóveis da Caixa',
+        ])->post('https://openrouter.ai/api/v1/chat/completions', [
+            'model'    => $model,
+            'messages' => [
                 ['role' => 'user', 'content' => $prompt],
             ],
+            'max_tokens'  => 2048,
+            'temperature' => 0.7,
         ]);
 
         if (!$response->successful()) {
-            throw new \RuntimeException("Anthropic API erro {$response->status()}: {$response->body()}");
+            throw new \RuntimeException("OpenRouter API erro {$response->status()}: {$response->body()}");
         }
 
-        $texto = $response->json('content.0.text', '');
-        $dados = json_decode($texto, true);
+        $texto = $response->json('choices.0.message.content', '');
 
-        if (!is_array($dados) || empty($dados['titulo']) || empty($dados['texto'])) {
-            throw new \RuntimeException("Resposta da IA inválida: {$texto}");
+        // Remove possível markdown ```json ... ``` que alguns modelos inserem
+        $texto = preg_replace('/^```(?:json)?\s*/i', '', trim($texto));
+        $texto = preg_replace('/\s*```$/', '', $texto);
+
+        $dados = json_decode(trim($texto), true);
+
+        if (!is_array($dados) || empty($dados['titulo'])) {
+            throw new \RuntimeException("Resposta da IA inválida ou fora do formato JSON esperado: {$texto}");
         }
 
         return $dados;

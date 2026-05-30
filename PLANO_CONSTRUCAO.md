@@ -230,7 +230,7 @@
 - [x] **12.14** `ImovelSearch` — `meta_title`, `meta_description`, `og_image` e `canonical` (`url('/')`) adicionados ao `render()` via `.layout('layouts.app', [...])`
 - [x] **12.15** `PaginaBairro` — `og_image` e `canonical` explícito adicionados via `route('bairro.show', [uf, municipioSlug, bairroSlug])`
 - [x] **12.16** JSON-LD `SearchResultsPage` + `ItemList` na vitrine — `@push('schema')` na view `imovel-search.blade.php` com `numberOfItems` total e `ListItem` por imóvel da página atual
-- [ ] **12.17** Enviar sitemap ao Google Search Console e monitorar indexação dos imóveis
+- [x] **12.17** Enviar sitemap ao Google Search Console e monitorar indexação dos imóveis
 - [x] **12.18** Core Web Vitals — CLS: coberto pelo container `aspect-[4/3]` (espaço reservado antes do load). LCP: `fetchpriority="high"` + `loading="eager"` no primeiro card da vitrine + `<link rel="preload">` no `<head>` via `@push('preload')`. Demais cards: `loading="lazy"`.
 
 **Arquivos-chave:**
@@ -253,26 +253,77 @@
 - [x] **13.5** Model `Lead` atualizado: constantes `STATUS_*`, fillables, `notes()`, `responsavel()`. `LeadConversionService` persiste UTMs ao converter.
 
 **Passo 2: Componentes de Interface e Lógica Livewire (Ações Individuais)**
-- [ ] **13.6** Implementar Dropdown de Status (Inline Editable) via Livewire para atualizar o banco via AJAX.
-- [ ] **13.7** Implementar Dropdown de Responsável (Atribuição) via Livewire.
-- [ ] **13.8** Criar o componente de Modal/Tooltip para o "Preview do Imóvel" (buscando foto, título e preço do imóvel relacionado).
-- [ ] **13.9** Criar o painel lateral (Offcanvas ou Modal) para as "Notas Rápidas/Histórico de Interação".
+- [x] **13.6** Dropdown de Status (Inline Editable) via Livewire — `atualizarStatus()` com cores por status
+- [x] **13.7** Dropdown de Responsável (Atribuição) via Livewire — `atribuirResponsavel()` com lista de usuários
+- [x] **13.8** Preview do Imóvel — mini-card com foto, tipo, localização e preço na tela de detalhe
+- [x] **13.9** Painel lateral (Offcanvas) para Notas Rápidas — `abrirNotas()`, `salvarNota()`, `fecharNotas()` com tipos (anotação/ligação/email/whatsapp/visita)
 
 **Passo 3: Ações em Massa e Inteligência da Listagem**
-- [ ] **13.10** Adicionar checkboxes na tabela para seleção múltipla de leads.
-- [ ] **13.11** Criar funções de Ação em Massa no Livewire (Atualizar status em lote, Exportar selecionados).
-- [ ] **13.12** Implementar sistema de "Lead Score" visual (ícones 🔥/❄️ baseados em regras de negócio).
-- [ ] **13.13** Exibir a Origem (UTMs) visualmente na listagem.
+- [x] **13.10** Checkboxes na tabela para seleção múltipla — `$leadsSelecionados` + "Selecionar todos da página"
+- [x] **13.11** Ações em Massa — `acaoMassaStatus()` (status em lote) + `exportarSelecionados()` (CSV filtrado)
+- [x] **13.12** Lead Score visual — 🔥 Quente (≥3 atend. ou <3 dias ou proposta) · 🟡 Morno · ❄️ Frio (0 atend. ou >14 dias ou perda)
+- [x] **13.13** Origem (UTMs) exibida visualmente — badges `utm_source` e `utm_campaign` na tabela + detalhe
 
 **Passo 4: Filtros e Dashboards**
-- [ ] **13.14** Criar barra de Filtros Avançados (por status, responsável, data e origem).
-- [ ] **13.15** Criar Cards de Indicadores de Performance (KPIs) no topo da página (Total de leads, Taxa de conversão, Leads por status).
+- [x] **13.14** Filtros Avançados — dropdowns de Status e Responsável (incluindo "Sem responsável") na barra de filtros
+- [x] **13.15** Cards KPI no topo — Total Leads · Novos 7d · Taxa Conversão (%) · Em Atendimento
 
 **Arquivos-chave:**
 - `app/Modules/Leads/Livewire/GestaoLeads.php`
 - `resources/views/modules/leads/livewire/gestao-leads.blade.php`
 - `app/Models/Lead.php`
-- `database/migrations/` (novas migrations de UTM, status, user_id, lead_notes)
+- `app/Models/LeadNote.php`
+- `database/migrations/` (migrations de UTM, status, user_id, lead_notes)
+
+---
+
+### FASE 14 — Conteúdo Rico por Bairro via OpenRouter
+**Objetivo:** Expandir o conteúdo IA dos bairros de 3 campos genéricos (titulo/meta/texto) para 8 tópicos estruturados em FAQ/accordion (Vizinhança, Benefícios, Acessos, Comércio, Educação, Saúde, Lazer, Infraestrutura), usando modelos gratuitos via OpenRouter em vez da API Anthropic.
+
+**Premissa:** A coluna `conteudo_ia` (JSON) já existe na tabela `bairros`. Nenhuma migration necessária — só se expandem os campos do JSON gravado. O sistema de geração em lote (Job + Artisan command + admin UI) já existe da Fase 8 e será reaproveitado.
+
+**Passo 1 — Infraestrutura OpenRouter**
+- [x] **14.1** Adicionar `OPENROUTER_API_KEY` e `OPENROUTER_MODEL` ao `.env.example` e `config/services.php`
+- [x] **14.2** Atualizar `ConteudoIaService` para usar OpenRouter (API compatível com OpenAI: `POST https://openrouter.ai/api/v1/chat/completions`, header `Authorization: Bearer {key}`)
+- [x] **14.3** Atualizar o prompt para retornar os 11 campos: `titulo`, `meta_description`, `texto` (retrocompatibilidade) + 8 novos campos do FAQ (`vizinhanca_localizacao`, `beneficios`, `acessos_transporte`, `comercio_conveniencia`, `educacao`, `saude`, `lazer_cultura`, `dados_infraestrutura`)
+- [x] **14.4** Validar resposta JSON — se campos do FAQ ausentes, continuar sem erro (retrocompat com conteúdo antigo)
+
+**Passo 2 — Front-end: Accordion na Página do Imóvel**
+- [x] **14.5** `ImovelShow::render()` carrega `$bairro->conteudo_ia` via eager load do relacionamento bairro
+- [x] **14.6** `imovel-show.blade.php` — seção "FAQ 2: Perguntas Frequentes sobre o Bairro" com accordion Alpine.js: 8 tópicos colapsáveis com fallback genérico quando conteúdo IA ausente
+
+**Passo 3 — Front-end: Accordion na Página Pública do Bairro**
+- [x] **14.7** `PaginaBairro::render()` passa os 8 campos para a view
+- [x] **14.8** `pagina-bairro.blade.php` — accordion dos 8 tópicos acima da listagem de imóveis (exibido apenas quando `$temFaq` é `true`)
+
+**Passo 4 — Limpeza**
+- [x] **14.9** Botão "Resetar conteúdo antigo" na admin UI (`/admin/bairros-dossie`) — `resetarParaFaq()` marca bairros sem campo `vizinhanca_localizacao` como `ia_status = 'pendente'` e limpa `conteudo_ia`
+- [x] **14.10** Modelo configurado via `OPENROUTER_MODEL` no `.env` — padrão: `meta-llama/llama-3-8b-instruct:free`; troca para `google/gemma-2-9b-it:free` basta alterar a variável
+
+**Campos do JSON gerado:**
+```json
+{
+  "titulo": "...",
+  "meta_description": "...",
+  "texto": "...",
+  "vizinhanca_localizacao": "...",
+  "beneficios": "...",
+  "acessos_transporte": "...",
+  "comercio_conveniencia": "...",
+  "educacao": "...",
+  "saude": "...",
+  "lazer_cultura": "...",
+  "dados_infraestrutura": "..."
+}
+```
+
+**Arquivos-chave:**
+- `app/Modules/BairrosDossie/Services/ConteudoIaService.php` (troca API + expande prompt)
+- `app/Modules/BairrosDossie/Livewire/PaginaBairro.php` (passa novos campos)
+- `app/Modules/Imoveis/Livewire/ImovelShow.php` (carrega conteudo_ia do bairro)
+- `resources/views/modules/imoveis/livewire/imovel-show.blade.php` (accordion)
+- `resources/views/modules/bairros-dossie/livewire/pagina-bairro.blade.php` (accordion)
+- `.env.example`, `config/services.php`
 
 ---
 
@@ -302,8 +353,9 @@
 | 9 | Performance e Qualidade | ✅ Concluída | — |
 | 10 | Testes Automatizados | ✅ Concluída | — |
 | 11 | API REST | ✅ Concluída | — |
-| 12 | SEO e Performance Web | 🟡 Em andamento (1 pendência — 12.17 Search Console) | — |
-| 13 | Melhorias Gestão de Leads (Mini-CRM) | 🔵 Próxima | 3–4 sessões |
+| 12 | SEO e Performance Web | ✅ Concluída | — |
+| 13 | Melhorias Gestão de Leads (Mini-CRM) | ✅ Concluída | — |
+| 14 | Conteúdo Rico por Bairro via OpenRouter | ✅ Concluída | — |
 
 ---
 
