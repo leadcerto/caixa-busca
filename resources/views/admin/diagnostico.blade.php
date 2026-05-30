@@ -106,6 +106,23 @@
                        onclick="return confirm('Confirma a limpeza de bairros? Esta ação é irreversível.')"
                        class="btn-diag bg-red-500/15 text-red-300 border-red-500/30 hover:bg-red-500/25">Executar Limpeza Bairros</a>
                 </div>
+                <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
+                    <span class="text-xs font-semibold text-gray-500 self-center w-full mb-1">Diagnóstico OpenRouter</span>
+                    <a href="?action=check_openrouter" class="btn-diag bg-green-500/20 text-green-300 border-green-500/40 hover:bg-green-500/30">Verificar Chave</a>
+                    <a href="?action=show_env" class="btn-diag bg-sky-500/15 text-sky-300 border-sky-500/30 hover:bg-sky-500/25">Ler .env (OPENROUTER)</a>
+                </div>
+                {{-- Formulário para gravar chave diretamente --}}
+                <form method="POST" action="?action=write_openrouter_key" class="mt-3 space-y-2 p-4 bg-orange-500/5 border border-orange-500/20 rounded-xl">
+                    @csrf
+                    <p class="text-xs font-semibold text-orange-300">Gravar Chave OpenRouter no .env</p>
+                    <input type="text" name="openrouter_key" placeholder="Cole a chave sk-or-v1-..." required
+                           class="w-full bg-gray-950 border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-200 font-mono focus:outline-none focus:border-orange-400">
+                    <input type="text" name="openrouter_model" value="google/gemma-4-31b-it:free"
+                           class="w-full bg-gray-950 border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-200 font-mono focus:outline-none focus:border-orange-400">
+                    <button type="submit" class="btn-diag bg-orange-500/20 text-orange-300 border-orange-500/40 hover:bg-orange-500/30 w-full text-center">
+                        Gravar no .env + optimize:clear
+                    </button>
+                </form>
             </div>
 
         </div>

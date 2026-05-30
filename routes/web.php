@@ -472,6 +472,58 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                     $actionOutput .= "config('services.openrouter.key'): " . (empty($key) ? '❌ VAZIO' : '✅ ' . substr($key, 0, 20) . '...') . "\n";
                     $actionOutput .= "config('services.openrouter.model'): " . ($model ?: '❌ VAZIO') . "\n";
                     $actionOutput .= "env('OPENROUTER_API_KEY'): " . (empty($envKey) ? '❌ VAZIO' : '✅ ' . substr($envKey, 0, 20) . '...') . "\n";
+                } elseif ($action === 'show_env') {
+                    $envPath = base_path('.env');
+                    $actionOutput  = "=== Arquivo .env ===\n";
+                    $actionOutput .= "Caminho: {$envPath}\n";
+                    $actionOutput .= "Existe: " . (file_exists($envPath) ? '✅ SIM' : '❌ NÃO') . "\n";
+                    $actionOutput .= "Gravável: " . (is_writable($envPath) ? '✅ SIM' : '❌ NÃO') . "\n";
+                    $actionOutput .= "Tamanho: " . (file_exists($envPath) ? filesize($envPath) . ' bytes' : 'N/A') . "\n";
+                    $actionOutput .= "Modificado em: " . (file_exists($envPath) ? date('d/m/Y H:i:s', filemtime($envPath)) : 'N/A') . "\n\n";
+                    if (file_exists($envPath)) {
+                        $lines = file($envPath, FILE_IGNORE_NEW_LINES);
+                        $actionOutput .= "=== Linhas com OPENROUTER ===\n";
+                        $found = false;
+                        foreach ($lines as $num => $line) {
+                            if (stripos($line, 'openrouter') !== false) {
+                                $safeVal = $line;
+                                if (preg_match('/^OPENROUTER_API_KEY=(.+)$/', $line, $m)) {
+                                    $v = trim($m[1]);
+                                    $safeVal = 'OPENROUTER_API_KEY=' . (strlen($v) > 8 ? substr($v, 0, 12) . '...' . substr($v, -4) : ($v ?: '(vazio)'));
+                                }
+                                $actionOutput .= "Linha " . ($num + 1) . ": {$safeVal}\n";
+                                $found = true;
+                            }
+                        }
+                        if (!$found) {
+                            $actionOutput .= "⚠️ NENHUMA linha com OPENROUTER encontrada no arquivo!\n";
+                            $actionOutput .= "Últimas 5 linhas do arquivo:\n";
+                            $tail = array_slice($lines, -5);
+                            foreach ($tail as $i => $l) {
+                                $actionOutput .= "  " . (count($lines) - 5 + $i + 1) . ": {$l}\n";
+                            }
+                        }
+                    }
+                } elseif ($action === 'write_openrouter_key') {
+                    $newKey   = trim(request('openrouter_key', ''));
+                    $newModel = trim(request('openrouter_model', 'google/gemma-4-31b-it:free'));
+                    if (empty($newKey)) {
+                        $actionOutput = "❌ Chave não informada. Use o formulário abaixo.";
+                    } else {
+                        $envPath = base_path('.env');
+                        $content = file_exists($envPath) ? file_get_contents($envPath) : '';
+                        $content = preg_replace('/^OPENROUTER_API_KEY=.*$/m', '', $content);
+                        $content = preg_replace('/^OPENROUTER_MODEL=.*$/m', '', $content);
+                        $content = rtrim($content) . "\n\nOPENROUTER_API_KEY={$newKey}\nOPENROUTER_MODEL={$newModel}\n";
+                        file_put_contents($envPath, $content);
+                        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+                        $actionOutput  = "=== Chave escrita no .env ===\n";
+                        $actionOutput .= "OPENROUTER_API_KEY: ✅ gravada (" . substr($newKey, 0, 12) . "...)\n";
+                        $actionOutput .= "OPENROUTER_MODEL: {$newModel}\n\n";
+                        $actionOutput .= \Illuminate\Support\Facades\Artisan::output();
+                        $check = file_get_contents($envPath);
+                        $actionOutput .= "\nVerificação: " . (str_contains($check, $newKey) ? '✅ Chave encontrada no arquivo' : '❌ Chave NÃO encontrada — verifique permissões');
+                    }
                 }
             } catch (\Throwable $e) {
                 $actionOutput = "Erro ao executar ação '$action':\n" . $e->getMessage() . "\n" . $e->getTraceAsString();
