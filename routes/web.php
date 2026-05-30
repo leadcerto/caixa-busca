@@ -464,6 +464,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
                     $actionOutput = "=== Limpeza de Bairros Executada ===\n" . \Illuminate\Support\Facades\Artisan::output();
                     \Illuminate\Support\Facades\Cache::forget('dropdown_estados_com_imoveis');
                     \Illuminate\Support\Facades\Cache::forget('dropdown_tipos_imoveis');
+                } elseif ($action === 'check_openrouter') {
+                    $key = config('services.openrouter.key');
+                    $model = config('services.openrouter.model');
+                    $envKey = env('OPENROUTER_API_KEY');
+                    $actionOutput  = "=== OpenRouter Config ===\n";
+                    $actionOutput .= "config('services.openrouter.key'): " . (empty($key) ? '❌ VAZIO' : '✅ ' . substr($key, 0, 20) . '...') . "\n";
+                    $actionOutput .= "config('services.openrouter.model'): " . ($model ?: '❌ VAZIO') . "\n";
+                    $actionOutput .= "env('OPENROUTER_API_KEY'): " . (empty($envKey) ? '❌ VAZIO' : '✅ ' . substr($envKey, 0, 20) . '...') . "\n";
                 }
             } catch (\Throwable $e) {
                 $actionOutput = "Erro ao executar ação '$action':\n" . $e->getMessage() . "\n" . $e->getTraceAsString();
