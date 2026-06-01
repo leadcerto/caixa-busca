@@ -27,7 +27,7 @@
         </a>
         <div class="flex items-center gap-3">
             @php
-                $msgWhatsapp = urlencode('Vi esta oportunidade e acredito que você tenha interesse. Acessa pra ver: ' . url()->current());
+                $msgWhatsapp = urlencode('Vi esta oportunidade e acredito que você tenha interesse. Acessa pra ver: ' . request()->fullUrl());
             @endphp
             <a href="https://wa.me/?text={{ $msgWhatsapp }}"
                target="_blank" rel="noopener noreferrer"

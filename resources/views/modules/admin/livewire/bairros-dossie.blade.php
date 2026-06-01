@@ -128,10 +128,18 @@
                                         'erro'    => 'bg-red-100 text-red-700',
                                     ];
                                     $cor = $cores[$bairro->ia_status] ?? 'bg-gray-100 text-gray-600';
+                                    $erroMsg = $bairro->ia_status === 'erro'
+                                        ? (($bairro->conteudo_ia['_erro'] ?? null))
+                                        : null;
                                 @endphp
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold {{ $cor }}">
                                     {{ ucfirst($bairro->ia_status ?? 'pendente') }}
                                 </span>
+                                @if($erroMsg)
+                                    <p class="text-[10px] text-red-400 mt-1 max-w-[200px] leading-tight" title="{{ $erroMsg }}">
+                                        {{ Str::limit($erroMsg, 80) }}
+                                    </p>
+                                @endif
                             </td>
                             <td class="px-6 py-3 text-xs text-gray-400 font-mono">
                                 {{ $bairro->ia_gerado_em?->format('d/m/Y H:i') ?? '—' }}

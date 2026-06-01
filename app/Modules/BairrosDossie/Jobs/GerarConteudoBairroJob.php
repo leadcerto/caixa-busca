@@ -16,9 +16,9 @@ class GerarConteudoBairroJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $tries   = 3;
-    public $backoff = [60, 300];
-    public $timeout = 60;
+    public $tries   = 2;
+    public $backoff = [30, 120];
+    public $timeout = 120;
 
     public function __construct(public readonly int $bairroId) {}
 
@@ -40,7 +40,10 @@ class GerarConteudoBairroJob implements ShouldQueue
             Log::info("BairrosDossie: conteúdo gerado para bairro #{$bairro->id} ({$bairro->nome}).");
             GooglePingService::pingSitemap();
         } catch (\Throwable $e) {
-            $bairro->update(['ia_status' => 'erro']);
+            $bairro->update([
+                'ia_status'   => 'erro',
+                'conteudo_ia' => ['_erro' => mb_substr($e->getMessage(), 0, 500)],
+            ]);
             Log::error("BairrosDossie: falha no bairro #{$bairro->id}.", ['erro' => $e->getMessage()]);
             throw $e;
         }

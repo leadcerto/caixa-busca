@@ -132,22 +132,29 @@ PROMPT;
 
                 $texto = $response->json('choices.0.message.content', '');
 
-                // Remove markdown ```json ... ``` que alguns modelos inserem
-                $texto = preg_replace('/^```(?:json)?\s*/i', '', trim($texto));
-                $texto = preg_replace('/\s*```$/', '', $texto);
+                // Extrai o bloco JSON de dentro da resposta —
+                // alguns modelos adicionam texto introdutório ou markdown antes/depois
+                if (preg_match('/\{[\s\S]*\}/u', $texto, $match)) {
+                    $texto = $match[0];
+                } else {
+                    // Remove fences markdown se não encontrou {}
+                    $texto = preg_replace('/^```(?:json)?\s*/i', '', trim($texto));
+                    $texto = preg_replace('/\s*```$/', '', $texto);
+                }
 
                 $dados = json_decode(trim($texto), true);
 
-                // Valida estrutura e conteúdo mínimo
+                // Valida estrutura mínima
                 if (!is_array($dados) || empty($dados['titulo'])) {
-                    Log::warning("BairrosDossie: {$modelo} retornou JSON inválido, tentando próximo.");
-                    $ultimoErro = "JSON inválido do modelo {$modelo}";
+                    Log::warning("BairrosDossie: {$modelo} retornou JSON inválido.", ['raw' => mb_substr($texto, 0, 300)]);
+                    $ultimoErro = "JSON inválido: " . mb_substr($texto, 0, 150);
                     continue;
                 }
 
-                if (strlen($dados['texto'] ?? '') < 200) {
-                    Log::warning("BairrosDossie: {$modelo} retornou conteúdo muito curto, tentando próximo.");
-                    $ultimoErro = "Conteúdo insuficiente do modelo {$modelo}";
+                // Aceita textos curtos (cidades pequenas podem ter menos conteúdo disponível)
+                if (strlen($dados['texto'] ?? '') < 80) {
+                    Log::warning("BairrosDossie: {$modelo} retornou conteúdo muito curto.");
+                    $ultimoErro = "Conteúdo insuficiente (< 80 chars) do modelo {$modelo}";
                     continue;
                 }
 
