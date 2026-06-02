@@ -43,7 +43,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Detect JavaScript and TypeScript files
         id: detect-js-ts
@@ -84,7 +84,7 @@ jobs:
             steps.detect-js-ts.outputs.found == 'true' ||
             steps.detect-python.outputs.found == 'true'
           }}
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
@@ -95,7 +95,7 @@ jobs:
             steps.detect-js-ts.outputs.found == 'true' ||
             steps.detect-python.outputs.found == 'true'
           }}
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
 
