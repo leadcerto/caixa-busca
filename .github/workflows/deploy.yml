@@ -39,7 +39,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p "${{ secrets.SSH_PORT }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          printf 'Host %s\n  Port %s\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n' \
+            "${{ secrets.SSH_HOST }}" "${{ secrets.SSH_PORT }}" >> ~/.ssh/config
 
       - name: Sync files to server
         run: |
