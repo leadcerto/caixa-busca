@@ -1,13 +1,15 @@
-name: Deploy Laravel Ideal via SSH
+name: Deploy Laravel to venda.imoveisdacaixa.com.br
 
 on:
   push:
-    branches:
-      - main
+    branches: ["main"]
 
 concurrency:
   group: deploy-production
   cancel-in-progress: true
+
+env:
+  REMOTE_PATH: /home/u541302702/domains/imoveisdacaixa.com.br/public_html/venda
 
 jobs:
   deploy:
@@ -15,126 +17,74 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🚚 Get latest code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🛠️ Setup PHP
+      - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
 
-      - name: 📥 Install Composer Dependencies
+      - name: Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction
 
-      - name: 🏗️ Install NPM & Build
+      - name: Build front-end assets (Vite + Tailwind)
         run: |
-          npm install
+          npm ci
           npm run build
 
-      - name: 🔑 Setup SSH Key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ secrets.SSH_PORT }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: 📂 Sync Laravel App Core
+      - name: Sync files to server
         run: |
           rsync -az --delete \
-            --exclude '.git' \
-            --exclude '.github' \
-            --exclude 'node_modules' \
-            --exclude 'public' \
-            --exclude '.env' \
-            --exclude 'storage' \
-            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/laravel-app/
+            --exclude=".git" \
+            --exclude=".github" \
+            --exclude="node_modules" \
+            --exclude=".env" \
+            --exclude="storage" \
+            -e "ssh -p ${{ secrets.SSH_PORT }}" \
+            ./ \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:$REMOTE_PATH/
 
-      - name: 📂 Sync Public Folder to public_html and domains folders
+      - name: Post-deploy commands
         run: |
-          ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /home/${{ secrets.SSH_USER }}/public_html/venda/public /home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/public"
-          
-          # Sync to public_html segment (exclui storage — symlink criado manualmente depois)
-          rsync -az --delete \
-            --exclude='storage' \
-            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-            ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/public_html/venda/public/
+          ssh -p "${{ secrets.SSH_PORT }}" \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+              "REMOTE_PATH='$REMOTE_PATH' bash -s" << 'ENDSSH'
+            set -e
+            cd "$REMOTE_PATH"
 
-          # Sync to domains segment (exclui storage — symlink criado manualmente depois)
-          rsync -az --delete \
-            --exclude='storage' \
-            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-            ./public/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/public/
-
-      - name: ⚡ Run Post-Deployment Commands
-        run: |
-          ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            cd /home/${{ secrets.SSH_USER }}/laravel-app
-            
-            # PHP 8.4 na Hostinger (caminho confirmado)
-            PHP_BIN="/opt/alt/php84/usr/bin/php"
-            echo "Using PHP binary: $PHP_BIN"
-            
-            # Restauração ou criação do .env de produção
-            if [ ! -f /home/${{ secrets.SSH_USER }}/laravel-app/.env ]; then
-                echo "=== PROCURANDO ARQUIVO .ENV ANTIGO NO SERVIDOR ==="
-                FOUND_ENV=""
-                for PATH_OPT in \
-                  "/home/${{ secrets.SSH_USER }}/public_html/venda/.env" \
-                  "/home/${{ secrets.SSH_USER }}/public_html/venda/public/.env" \
-                  "/home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/.env" \
-                  "/home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/public/.env"; do
-                    if [ -f "$PATH_OPT" ]; then
-                        FOUND_ENV="$PATH_OPT"
-                        break
-                    fi
-                done
-                
-                if [ -n "$FOUND_ENV" ]; then
-                    echo "Arquivo .env antigo encontrado em: $FOUND_ENV"
-                    echo "Copiando para laravel-app/.env..."
-                    cp "$FOUND_ENV" /home/${{ secrets.SSH_USER }}/laravel-app/.env
-                    chmod 644 /home/${{ secrets.SSH_USER }}/laravel-app/.env
-                else
-                    echo "AVISO: Nenhum arquivo .env antigo foi encontrado no servidor!"
-                    echo "Criando um novo arquivo .env com base no .env.example..."
-                    cp /home/${{ secrets.SSH_USER }}/laravel-app/.env.example /home/${{ secrets.SSH_USER }}/laravel-app/.env
-                    chmod 644 /home/${{ secrets.SSH_USER }}/laravel-app/.env
-                    $PHP_BIN artisan key:generate --force
-                fi
-            else
-                echo "Arquivo .env ja existe em laravel-app/.env"
-                chmod 644 /home/${{ secrets.SSH_USER }}/laravel-app/.env
-            fi
-
-            # Garante estrutura de diretórios do storage (não é sincronizado pelo rsync)
-            mkdir -p storage/app/imports
-            mkdir -p storage/app/livewire-tmp
+            # Garante estrutura de storage
             mkdir -p storage/app/public
             mkdir -p storage/framework/cache/data
             mkdir -p storage/framework/sessions
             mkdir -p storage/framework/views
             mkdir -p storage/logs
-            chmod -R 775 storage || true
+            mkdir -p bootstrap/cache
+            chmod -R 775 storage bootstrap/cache
 
-            $PHP_BIN artisan storage:link --force || true
+            # Cria .env se não existir
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              echo "AVISO: .env criado a partir do .env.example — configure as variáveis!"
+            fi
 
-            # Hostinger: public_html/ e laravel-app/ são diretórios separados.
-            # O storage:link cria o symlink em laravel-app/public/storage (não acessível pelo Apache).
-            # Cria manualmente o symlink nas pastas reais servidas pelo Apache.
-            rm -rf /home/${{ secrets.SSH_USER }}/public_html/venda/public/storage 2>/dev/null || true
-            ln -sfn /home/${{ secrets.SSH_USER }}/laravel-app/storage/app/public /home/${{ secrets.SSH_USER }}/public_html/venda/public/storage || true
-            rm -rf /home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/public/storage 2>/dev/null || true
-            ln -sfn /home/${{ secrets.SSH_USER }}/laravel-app/storage/app/public /home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/public/storage || true
+            # Symlink storage → public/storage
+            php artisan storage:link --force 2>/dev/null || true
 
-            $PHP_BIN artisan migrate --force
-            $PHP_BIN artisan optimize:clear
-            $PHP_BIN artisan route:clear
+            # Migrations e cache
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
 
-            # Ajuste de permissões em pastas de escrita
-            chmod -R 775 storage bootstrap/cache || true
-
-            # Limpeza de arquivos de teste (em ambos os caminhos possíveis)
-            rm /home/${{ secrets.SSH_USER }}/public_html/venda/rastreio.txt || true
-            rm /home/${{ secrets.SSH_USER }}/domains/imoveisdacaixa.com.br/public_html/venda/rastreio.txt || true
-          EOF
-
+            echo "✅ Deploy concluído."
+          ENDSSH
