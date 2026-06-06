@@ -50,8 +50,7 @@ RUN apk add --no-cache \
     php84-sodium \
     nginx \
     supervisor \
-    && ln -sf /usr/bin/php84 /usr/local/bin/php \
-    && ln -sf /usr/sbin/php-fpm84 /usr/local/sbin/php-fpm84
+    && ln -sf /usr/bin/php84 /usr/local/bin/php
 
 WORKDIR /var/www/html
 
