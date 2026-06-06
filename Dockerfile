@@ -1,72 +1,75 @@
 # =============================================================================
-# Stage 1: Build — PHP 8.4 + Node 20 + Vite + Composer
+# Stage 1: Node.js — Vite build (segundos, sem PHP)
 # =============================================================================
-FROM php:8.4-fpm AS builder
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git curl zip unzip ca-certificates gnupg \
-    libpng-dev libfreetype6-dev libjpeg62-turbo-dev \
-    libonig-dev libxml2-dev libzip-dev libicu-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring bcmath gd zip intl pcntl
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
+FROM node:20-slim AS node-builder
 
 WORKDIR /app
-
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
 COPY package.json package-lock.json ./
 RUN npm ci
-
 COPY . .
-RUN NODE_OPTIONS="--max-old-space-size=512" npm run build
+RUN npm run build
 
 # =============================================================================
-# Stage 2: Production — Nginx + PHP-FPM
+# Stage 2: Composer — PHP deps (usa imagem pre-compilada)
 # =============================================================================
-FROM php:8.4-fpm AS production
+FROM composer:2 AS composer-builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    nginx supervisor \
-    libpng-dev libfreetype6-dev libjpeg62-turbo-dev \
-    libonig-dev libxml2-dev libzip-dev libicu-dev \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring bcmath gd zip intl pcntl \
-    && docker-php-ext-enable opcache
+# =============================================================================
+# Stage 3: Production — Alpine + PHP 8.4 pre-compilado (segundos!)
+# =============================================================================
+FROM alpine:3.21
 
-COPY docker/php.ini /usr/local/etc/php/conf.d/app.ini
+# PHP 8.4 + extensões como pacotes Alpine (sem compilação!)
+RUN apk add --no-cache \
+    php84 \
+    php84-fpm \
+    php84-pdo \
+    php84-pdo_mysql \
+    php84-mbstring \
+    php84-bcmath \
+    php84-gd \
+    php84-zip \
+    php84-intl \
+    php84-pcntl \
+    php84-opcache \
+    php84-dom \
+    php84-xml \
+    php84-xmlreader \
+    php84-xmlwriter \
+    php84-tokenizer \
+    php84-curl \
+    php84-ctype \
+    php84-openssl \
+    php84-session \
+    php84-fileinfo \
+    php84-simplexml \
+    php84-sodium \
+    nginx \
+    supervisor \
+    && ln -sf /usr/bin/php84 /usr/local/bin/php \
+    && ln -sf /usr/sbin/php-fpm84 /usr/local/sbin/php-fpm84
 
 WORKDIR /var/www/html
 
 COPY . .
-COPY --from=builder /app/vendor ./vendor
-COPY --from=builder /app/public/build ./public/build
+COPY --from=composer-builder /app/vendor ./vendor
+COPY --from=node-builder /app/public/build ./public/build
 
 RUN mkdir -p storage/framework/{cache/data,sessions,views} storage/logs bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache public \
+    && chown -R nginx:nginx storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-RUN rm -f /etc/nginx/sites-enabled/default
-COPY docker/nginx.conf /etc/nginx/sites-available/app
-RUN ln -sf /etc/nginx/sites-available/app /etc/nginx/sites-enabled/app
-
-COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/php-fpm.conf /etc/php84/php-fpm.d/www.conf
+COPY docker/php.ini /etc/php84/conf.d/99-app.ini
+COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-RUN ln -sf /dev/stdout /var/log/nginx/access.log \
-    && ln -sf /dev/stderr /var/log/nginx/error.log
+RUN chmod +x /entrypoint.sh \
+    && rm -f /etc/nginx/http.d/default.conf.disabled 2>/dev/null || true
 
 EXPOSE 80
 
