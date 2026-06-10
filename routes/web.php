@@ -10,6 +10,7 @@ use App\Modules\BairrosDossie\Livewire\PaginaBairro;
 use App\Modules\Leads\Livewire\GestaoLeads;
 use App\Modules\Imobiliaria\Livewire\ImobiliariaLogin;
 use App\Modules\ImportacaoCSV\Livewire\ImportacaoCsv;
+use App\Modules\ImportacaoCSV\Http\ImportacaoCsvController;
 use App\Modules\Imoveis\Livewire\ImovelSearch;
 use App\Modules\Imoveis\Livewire\ImovelShow as ModularImovelShow;
 use App\Modules\Imobiliaria\Livewire\PainelLeads;
@@ -365,6 +366,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/leads', GestaoLeads::class)->name('leads');
     Route::get('/imobiliarias', \App\Modules\Admin\Livewire\GestaoImobiliarias::class)->name('imobiliarias');
     Route::get('/importar', ImportacaoCsv::class)->name('importar');
+    Route::post('/importar', [ImportacaoCsvController::class, 'store'])->name('importar.store');
     Route::get('/imoveis/busca-interna', ImovelBuscaInterna::class)->name('imoveis.busca-interna');
     Route::get('/integracao-crm', IntegracaoCrm::class)->name('crm');
     Route::get('/whatsapp-templates', WhatsappTemplates::class)->name('whatsapp');
