@@ -48,6 +48,7 @@ RUN apk add --no-cache \
     php84-fileinfo \
     php84-simplexml \
     php84-sodium \
+    php84-phar \
     nginx \
     supervisor \
     && ln -sf /usr/bin/php84 /usr/local/bin/php
