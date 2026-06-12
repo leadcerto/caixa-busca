@@ -95,24 +95,14 @@ jobs:
             php artisan view:cache
             php artisan event:cache
 
-            # Aumenta limite de upload no nginx
-            echo "client_max_body_size 100M;" | sudo tee /etc/nginx/conf.d/upload-limit.conf > /dev/null
-            sudo nginx -t && sudo systemctl reload nginx
+            # Nginx — client_max_body_size (|| true: não para o deploy se sudo falhar)
+            echo "client_max_body_size 100M;" | sudo tee /etc/nginx/conf.d/upload-limit.conf > /dev/null 2>&1 || true
+            sudo nginx -t 2>/dev/null && sudo systemctl reload nginx 2>/dev/null || true
 
-            # Aumenta limites de upload no PHP-FPM (evita "failed to upload" no CSV)
-            PHP_INI=$(php --ini | grep "Loaded Configuration" | awk '{print $NF}')
-            if [ -f "$PHP_INI" ]; then
-              sudo sed -i 's/^upload_max_filesize.*/upload_max_filesize = 50M/' "$PHP_INI"
-              sudo sed -i 's/^post_max_size.*/post_max_size = 50M/' "$PHP_INI"
-              # Adiciona se não existir
-              grep -q '^upload_max_filesize' "$PHP_INI" || echo 'upload_max_filesize = 50M' | sudo tee -a "$PHP_INI" > /dev/null
-              grep -q '^post_max_size' "$PHP_INI" || echo 'post_max_size = 50M' | sudo tee -a "$PHP_INI" > /dev/null
-            fi
-            # Também via conf.d para garantir (sobrepõe php.ini)
-            printf 'upload_max_filesize = 50M\npost_max_size = 50M\n' | sudo tee /etc/php/8.4/fpm/conf.d/99-upload.ini > /dev/null
-
-            # Reinicia PHP-FPM para aplicar novos limites
-            sudo systemctl restart php8.4-fpm
+            # PHP — upload limits via conf.d (|| true: não para o deploy se sudo falhar)
+            printf 'upload_max_filesize = 50M\npost_max_size = 50M\n' \
+              | sudo tee /etc/php/8.4/fpm/conf.d/99-upload.ini > /dev/null 2>&1 || true
+            sudo systemctl restart php8.4-fpm 2>/dev/null || sudo systemctl reload php8.4-fpm 2>/dev/null || true
 
             echo "✅ Deploy concluído."
           ENDSSH
