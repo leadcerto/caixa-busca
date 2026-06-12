@@ -42,6 +42,11 @@ jobs:
           printf 'Host %s\n  Port %s\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n' \
             "${{ secrets.SSH_HOST }}" "${{ secrets.SSH_PORT }}" >> ~/.ssh/config
 
+      - name: Prepare remote directory
+        run: |
+          ssh -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "sudo mkdir -p $REMOTE_PATH && sudo chown -R \$(whoami):\$(whoami) $REMOTE_PATH"
+
       - name: Sync files to server
         run: |
           rsync -az --delete \
