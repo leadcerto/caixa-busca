@@ -365,7 +365,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
     Route::get('/leads', GestaoLeads::class)->name('leads');
     Route::get('/imobiliarias', \App\Modules\Admin\Livewire\GestaoImobiliarias::class)->name('imobiliarias');
-    Route::get('/importar', ImportacaoCsv::class)->name('importar');
+    Route::get('/importar', [ImportacaoCsvController::class, 'show'])->name('importar');
     Route::post('/importar', [ImportacaoCsvController::class, 'store'])->name('importar.store');
     Route::get('/imoveis/busca-interna', ImovelBuscaInterna::class)->name('imoveis.busca-interna');
     Route::get('/integracao-crm', IntegracaoCrm::class)->name('crm');

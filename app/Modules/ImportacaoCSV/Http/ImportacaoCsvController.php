@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Log;
 
 class ImportacaoCsvController extends Controller
 {
+    public function show()
+    {
+        return view('importacao-csv.importar');
+    }
+
     public function store(Request $request)
     {
         $request->validate([
