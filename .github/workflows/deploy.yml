@@ -42,10 +42,9 @@ jobs:
           printf 'Host %s\n  Port %s\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n' \
             "${{ secrets.SSH_HOST }}" "${{ secrets.SSH_PORT }}" >> ~/.ssh/config
 
-      - name: Sync files to server
+      - name: Sync files to staging dir (home do usuário SSH)
         run: |
           rsync -az --delete \
-            --rsync-path="sudo rsync" \
             --exclude=".git" \
             --exclude=".github" \
             --exclude="node_modules" \
@@ -53,7 +52,7 @@ jobs:
             --exclude="storage" \
             -e "ssh -p ${{ secrets.SSH_PORT }}" \
             ./ \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:$REMOTE_PATH/"
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/venda-staging/"
 
       - name: Post-deploy commands
         run: |
@@ -61,23 +60,26 @@ jobs:
               ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
               "REMOTE_PATH='$REMOTE_PATH' bash -s" << 'ENDSSH'
             set -e
+
+            # Copia staging → /var/www/venda com sudo (sem problema de protocolo rsync)
+            sudo mkdir -p "$REMOTE_PATH"
+            sudo rsync -a --delete \
+              --exclude=".env" \
+              --exclude="storage" \
+              ~/venda-staging/ "$REMOTE_PATH/"
+
             cd "$REMOTE_PATH"
 
-            # Garante estrutura de storage (inclui tmp do Livewire)
-            mkdir -p storage/app/public
-            mkdir -p storage/app/livewire-tmp
-            mkdir -p storage/app/imports
-            mkdir -p storage/framework/cache/data
-            mkdir -p storage/framework/sessions
-            mkdir -p storage/framework/views
-            mkdir -p storage/logs
-            mkdir -p bootstrap/cache
+            # Garante estrutura de storage
+            mkdir -p storage/app/public storage/app/imports
+            mkdir -p storage/framework/cache/data storage/framework/sessions
+            mkdir -p storage/framework/views storage/logs bootstrap/cache
             chmod -R 775 storage bootstrap/cache
 
             # Cria .env se não existir (primeira deploy)
             if [ ! -f .env ]; then
               cp .env.example .env
-              echo "AVISO: .env criado — configure as variáveis e rode migrations manualmente!"
+              echo "AVISO: .env criado — configure as variáveis manualmente!"
             fi
 
             # Gera APP_KEY se ainda não foi gerada
@@ -85,7 +87,6 @@ jobs:
               php artisan key:generate --force
             fi
 
-            # Symlink storage → public/storage
             php artisan storage:link --force 2>/dev/null || true
 
             # Migrations e cache
@@ -96,11 +97,9 @@ jobs:
             php artisan view:cache
             php artisan event:cache
 
-            # Nginx — client_max_body_size (|| true: não para o deploy se sudo falhar)
+            # Nginx e PHP-FPM (não-fatais)
             echo "client_max_body_size 100M;" | sudo tee /etc/nginx/conf.d/upload-limit.conf > /dev/null 2>&1 || true
             sudo nginx -t 2>/dev/null && sudo systemctl reload nginx 2>/dev/null || true
-
-            # PHP — upload limits via conf.d (|| true: não para o deploy se sudo falhar)
             printf 'upload_max_filesize = 50M\npost_max_size = 50M\n' \
               | sudo tee /etc/php/8.4/fpm/conf.d/99-upload.ini > /dev/null 2>&1 || true
             sudo systemctl restart php8.4-fpm 2>/dev/null || sudo systemctl reload php8.4-fpm 2>/dev/null || true
