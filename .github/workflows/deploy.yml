@@ -61,9 +61,9 @@ jobs:
               "REMOTE_PATH='$REMOTE_PATH' bash -s" << 'ENDSSH'
             set -e
 
-            # Copia staging → /var/www/venda com sudo (sem problema de protocolo rsync)
-            sudo mkdir -p "$REMOTE_PATH"
-            sudo rsync -a --delete \
+            # Copia staging → /var/www/venda (root não precisa de sudo)
+            mkdir -p "$REMOTE_PATH"
+            rsync -a --delete \
               --exclude=".env" \
               --exclude="storage" \
               ~/venda-staging/ "$REMOTE_PATH/"
@@ -98,11 +98,11 @@ jobs:
             php artisan event:cache
 
             # Nginx e PHP-FPM (não-fatais)
-            echo "client_max_body_size 100M;" | sudo tee /etc/nginx/conf.d/upload-limit.conf > /dev/null 2>&1 || true
-            sudo nginx -t 2>/dev/null && sudo systemctl reload nginx 2>/dev/null || true
+            echo "client_max_body_size 100M;" | tee /etc/nginx/conf.d/upload-limit.conf > /dev/null 2>&1 || true
+            nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true
             printf 'upload_max_filesize = 50M\npost_max_size = 50M\n' \
-              | sudo tee /etc/php/8.4/fpm/conf.d/99-upload.ini > /dev/null 2>&1 || true
-            sudo systemctl restart php8.4-fpm 2>/dev/null || sudo systemctl reload php8.4-fpm 2>/dev/null || true
+              | tee /etc/php/8.4/fpm/conf.d/99-upload.ini > /dev/null 2>&1 || true
+            systemctl restart php8.4-fpm 2>/dev/null || systemctl reload php8.4-fpm 2>/dev/null || true
 
             echo "✅ Deploy concluído."
           ENDSSH
