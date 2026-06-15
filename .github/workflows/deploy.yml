@@ -31,6 +31,24 @@ jobs:
           npm ci
           npm run build
 
+      - name: Debug secrets (tamanhos, sem revelar valores)
+        run: |
+          echo "SSH_HOST  length: ${#SSH_HOST}"
+          echo "SSH_PORT  length: ${#SSH_PORT}"
+          echo "SSH_USER  length: ${#SSH_USER}"
+          echo "SSH_KEY   length: ${#SSH_PRIVATE_KEY}"
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Test TCP connectivity
+        run: |
+          nc -zv -w 10 ${{ secrets.SSH_HOST }} ${{ secrets.SSH_PORT }} \
+            && echo "✅ TCP OK" \
+            || echo "❌ TCP FAILED"
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
