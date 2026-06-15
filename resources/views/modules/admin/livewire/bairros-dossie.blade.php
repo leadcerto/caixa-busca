@@ -7,6 +7,19 @@
             <p class="text-sm text-gray-500 mt-1">Geração de conteúdo IA para páginas de bairros (SEO).</p>
         </div>
         <div class="flex items-center gap-3">
+            <button wire:click="excluirSemImoveis"
+                    wire:loading.attr="disabled"
+                    wire:confirm="Excluir todos os bairros que não têm nenhum imóvel vinculado? Esta ação não pode ser desfeita."
+                    class="flex items-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors cursor-pointer">
+                <svg wire:loading wire:target="excluirSemImoveis" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <svg wire:loading.remove wire:target="excluirSemImoveis" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Excluir sem imóveis
+            </button>
             <button wire:click="resetarParaFaq"
                     wire:loading.attr="disabled"
                     wire:confirm="Resetar bairros com conteúdo antigo (sem FAQ) para regeração? Isso apagará o conteúdo desatualizado."

@@ -56,6 +56,16 @@ class BairrosDossie extends Component
         $this->sucesso  = true;
     }
 
+    public function excluirSemImoveis(): void
+    {
+        $count = Bairro::doesntHave('imoveis')->delete();
+
+        $this->mensagem = $count > 0
+            ? "{$count} bairro(s) sem imóveis excluídos."
+            : 'Nenhum bairro sem imóveis encontrado.';
+        $this->sucesso = $count > 0;
+    }
+
     public function resetarParaFaq(): void
     {
         // Marca como pendente bairros com conteúdo gerado mas sem os novos campos FAQ
