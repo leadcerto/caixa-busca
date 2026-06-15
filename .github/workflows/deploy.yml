@@ -8,9 +8,6 @@ concurrency:
   group: deploy-production
   cancel-in-progress: true
 
-env:
-  REMOTE_PATH: /var/www/venda
-
 jobs:
   deploy:
     name: 🚀 Deploy to Production
@@ -42,7 +39,7 @@ jobs:
           printf 'Host %s\n  Port %s\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n' \
             "${{ secrets.SSH_HOST }}" "${{ secrets.SSH_PORT }}" >> ~/.ssh/config
 
-      - name: Sync files to staging dir (home do usuário SSH)
+      - name: Sync files to staging dir (home do root no VPS)
         run: |
           rsync -az --delete \
             --exclude=".git" \
@@ -57,52 +54,45 @@ jobs:
       - name: Post-deploy commands
         run: |
           ssh -p "${{ secrets.SSH_PORT }}" \
-              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-              "REMOTE_PATH='$REMOTE_PATH' bash -s" << 'ENDSSH'
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
             set -e
 
-            # Copia staging → /var/www/venda (root não precisa de sudo)
-            mkdir -p "$REMOTE_PATH"
-            rsync -a --delete \
-              --exclude=".env" \
-              --exclude="storage" \
-              ~/venda-staging/ "$REMOTE_PATH/"
-
-            cd "$REMOTE_PATH"
-
-            # Garante estrutura de storage
-            mkdir -p storage/app/public storage/app/imports
-            mkdir -p storage/framework/cache/data storage/framework/sessions
-            mkdir -p storage/framework/views storage/logs bootstrap/cache
-            chmod -R 775 storage bootstrap/cache
-
-            # Cria .env se não existir (primeira deploy)
-            if [ ! -f .env ]; then
-              cp .env.example .env
-              echo "AVISO: .env criado — configure as variáveis manualmente!"
+            # Encontra o container Laravel pelo prefixo estável do Coolify
+            APP=$(docker ps --format '{{.Names}}' | grep '^qvwxmlvmu1zlwzcc' | head -1)
+            if [ -z "$APP" ]; then
+              echo "ERRO: container do app não encontrado"
+              docker ps --format '{{.Names}}'
+              exit 1
             fi
+            echo "Deployando para container: $APP"
 
-            # Gera APP_KEY se ainda não foi gerada
-            if grep -q 'APP_KEY=$' .env || grep -qE 'APP_KEY=""' .env; then
-              php artisan key:generate --force
-            fi
+            # Copia arquivos do staging para dentro do container
+            docker cp ~/venda-staging/. "$APP":/var/www/html/
 
-            php artisan storage:link --force 2>/dev/null || true
+            # Garante estrutura de storage dentro do container
+            docker exec "$APP" mkdir -p \
+              /var/www/html/storage/app/public \
+              /var/www/html/storage/app/imports \
+              /var/www/html/storage/framework/cache/data \
+              /var/www/html/storage/framework/sessions \
+              /var/www/html/storage/framework/views \
+              /var/www/html/storage/logs \
+              /var/www/html/bootstrap/cache
 
-            # Migrations e cache
-            php artisan migrate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:clear
-            php artisan view:cache
-            php artisan event:cache
+            docker exec "$APP" chown -R www-data:www-data \
+              /var/www/html/storage \
+              /var/www/html/bootstrap/cache
+            docker exec "$APP" chmod -R 775 \
+              /var/www/html/storage \
+              /var/www/html/bootstrap/cache
 
-            # Nginx e PHP-FPM (não-fatais)
-            echo "client_max_body_size 100M;" | tee /etc/nginx/conf.d/upload-limit.conf > /dev/null 2>&1 || true
-            nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true
-            printf 'upload_max_filesize = 50M\npost_max_size = 50M\n' \
-              | tee /etc/php/8.4/fpm/conf.d/99-upload.ini > /dev/null 2>&1 || true
-            systemctl restart php8.4-fpm 2>/dev/null || systemctl reload php8.4-fpm 2>/dev/null || true
+            # Artisan
+            docker exec "$APP" php artisan migrate --force
+            docker exec "$APP" php artisan config:cache
+            docker exec "$APP" php artisan route:cache
+            docker exec "$APP" php artisan view:clear
+            docker exec "$APP" php artisan view:cache
+            docker exec "$APP" php artisan event:cache
 
             echo "✅ Deploy concluído."
           ENDSSH
