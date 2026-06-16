@@ -59,7 +59,7 @@ COPY . .
 COPY --from=composer-builder /app/vendor ./vendor
 COPY --from=node-builder /app/public/build ./public/build
 
-RUN mkdir -p storage/framework/{cache/data,sessions,views} storage/logs storage/app/public storage/app/livewire-tmp bootstrap/cache \
+RUN mkdir -p storage/framework/{cache/data,sessions,views} storage/logs storage/app/public storage/app/private bootstrap/cache \
     && chown -R nginx:nginx storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 

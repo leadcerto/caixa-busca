@@ -3,7 +3,7 @@ set -e
 
 cd /var/www/html
 
-mkdir -p storage/app/public storage/app/livewire-tmp
+mkdir -p storage/app/public storage/app/private
 chown -R nginx:nginx storage
 chmod -R 775 storage
 
