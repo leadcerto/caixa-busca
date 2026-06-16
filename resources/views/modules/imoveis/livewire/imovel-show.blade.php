@@ -495,49 +495,6 @@ $schemaBreadcrumb = [
                     </div>
                 </div>
 
-                <!-- Formulário de Captação de Leads -->
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6">
-                    <div class="space-y-1">
-                        <span class="text-[#005CA9] text-[9px] font-black uppercase tracking-widest block">FALAR COM CORRETOR CREDENCIADO</span>
-                        <h2 class="text-2xl font-black text-gray-900 tracking-tight leading-none">Tenho Interesse!</h2>
-                        <p class="text-xs text-gray-500">Preencha seus dados para receber o dossiê detalhado e agendar atendimento.</p>
-                    </div>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">Seu Nome Completo</label>
-                            <input type="text" wire:model="nome" placeholder="Ex: João da Silva..."
-                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
-                            @error('nome')<span class="text-red-600 text-xs mt-1 block font-medium">{{ $message }}</span>@enderror
-                        </div>
-                        <div>
-                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">Seu E-mail Principal</label>
-                            <input type="email" wire:model="email" placeholder="Ex: joao@email.com..."
-                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
-                            @error('email')<span class="text-red-600 text-xs mt-1 block font-medium">{{ $message }}</span>@enderror
-                        </div>
-                        <div>
-                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">WhatsApp com DDD</label>
-                            <input type="tel" wire:model="telefone" placeholder="Ex: 21999998888..."
-                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
-                            @error('telefone')<span class="text-red-600 text-xs mt-1 block font-medium">{{ $message }}</span>@enderror
-                        </div>
-                        <button wire:click="converterLead" wire:loading.attr="disabled"
-                                class="w-full bg-[#F39200] hover:bg-[#E08600] active:scale-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-orange-500/20 transition-all duration-300 flex items-center justify-center gap-3 text-base tracking-wider">
-                            <span wire:loading.remove wire:target="converterLead" class="flex items-center justify-center gap-2">
-                                FALAR COM CORRETOR <span class="bg-white/20 p-1 rounded-full">💬</span>
-                            </span>
-                            <span wire:loading wire:target="converterLead" class="flex items-center gap-3">
-                                <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                </svg>
-                                Conectando…
-                            </span>
-                        </button>
-                        <p class="text-[9px] text-gray-400 text-center uppercase tracking-wider pt-1">🔐 Seus dados estão 100% protegidos conforme a LGPD.</p>
-                    </div>
-                </div>
-
                 <!-- Análise do Comprador — Gated Content -->
                 {{--
                     Equivalência arquitetural:
@@ -1268,69 +1225,6 @@ $schemaBreadcrumb = [
                         <!-- Line 5: Por Apenas: R$ ... -->
                         <p class="font-bold text-sm" style="color: #111827;">
                             <strong>Por Apenas:</strong> R$ {{ number_format($valorVenda, 2, ',', '.') }}
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Formulário de Captação de Leads Premium -->
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6">
-                    <div class="space-y-2">
-                        <span class="text-[#005CA9] text-[9px] font-black uppercase tracking-widest block">FALAR COM CORRETOR CREDENCIADO</span>
-                        <h3 class="text-2xl font-black text-gray-900 tracking-tight leading-none">
-                            Tenho Interesse!
-                        </h3>
-                        <p class="text-xs text-gray-500">Preencha seus dados para receber o dossiê detalhado e agendar atendimento.</p>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">Seu Nome Completo</label>
-                            <input type="text" wire:model="nome" placeholder="Ex: João da Silva..."
-                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
-                            @error('nome')
-                                <span class="text-red-650 text-xs mt-1 block font-medium">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">Seu E-mail Principal</label>
-                            <input type="email" wire:model="email" placeholder="Ex: joao@email.com..."
-                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
-                            @error('email')
-                                <span class="text-red-650 text-xs mt-1 block font-medium">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-gray-600 font-black text-[9px] uppercase tracking-wider mb-1.5 pl-1">WhatsApp com DDD</label>
-                            <input type="tel" wire:model="telefone" placeholder="Ex: 21999998888..."
-                                   class="w-full bg-gray-50 border border-gray-200 rounded-2xl h-12 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#005CA9] focus:border-transparent transition-all placeholder:text-gray-400">
-                            @error('telefone')
-                                <span class="text-red-650 text-xs mt-1 block font-medium">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <!-- CTA Button -->
-                        <button wire:click="converterLead"
-                                wire:loading.attr="disabled"
-                                class="w-full bg-[#F39200] hover:bg-[#E08600] active:scale-95 text-white font-black py-4.5 rounded-2xl shadow-xl shadow-orange-500/20 transition-all duration-300 flex items-center justify-center space-x-3 text-base group relative overflow-hidden tracking-wider">
-                            
-                            <span wire:loading.remove wire:target="converterLead" class="flex items-center justify-center gap-2">
-                                <span>FALAR COM CORRETOR</span>
-                                <span class="bg-white/20 p-1 rounded-full group-hover:rotate-12 transition-transform">💬</span>
-                            </span>
-
-                            <span wire:loading wire:target="converterLead" class="flex items-center space-x-3">
-                                <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                </svg>
-                                <span>Conectando…</span>
-                            </span>
-                        </button>
-
-                        <p class="text-[9px] text-gray-450 text-center uppercase tracking-wider pt-1.5">
-                            🔐 Seus dados estão 100% protegidos conforme a LGPD.
                         </p>
                     </div>
                 </div>
