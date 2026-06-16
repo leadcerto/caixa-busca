@@ -3,6 +3,10 @@ set -e
 
 cd /var/www/html
 
+mkdir -p storage/app/public storage/app/livewire-tmp
+chown -R nginx:nginx storage
+chmod -R 775 storage
+
 php artisan storage:link --force 2>/dev/null || true
 
 # Enfileira geração de conteúdo IA para bairros pendentes (sem --force = só processa quem ainda não tem)
