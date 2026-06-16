@@ -1388,14 +1388,14 @@ $schemaBreadcrumb = [
             <a href="{{ route('imovel.whatsapp-redirect', $imovel->id) }}"
                target="_blank"
                rel="noopener noreferrer"
-               class="block group rounded-3xl overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_45px_rgba(37,211,102,0.4)] hover:scale-105 active:scale-95 transition-all duration-300 ease-out w-full h-full"
+               class="block group {{ $whatsappImg ? '' : 'rounded-3xl overflow-hidden' }} shadow-[0_15px_40px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_45px_rgba(37,211,102,0.4)] hover:scale-105 active:scale-95 transition-all duration-300 ease-out w-full h-full"
                style="display: block !important; width: 100% !important; height: 100% !important;">
                 @if($whatsappImg)
-                    <!-- Botão de Imagem Personalizado da Imobiliária (Ampliado e Centrado) -->
+                    <!-- Botão de Imagem Personalizado da Imobiliária -->
                     <img src="{{ \Illuminate\Support\Facades\Storage::url($whatsappImg) }}"
                          alt="Falar com {{ $whatsappNome }}"
-                         class="transition-transform duration-300 w-full h-full"
-                         style="display: block !important; width: 100% !important; height: 100% !important; object-fit: contain !important; background: transparent !important; border: none !important;"
+                         class="transition-transform duration-300"
+                         style="display: block !important; width: 360px !important; height: 120px !important; max-width: 100% !important; object-fit: fill !important; background: transparent !important; border: none !important;"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <!-- Fallback se imagem não carregar -->
                     <div class="w-full h-full bg-[#25D366] hover:bg-[#20BA5A] text-white items-center justify-center gap-3.5 px-6 transition-all duration-300"
