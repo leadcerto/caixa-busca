@@ -294,6 +294,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
                         <div>
                             <label class="block text-slate-700 font-black text-[10px] uppercase tracking-wider mb-1.5 pl-1">Upload da Imagem do Botão (PNG Transparente)</label>
+                            <p class="text-[10px] text-slate-400 mb-2 pl-1">Apenas PNG. Tamanho ideal: <strong>360×120px</strong> (proporção 3:1). Fundo transparente ou verde #25D366. Máx 10MB.<br>A imagem substitui completamente o botão padrão do WhatsApp — desenhe o botão inteiro (fundo + ícone + texto).</p>
                             <div class="relative">
                                 <input type="file" wire:model="imagem" accept="image/png"
                                        class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-blue-50 file:text-[#005CA9] hover:file:bg-[#005CA9] hover:file:text-white transition-all cursor-pointer">
