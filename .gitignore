@@ -1,6 +1,7 @@
 *.log
 .DS_Store
 .env
+.mcp.json
 .env.backup
 .env.production
 .env.local
@@ -32,3 +33,4 @@ deploy_key_final*
 /scratch/
 /getMetricasProperty())
 /toArray())
+testsprite_tests\tmp\config.json

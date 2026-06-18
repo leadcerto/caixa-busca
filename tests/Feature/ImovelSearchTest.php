@@ -28,9 +28,12 @@ class ImovelSearchTest extends TestCase
         $estado1 = Estado::factory()->create();
         $estado2 = Estado::factory()->create();
 
+        Imovel::factory()->create(['id_estado' => $estado1->id, 'status' => 'ativo']);
+        Imovel::factory()->create(['id_estado' => $estado2->id, 'status' => 'ativo']);
+
         Livewire::test(ImovelSearch::class)
-            ->assertSet('estados', function ($estados) use ($estado1, $estado2) {
-                return $estados->contains($estado1) && $estados->contains($estado2);
+            ->assertViewHas('estados', function ($estados) use ($estado1, $estado2) {
+                return $estados->contains('id', $estado1->id) && $estados->contains('id', $estado2->id);
             });
     }
 
@@ -43,6 +46,7 @@ class ImovelSearchTest extends TestCase
         ImovelHistorico::factory()->create(['id_imovel' => $imovel2->id]);
 
         Livewire::test(ImovelSearch::class)
+            ->set('show_results', true)
             ->set('busca_numero', '8555510834062')
             ->assertViewHas('imoveis', function ($imoveis) use ($imovel1, $imovel2) {
                 return $imoveis->contains($imovel1) && !$imoveis->contains($imovel2);
@@ -64,11 +68,10 @@ class ImovelSearchTest extends TestCase
         ImovelHistorico::factory()->create(['id_imovel' => $imovel->id]);
 
         Livewire::test(ImovelSearch::class)
+            ->set('show_results', true)
             ->set('id_estado', $estado->id)
-            ->call('carregarMunicipios')
             ->assertSet('id_municipio', null)
             ->set('id_municipio', $municipio->id)
-            ->call('carregarBairros')
             ->set('bairros_selecionados', [$bairro->id])
             ->assertViewHas('imoveis', function ($imoveis) use ($imovel) {
                 return $imoveis->contains($imovel);
@@ -84,6 +87,7 @@ class ImovelSearchTest extends TestCase
         ImovelHistorico::factory()->create(['id_imovel' => $imovel2->id, 'valor_venda' => 350000.00]);
 
         Livewire::test(ImovelSearch::class)
+            ->set('show_results', true)
             ->set('preco_min', '100000')
             ->set('preco_max', '200000')
             ->assertViewHas('imoveis', function ($imoveis) use ($imovel1, $imovel2) {
@@ -100,6 +104,7 @@ class ImovelSearchTest extends TestCase
         ImovelHistorico::factory()->create(['id_imovel' => $imovel2->id]);
 
         Livewire::test(ImovelSearch::class)
+            ->set('show_results', true)
             ->set('financiamento', 'sim')
             ->assertViewHas('imoveis', function ($imoveis) use ($imovel1, $imovel2) {
                 return $imoveis->contains($imovel1) && !$imoveis->contains($imovel2);
@@ -125,6 +130,7 @@ class ImovelSearchTest extends TestCase
 
         // When ordering by discount_pct_desc, imovel2 must be first
         Livewire::test(ImovelSearch::class)
+            ->set('show_results', true)
             ->set('ordenacao', 'desconto_pct_desc')
             ->assertViewHas('imoveis', function ($imoveis) use ($imovel2) {
                 return $imoveis->first()->id === $imovel2->id;
@@ -132,6 +138,7 @@ class ImovelSearchTest extends TestCase
 
         // When ordering by discount_reais_desc, imovel2 must be first
         Livewire::test(ImovelSearch::class)
+            ->set('show_results', true)
             ->set('ordenacao', 'desconto_reais_desc')
             ->assertViewHas('imoveis', function ($imoveis) use ($imovel2) {
                 return $imoveis->first()->id === $imovel2->id;
@@ -169,11 +176,10 @@ class ImovelSearchTest extends TestCase
         Livewire::test(ImovelSearch::class)
             ->set('id_estado', $estado->id)
             ->set('id_municipio', $municipio->id)
-            ->call('carregarBairros')
-            ->assertSet('bairros', function ($bairros) use ($bairroAtivo, $bairroInativo, $bairroSemImovel) {
-                return $bairros->contains($bairroAtivo) 
-                    && !$bairros->contains($bairroInativo) 
-                    && !$bairros->contains($bairroSemImovel);
+            ->assertViewHas('bairros', function ($bairros) use ($bairroAtivo, $bairroInativo, $bairroSemImovel) {
+                return $bairros->contains('id', $bairroAtivo->id) 
+                    && !$bairros->contains('id', $bairroInativo->id) 
+                    && !$bairros->contains('id', $bairroSemImovel->id);
             });
     }
 
@@ -195,6 +201,7 @@ class ImovelSearchTest extends TestCase
         ImovelHistorico::factory()->create(['id_imovel' => $imovel3->id]);
 
         Livewire::test(ImovelSearch::class)
+            ->set('show_results', true)
             ->set('id_estado', $estado->id)
             ->set('id_municipio', $municipio->id)
             ->set('bairros_selecionados', [$bairro1->id, $bairro2->id])

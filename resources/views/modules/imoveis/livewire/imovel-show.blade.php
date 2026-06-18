@@ -17,7 +17,11 @@
     $cepFormatado = $imovel->cep ? preg_replace('/(\d{5})(\d{3})/', '$1-$2', $imovel->cep) : 'Não informado';
 
     $aceitaFgts              = ($imovel->aceita_fgts === 'sim');
-    $aceitaFinanciamentoSbpe = (bool) $imovel->aceita_financ_sbpe;
+    // aceita_financ_sbpe pode ser NULL em registros importados antes da coluna existir no banco.
+    // Nesses casos, usamos aceita_fgts como substituto (mesma fonte CSV historicamente).
+    $aceitaFinanciamentoSbpe = $imovel->aceita_financ_sbpe !== null
+        ? (bool) $imovel->aceita_financ_sbpe
+        : $aceitaFgts;
     $aceitaFinanciamentoMcmv = (bool) $imovel->aceita_financ_mcmv;
     // Financiamento = SBPE + MCMV. FGTS é modalidade de pagamento distinta.
     $aceitaFinanciamento = ($aceitaFinanciamentoSbpe || $aceitaFinanciamentoMcmv);
