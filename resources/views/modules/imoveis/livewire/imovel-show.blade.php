@@ -1404,7 +1404,7 @@ $schemaFaq = [
             <a href="{{ route('imovel.whatsapp-redirect', $imovel->id) }}"
                target="_blank"
                rel="noopener noreferrer"
-               class="block group {{ $whatsappImg ? '' : 'rounded-3xl overflow-hidden' }} shadow-[0_15px_40px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_45px_rgba(37,211,102,0.4)] hover:scale-105 active:scale-95 transition-all duration-300 ease-out w-full h-full"
+               class="block group {{ $whatsappImg ? '' : 'rounded-3xl overflow-hidden' }} shadow-none hover:shadow-[0_20px_45px_rgba(37,211,102,0.4)] hover:scale-105 active:scale-95 transition-all duration-300 ease-out w-full h-full"
                style="display: block !important; width: 100% !important; height: 100% !important;">
                 @if($whatsappImg)
                     <!-- Botão de Imagem Personalizado da Imobiliária -->
