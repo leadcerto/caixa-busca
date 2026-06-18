@@ -315,10 +315,11 @@ class CaixaCsvParserService
 
         $idGrupo = $valorAvaliacao > 0 ? $this->resolveGrupo($valorAvaliacao) : null;
 
-        // Coluna CSV "Financiamento" = aceita financiamento SBPE (crédito bancário), não FGTS.
-        // FGTS é uma modalidade de pagamento separada — lida da coluna "fgts" quando presente no CSV.
+        // Coluna CSV "Financiamento" = aceita financiamento SBPE (crédito bancário).
+        // O CSV da Caixa não tem coluna separada de FGTS. Por regra: quem aceita SBPE também aceita FGTS.
+        // A raspagem futura (scraping) vai refinar o dado de FGTS individualmente por imóvel.
         $aceitaFinancSbpe = $this->parseAceitaFgts($data['financiamento'] ?? '') === 'sim';
-        $aceitaFgts       = $this->parseAceitaFgts($data['fgts'] ?? '');
+        $aceitaFgts       = $aceitaFinancSbpe ? 'sim' : 'nao';
 
         // Dados textuais necessários para gerar SEO dentro da transação
         $nomeBairro = $location['bairro'];
