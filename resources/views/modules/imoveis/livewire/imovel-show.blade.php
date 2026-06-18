@@ -1289,7 +1289,7 @@ $schemaBreadcrumb = [
                     <img src="{{ \Illuminate\Support\Facades\Storage::url($whatsappImg) }}"
                          alt="Falar com {{ $whatsappNome }}"
                          class="transition-transform duration-300"
-                         style="display: block !important; width: 360px !important; height: 120px !important; max-width: 100% !important; object-fit: fill !important; background: transparent !important; border: none !important;"
+                         style="display: block !important; width: 100% !important; height: 100% !important; object-fit: fill !important; background: transparent !important; border: none !important;"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <!-- Fallback se imagem não carregar -->
                     <div class="w-full h-full bg-[#25D366] hover:bg-[#20BA5A] text-white items-center justify-center gap-3.5 px-6 transition-all duration-300"
