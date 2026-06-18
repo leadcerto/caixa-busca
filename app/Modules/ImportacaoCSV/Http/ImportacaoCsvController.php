@@ -40,12 +40,21 @@ class ImportacaoCsvController extends Controller
         ]);
 
         try {
-            $fileName = 'caixa_import_' . now()->format('Ymd_His') . '.csv';
-            $saved = $request->file('csvFile')->storeAs('imports', $fileName, 'local');
+            $fileName  = 'caixa_import_' . now()->format('Ymd_His') . '.csv';
+            $importsDir = storage_path('app/imports');
 
-            if (!$saved) {
-                throw new \RuntimeException('Falha ao salvar o arquivo. Verifique permissões em storage/app/imports/.');
+            if (!is_dir($importsDir)) {
+                mkdir($importsDir, 0775, true);
             }
+
+            $filePath = $importsDir . '/' . $fileName;
+            $request->file('csvFile')->move($importsDir, $fileName);
+
+            if (!file_exists($filePath)) {
+                throw new \RuntimeException("Arquivo não foi salvo em {$filePath}. Verifique permissões.");
+            }
+
+            Log::info("IMPORTACAO: Arquivo salvo em {$filePath} (" . filesize($filePath) . " bytes)");
 
             // Marca imediatamente como aguardando para o painel mostrar o status
             // antes mesmo do worker pegar o job da fila
@@ -59,9 +68,9 @@ class ImportacaoCsvController extends Controller
                 'started_at' => now()->toDateTimeString(),
             ], 1800);
 
-            ProcessCaixaCsvJob::dispatch(storage_path('app/imports/' . $fileName));
+            ProcessCaixaCsvJob::dispatch($filePath);
 
-            Log::info("IMPORTACAO: Upload realizado — {$fileName}");
+            Log::info("IMPORTACAO: Upload realizado — {$filePath}");
 
             return back()->with('importMessage', 'success|Arquivo enviado! A importação está rodando em background.');
 
