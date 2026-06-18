@@ -23,6 +23,27 @@ Route::get('/buscar', fn() => redirect()->route('imoveis.index'));
 Route::get('/bairros/{uf}/{municipio_slug}/{bairro_slug}', PaginaBairro::class)->name('bairro.show');
 
 // Busca com URL amigável — SEO + tráfego pago
+// Landing pages filtradas para campanhas (devem vir ANTES das rotas genéricas)
+Route::get('/imoveis/{estado}/{cidade}/{bairro}/financiamento',
+    [\App\Http\Controllers\BuscaImovelController::class, 'comFinanciamento'])
+    ->name('imoveis.busca.bairro.financiamento')
+    ->where(['estado' => '[a-z]{2}', 'cidade' => '[a-z0-9-]+', 'bairro' => '[a-z0-9-]+']);
+
+Route::get('/imoveis/{estado}/{cidade}/financiamento',
+    [\App\Http\Controllers\BuscaImovelController::class, 'comFinanciamento'])
+    ->name('imoveis.busca.financiamento')
+    ->where(['estado' => '[a-z]{2}', 'cidade' => '[a-z0-9-]+']);
+
+Route::get('/imoveis/{estado}/{cidade}/{bairro}/desconto-70',
+    [\App\Http\Controllers\BuscaImovelController::class, 'comDesconto70'])
+    ->name('imoveis.busca.bairro.desconto70')
+    ->where(['estado' => '[a-z]{2}', 'cidade' => '[a-z0-9-]+', 'bairro' => '[a-z0-9-]+']);
+
+Route::get('/imoveis/{estado}/{cidade}/desconto-70',
+    [\App\Http\Controllers\BuscaImovelController::class, 'comDesconto70'])
+    ->name('imoveis.busca.desconto70')
+    ->where(['estado' => '[a-z]{2}', 'cidade' => '[a-z0-9-]+']);
+
 // Sem tipo: /imoveis/{estado}/{cidade?}/{bairro?}  (estado = UF 2 letras)
 Route::get('/imoveis/{estado}/{cidade?}/{bairro?}',
     [\App\Http\Controllers\BuscaImovelController::class, 'semTipo'])
@@ -640,6 +661,44 @@ Route::get('/sitemap.xml', function () {
     $xml .= '<changefreq>daily</changefreq>';
     $xml .= '<priority>1.0</priority>';
     $xml .= '</url>';
+
+    // Páginas de estado (/imoveis/rj, /imoveis/sp, ...)
+    $ufsComImoveis = \Illuminate\Support\Facades\DB::table('imoveis')
+        ->join('estados', 'estados.id', '=', 'imoveis.id_estado')
+        ->where('imoveis.status', 'ativo')
+        ->whereNull('imoveis.deleted_at')
+        ->select('estados.uf')
+        ->distinct()
+        ->pluck('uf');
+
+    foreach ($ufsComImoveis as $uf) {
+        $xml .= '<url>';
+        $xml .= '<loc>https://venda.imoveisdacaixa.com.br/imoveis/' . e(strtolower($uf)) . '</loc>';
+        $xml .= '<changefreq>daily</changefreq>';
+        $xml .= '<priority>0.9</priority>';
+        $xml .= '</url>';
+    }
+
+    // Páginas de cidade (/imoveis/rj/niteroi, ...)
+    $municipiosComImoveis = \Illuminate\Support\Facades\DB::table('imoveis')
+        ->join('municipios', 'municipios.id', '=', 'imoveis.id_municipio')
+        ->join('estados', 'estados.id', '=', 'imoveis.id_estado')
+        ->where('imoveis.status', 'ativo')
+        ->whereNull('imoveis.deleted_at')
+        ->select('estados.uf', 'municipios.nome')
+        ->distinct()
+        ->get();
+
+    foreach ($municipiosComImoveis as $row) {
+        $uf = strtolower($row->uf);
+        $cidadeSlug = \Illuminate\Support\Str::slug($row->nome);
+        if (!$uf || !$cidadeSlug) continue;
+        $xml .= '<url>';
+        $xml .= '<loc>https://venda.imoveisdacaixa.com.br/imoveis/' . e($uf) . '/' . e($cidadeSlug) . '</loc>';
+        $xml .= '<changefreq>daily</changefreq>';
+        $xml .= '<priority>0.85</priority>';
+        $xml .= '</url>';
+    }
 
     // Bairros com conteúdo IA gerado
     foreach ($bairros as $bairro) {

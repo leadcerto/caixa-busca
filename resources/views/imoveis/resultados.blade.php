@@ -63,9 +63,22 @@
                 <span>/</span>
                 <span>{{ $bairroObj->nome }}</span>
             @endif
+            @if(($filtroEspecial ?? null) === 'financiamento')
+                <span>/</span>
+                <span>Com Financiamento</span>
+            @elseif(($filtroEspecial ?? null) === 'desconto70')
+                <span>/</span>
+                <span>70%+ Desconto</span>
+            @endif
         </nav>
         <h1 class="text-2xl font-black text-gray-900">
-            {{ $tipoObj ? ucfirst($tipoObj->nome) : 'Imóveis' }} à venda em {{ $localidade }}
+            @if(($filtroEspecial ?? null) === 'financiamento')
+                Imóveis com Financiamento em {{ $localidade }}
+            @elseif(($filtroEspecial ?? null) === 'desconto70')
+                Imóveis com 70%+ de Desconto em {{ $localidade }}
+            @else
+                {{ $tipoObj ? ucfirst($tipoObj->nome) : 'Imóveis' }} à venda em {{ $localidade }}
+            @endif
         </h1>
         <p class="text-sm text-gray-400 mt-1">
             <strong class="text-[#005CA9]">{{ number_format($imoveis->total()) }}</strong>

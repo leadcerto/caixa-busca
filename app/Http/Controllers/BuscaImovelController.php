@@ -31,12 +31,31 @@ class BuscaImovelController extends Controller
         return $this->buildResults($request, $tipo, $estado, $cidade, $bairro);
     }
 
+    public function comFinanciamento(
+        Request $request,
+        string  $estado,
+        string  $cidade,
+        ?string $bairro = null,
+    ) {
+        return $this->buildResults($request, null, $estado, $cidade, $bairro, 'financiamento');
+    }
+
+    public function comDesconto70(
+        Request $request,
+        string  $estado,
+        string  $cidade,
+        ?string $bairro = null,
+    ) {
+        return $this->buildResults($request, null, $estado, $cidade, $bairro, 'desconto70');
+    }
+
     private function buildResults(
         Request $request,
         ?string $tipo,
         string  $estado,
         ?string $cidade,
         ?string $bairro,
+        ?string $filtroEspecial = null,
     ) {
         // ── 1. Resolve entidades a partir dos slugs da URL ────────────────────
         $tipoObj = null;
@@ -97,47 +116,60 @@ class BuscaImovelController extends Controller
             $query->whereIn('imoveis.id_bairro', (array) $request->input('bairros_ids'));
         }
 
-        // ── 3. Filtros de query string ────────────────────────────────────────
-        $financiamentos = (array) $request->input('financiamento', []);
+        // ── 3. Filtros ────────────────────────────────────────────────────────
+        $financiamentos = [];
 
-        if (in_array('fgts', $financiamentos)) {
-            $query->where('imoveis.aceita_fgts', 'sim');
-        }
-        if (in_array('sbpe', $financiamentos)) {
-            $query->where('imoveis.aceita_fgts', 'sim');
-        }
-        if (in_array('mcmv', $financiamentos)) {
-            $query->where('imoveis.aceita_financ_mcmv', true);
-        }
+        if ($filtroEspecial === 'financiamento') {
+            $query->where(function ($q) {
+                $q->where('imoveis.aceita_fgts', 'sim')
+                  ->orWhere('imoveis.aceita_financ_mcmv', true);
+            });
+            $financiamentos = ['fgts'];
+        } elseif ($filtroEspecial === 'desconto70') {
+            $query->where('h.desconto_percentual', '>=', 70);
+        } else {
+            $financiamentos = (array) $request->input('financiamento', []);
 
-        if ($request->filled('quartos')) {
-            $query->where('imoveis.quartos', '>=', (int) $request->input('quartos'));
-        }
+            if (in_array('fgts', $financiamentos)) {
+                $query->where('imoveis.aceita_fgts', 'sim');
+            }
+            if (in_array('sbpe', $financiamentos)) {
+                $query->where('imoveis.aceita_fgts', 'sim');
+            }
+            if (in_array('mcmv', $financiamentos)) {
+                $query->where('imoveis.aceita_financ_mcmv', true);
+            }
 
-        if ($request->filled('preco_min')) {
-            $query->where('h.valor_venda', '>=',
-                (float) str_replace(['.', ','], ['', '.'], $request->input('preco_min'))
-            );
-        }
+            if ($request->filled('quartos')) {
+                $query->where('imoveis.quartos', '>=', (int) $request->input('quartos'));
+            }
 
-        if ($request->filled('preco_max')) {
-            $query->where('h.valor_venda', '<=',
-                (float) str_replace(['.', ','], ['', '.'], $request->input('preco_max'))
-            );
-        }
+            if ($request->filled('preco_min')) {
+                $query->where('h.valor_venda', '>=',
+                    (float) str_replace(['.', ','], ['', '.'], $request->input('preco_min'))
+                );
+            }
 
-        if ($request->filled('desconto_min')) {
-            $query->where('h.desconto_percentual', '>=', (float) $request->input('desconto_min'));
+            if ($request->filled('preco_max')) {
+                $query->where('h.valor_venda', '<=',
+                    (float) str_replace(['.', ','], ['', '.'], $request->input('preco_max'))
+                );
+            }
+
+            if ($request->filled('desconto_min')) {
+                $query->where('h.desconto_percentual', '>=', (float) $request->input('desconto_min'));
+            }
         }
 
         // ── 4. Ordenação ──────────────────────────────────────────────────────
-        $ordenar = $request->input('ordenar', 'preco_asc');
+        $defaultOrdenar = $filtroEspecial === 'desconto70' ? 'desconto_desc' : 'preco_asc';
+        $ordenar = $request->input('ordenar', $defaultOrdenar);
 
         match ($ordenar) {
-            'preco_desc'   => $query->orderBy('h.valor_venda', 'desc'),
+            'preco_desc'    => $query->orderBy('h.valor_venda', 'desc'),
             'desconto_desc' => $query->orderBy('h.desconto_percentual', 'desc'),
-            'desconto_asc' => $query->orderBy('h.desconto_percentual', 'asc'),
-            default        => $query->orderBy('h.valor_venda', 'asc'),
+            'desconto_asc'  => $query->orderBy('h.desconto_percentual', 'asc'),
+            default         => $query->orderBy('h.valor_venda', 'asc'),
         };
 
         // ── 5. Paginação — preserva query strings nos links ───────────────────
@@ -156,10 +188,18 @@ class BuscaImovelController extends Controller
             ? round($imoveis->avg(fn ($i) => $i->ultimoHistorico?->desconto_percentual ?? 0))
             : 0;
 
-        $metaTitle = ucfirst($tipoLabel) . ' à venda em ' . $localidade . ' | Imóveis da Caixa';
-        $metaDesc  = "Encontre {$tipoLabel} à venda em {$localidade}"
-            . ($descontoMedio > 0 ? " com até {$descontoMedio}% de desconto" : '')
-            . '. Financiamento FGTS e SBPE disponível.';
+        if ($filtroEspecial === 'financiamento') {
+            $metaTitle = 'Imóveis com Financiamento em ' . $localidade . ' | Imóveis da Caixa';
+            $metaDesc  = "Compre imóvel da Caixa com FGTS e financiamento em {$localidade}. Parcelas acessíveis e até 35 anos para pagar.";
+        } elseif ($filtroEspecial === 'desconto70') {
+            $metaTitle = 'Imóveis com 70%+ de Desconto em ' . $localidade . ' | Imóveis da Caixa';
+            $metaDesc  = "Imóveis da Caixa com mais de 70% de desconto em {$localidade}. As maiores oportunidades de lucro do mercado.";
+        } else {
+            $metaTitle = ucfirst($tipoLabel) . ' à venda em ' . $localidade . ' | Imóveis da Caixa';
+            $metaDesc  = "Encontre {$tipoLabel} à venda em {$localidade}"
+                . ($descontoMedio > 0 ? " com até {$descontoMedio}% de desconto" : '')
+                . '. Financiamento FGTS e SBPE disponível.';
+        }
 
         return view('imoveis.resultados', compact(
             'imoveis',
@@ -167,6 +207,7 @@ class BuscaImovelController extends Controller
             'tipo', 'estado', 'cidade', 'bairro',
             'localidade', 'financiamentos', 'ordenar',
             'metaTitle', 'metaDesc',
+            'filtroEspecial',
         ));
     }
 }
