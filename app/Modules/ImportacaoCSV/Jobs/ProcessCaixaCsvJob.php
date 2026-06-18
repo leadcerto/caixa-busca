@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Services\GooglePingService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -49,7 +50,11 @@ class ProcessCaixaCsvJob implements ShouldQueue
             Log::info("CaixaCsvJob: Processamento finalizado com sucesso.");
             GooglePingService::pingSitemap();
         } catch (\Exception $e) {
-            Log::error("CaixaCsvJob: Falha crtica: " . $e->getMessage());
+            Log::error("CaixaCsvJob: Falha crítica: " . $e->getMessage());
+            Cache::put(CaixaCsvParserService::PROGRESS_CACHE_KEY, [
+                'status' => 'error',
+                'error'  => $e->getMessage(),
+            ], 300);
             throw $e;
         }
     }

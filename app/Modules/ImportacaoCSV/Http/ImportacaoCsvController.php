@@ -22,6 +22,12 @@ class ImportacaoCsvController extends Controller
         return response()->json($progresso ?? ['status' => 'idle']);
     }
 
+    public function reset()
+    {
+        Cache::forget(CaixaCsvParserService::PROGRESS_CACHE_KEY);
+        return redirect()->route('admin.importar')->with('importMessage', 'success|Status resetado. Pode enviar um novo arquivo.');
+    }
+
     public function store(Request $request)
     {
         $request->validate([

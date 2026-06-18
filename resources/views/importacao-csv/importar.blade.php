@@ -74,6 +74,9 @@
                     </div>
 
                     <p class="mt-3 text-xs text-gray-400 text-center" x-text="'Arquivo: ' + (progresso.file ?? '')"></p>
+                    <div class="text-center mt-3">
+                        <a href="{{ route('admin.importar.reset') }}" class="text-xs text-red-400 underline hover:text-red-600">Cancelar / Resetar status</a>
+                    </div>
                 </div>
             </template>
 
