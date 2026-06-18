@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Wait for GitHub to propagate commit
+        run: sleep 15
+
       - name: Trigger Coolify redeploy
         run: |
           RESPONSE=$(curl -s -w "\n%{http_code}" \
