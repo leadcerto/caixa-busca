@@ -1405,7 +1405,7 @@ $schemaFaq = [
                target="_blank"
                rel="noopener noreferrer"
                class="block group {{ $whatsappImg ? '' : 'rounded-3xl overflow-hidden' }} hover:shadow-[0_20px_45px_rgba(37,211,102,0.4)] hover:scale-105 active:scale-95 transition-all duration-300 ease-out w-full h-full"
-               style="display: block !important; width: 100% !important; height: 100% !important; box-shadow: none !important; filter: none !important;">
+               style="display: block !important; width: 100% !important; height: 100% !important; box-shadow: none !important; filter: none !important; border: none !important; outline: none !important;">
                 @if($whatsappImg)
                     <!-- Botão de Imagem Personalizado da Imobiliária -->
                     <img src="{{ \Illuminate\Support\Facades\Storage::url($whatsappImg) }}"
