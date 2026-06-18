@@ -130,9 +130,62 @@ $schemaBreadcrumb = [
         ['@type' => 'ListItem', 'position' => 4, 'name' => "{$tipoNome} em {$bairroNome}",    'item' => url('/' . $imovel->slug)],
     ],
 ];
+$schemaFaq = [
+    '@context'   => 'https://schema.org',
+    '@type'      => 'FAQPage',
+    'mainEntity' => [
+        [
+            '@type' => 'Question',
+            'name'  => "Este {$tipoNome} aceita FGTS?",
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text'  => $aceitaFgts
+                    ? "Sim, este {$tipoNome} em {$cidadeNome}/{$uf} aceita FGTS como forma de pagamento. Você pode usar o saldo do FGTS para abater parte do valor, com pagamento mínimo de 5% do preço de venda por boleto bancário."
+                    : "Não, este {$tipoNome} em {$cidadeNome}/{$uf} não aceita FGTS como forma de pagamento. A compra deve ser realizada com recursos próprios ou financiamento.",
+            ],
+        ],
+        [
+            '@type' => 'Question',
+            'name'  => "Este {$tipoNome} aceita financiamento bancário (SBPE)?",
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text'  => $aceitaFinanciamentoSbpe
+                    ? "Sim, este {$tipoNome} aceita financiamento SBPE. Com entrada mínima de 5% por boleto, o saldo pode ser financiado via crédito imobiliário. A Caixa recomenda ter pré-aprovação de crédito antes de fazer a proposta."
+                    : "Não, este {$tipoNome} não aceita financiamento bancário. A compra deve ser feita à vista, com recursos próprios ou FGTS.",
+            ],
+        ],
+        [
+            '@type' => 'Question',
+            'name'  => "Qual é o desconto e o lucro potencial deste imóvel da Caixa?",
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text'  => $descontoPct > 0
+                    ? "Este {$tipoNome} tem " . number_format($descontoPct, 0, ',', '.') . "% de desconto sobre o valor de avaliação. O preço de venda é R$ " . number_format($valorVenda, 2, ',', '.') . " e o lucro potencial imediato é de R$ " . number_format($valorLucro, 2, ',', '.') . "."
+                    : "Consulte o valor atualizado deste {$tipoNome} na ficha completa do imóvel.",
+            ],
+        ],
+        [
+            '@type' => 'Question',
+            'name'  => "Como fazer uma proposta para comprar este imóvel da Caixa?",
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text'  => "A proposta deve ser feita no portal oficial da Caixa Econômica Federal. Após a aceitação, o pagamento mínimo de 5% do valor de venda é feito por boleto bancário em até 3 dias úteis. Se for financiado, há até 7 dias para apresentar a liberação do crédito. Recomendamos ter análise prévia de crédito aprovada antes de fazer a proposta.",
+            ],
+        ],
+        [
+            '@type' => 'Question',
+            'name'  => "Quem é responsável por IPTU, condomínio e custas de cartório?",
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text'  => "A Caixa cobre apenas as dívidas de IPTU e condomínio informadas na Proposta de Compra. Débitos posteriores, custas de cartório, despachante e eventuais despesas de desocupação são de responsabilidade do comprador.",
+            ],
+        ],
+    ],
+];
 @endphp
 <script type="application/ld+json">{!! json_encode($schemaListing,    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}</script>
 <script type="application/ld+json">{!! json_encode($schemaBreadcrumb, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}</script>
+<script type="application/ld+json">{!! json_encode($schemaFaq,        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}</script>
 @endpush
 
 <!-- Página de Apresentação de Imóvel Premium -->
