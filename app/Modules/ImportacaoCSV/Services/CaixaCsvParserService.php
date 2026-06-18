@@ -394,6 +394,8 @@ class CaixaCsvParserService
                     'valor_venda'         => $preco,
                     'desconto_percentual' => $desconto,
                     'desconto_valor'      => $valorAvaliacao - $preco,
+                    'aceita_financ_sbpe'  => $aceitaFinancSbpe,
+                    'aceita_financ_mcmv'  => false, // CSV Caixa não tem coluna MCMV
                 ]);
             }
         });

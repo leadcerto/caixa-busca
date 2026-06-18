@@ -1014,6 +1014,10 @@ $schemaFaq = [
 
                     {{-- Última atualização — sempre visível --}}
                     @if($ultimaAtualizacao)
+                        @php
+                            $uSbpe = $ultimaAtualizacao->aceita_financ_sbpe;
+                            $uFgts = $uSbpe !== null ? $uSbpe : ($imovel->aceita_fgts === 'sim');
+                        @endphp
                         <div class="p-5 rounded-2xl border border-[#005CA9]/30 bg-blue-50/40 space-y-3 text-xs">
                             <div class="flex justify-between items-center border-b border-gray-200 pb-2">
                                 <span class="font-extrabold text-[#005CA9]">✅ Última Atualização</span>
@@ -1039,6 +1043,20 @@ $schemaFaq = [
                                     <p class="font-bold text-emerald-700">R$ {{ number_format($ultimaAtualizacao->desconto_valor, 2, ',', '.') }} ({{ number_format($ultimaAtualizacao->desconto_percentual, 0) }}% OFF)</p>
                                 </div>
                             </div>
+                            <div class="grid grid-cols-3 gap-3 pt-2 border-t border-gray-200">
+                                <div class="text-center">
+                                    <p class="text-gray-500 mb-1">FGTS</p>
+                                    <span class="font-bold {{ $uFgts ? 'text-emerald-700' : 'text-red-500' }}">{{ $uFgts ? '✔ Sim' : '✘ Não' }}</span>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-gray-500 mb-1">Financ. SBPE</p>
+                                    <span class="font-bold {{ $uSbpe ? 'text-emerald-700' : 'text-red-500' }}">{{ $uSbpe ? '✔ Sim' : ($uSbpe === null ? '— N/inf.' : '✘ Não') }}</span>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-gray-500 mb-1">MCMV</p>
+                                    <span class="font-bold {{ $ultimaAtualizacao->aceita_financ_mcmv ? 'text-emerald-700' : 'text-gray-400' }}">{{ $ultimaAtualizacao->aceita_financ_mcmv ? '✔ Sim' : '✘ Não' }}</span>
+                                </div>
+                            </div>
                         </div>
                     @endif
 
@@ -1052,6 +1070,10 @@ $schemaFaq = [
 
                         <div x-show="openHistorico" x-collapse class="space-y-3 pt-1">
                             @foreach($atualizacoesAnteriores as $idx => $hist)
+                                @php
+                                    $hSbpe = $hist->aceita_financ_sbpe;
+                                    $hFgts = $hSbpe !== null ? $hSbpe : ($imovel->aceita_fgts === 'sim');
+                                @endphp
                                 <div class="p-5 rounded-2xl border border-gray-200 bg-gray-50 space-y-3 text-xs">
                                     <div class="flex justify-between items-center border-b border-gray-200 pb-2">
                                         <span class="font-extrabold text-gray-700">Atualização #{{ $totalAtualizacoes - $idx - 1 }}</span>
@@ -1075,6 +1097,20 @@ $schemaFaq = [
                                         <div>
                                             <p class="text-gray-500">Economia:</p>
                                             <p class="font-bold text-emerald-700">R$ {{ number_format($hist->desconto_valor, 2, ',', '.') }} ({{ number_format($hist->desconto_percentual, 0) }}% OFF)</p>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-3 pt-2 border-t border-gray-200">
+                                        <div class="text-center">
+                                            <p class="text-gray-500 mb-1">FGTS</p>
+                                            <span class="font-bold {{ $hFgts ? 'text-emerald-700' : 'text-red-500' }}">{{ $hFgts ? '✔ Sim' : '✘ Não' }}</span>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-gray-500 mb-1">Financ. SBPE</p>
+                                            <span class="font-bold {{ $hSbpe ? 'text-emerald-700' : 'text-red-500' }}">{{ $hSbpe ? '✔ Sim' : ($hSbpe === null ? '— N/inf.' : '✘ Não') }}</span>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-gray-500 mb-1">MCMV</p>
+                                            <span class="font-bold {{ $hist->aceita_financ_mcmv ? 'text-emerald-700' : 'text-gray-400' }}">{{ $hist->aceita_financ_mcmv ? '✔ Sim' : '✘ Não' }}</span>
                                         </div>
                                     </div>
                                 </div>
