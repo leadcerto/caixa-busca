@@ -41,6 +41,18 @@ class ImportacaoCsvController extends Controller
                 throw new \RuntimeException('Falha ao salvar o arquivo. Verifique permissões em storage/app/imports/.');
             }
 
+            // Marca imediatamente como aguardando para o painel mostrar o status
+            // antes mesmo do worker pegar o job da fila
+            Cache::put(CaixaCsvParserService::PROGRESS_CACHE_KEY, [
+                'status'     => 'processing',
+                'file'       => $request->file('csvFile')->getClientOriginalName(),
+                'total'      => 0,
+                'processed'  => 0,
+                'inserted'   => 0,
+                'skipped'    => 0,
+                'started_at' => now()->toDateTimeString(),
+            ], 1800);
+
             ProcessCaixaCsvJob::dispatch(storage_path('app/imports/' . $fileName));
 
             Log::info("IMPORTACAO: Upload realizado — {$fileName}");
