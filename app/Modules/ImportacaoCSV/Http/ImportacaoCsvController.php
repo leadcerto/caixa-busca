@@ -3,8 +3,10 @@
 namespace App\Modules\ImportacaoCSV\Http;
 
 use App\Modules\ImportacaoCSV\Jobs\ProcessCaixaCsvJob;
+use App\Modules\ImportacaoCSV\Services\CaixaCsvParserService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ImportacaoCsvController extends Controller
@@ -12,6 +14,12 @@ class ImportacaoCsvController extends Controller
     public function show()
     {
         return view('importacao-csv.importar');
+    }
+
+    public function status()
+    {
+        $progresso = Cache::get(CaixaCsvParserService::PROGRESS_CACHE_KEY);
+        return response()->json($progresso ?? ['status' => 'idle']);
     }
 
     public function store(Request $request)

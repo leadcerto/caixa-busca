@@ -388,6 +388,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/imobiliarias', \App\Modules\Admin\Livewire\GestaoImobiliarias::class)->name('imobiliarias');
     Route::get('/importar', [ImportacaoCsvController::class, 'show'])->name('importar');
     Route::post('/importar', [ImportacaoCsvController::class, 'store'])->name('importar.store');
+    Route::get('/importar/status', [ImportacaoCsvController::class, 'status'])->name('importar.status');
     Route::get('/imoveis/busca-interna', ImovelBuscaInterna::class)->name('imoveis.busca-interna');
     Route::get('/integracao-crm', IntegracaoCrm::class)->name('crm');
     Route::get('/whatsapp-templates', WhatsappTemplates::class)->name('whatsapp');
