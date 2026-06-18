@@ -150,10 +150,10 @@
                             @if($imovel->aceita_fgts === 'sim')
                                 <span class="bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">FGTS</span>
                             @endif
-                            @if($hist?->aceita_financ_sbpe)
+                            @if($imovel->aceita_financ_sbpe)
                                 <span class="bg-[#005CA9] text-white text-[9px] font-black px-2 py-0.5 rounded-full">SBPE</span>
                             @endif
-                            @if($hist?->aceita_financ_mcmv)
+                            @if($imovel->aceita_financ_mcmv)
                                 <span class="bg-violet-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">MCMV</span>
                             @endif
                         </div>
@@ -176,8 +176,8 @@
                             </div>
                         @endif
 
-                        {{-- Financiamento --}}
-                        @if($imovel->aceita_fgts === 'sim')
+                        {{-- Financiamento (SBPE ou MCMV — FGTS é conceito separado) --}}
+                        @if($imovel->aceita_financ_sbpe || $imovel->aceita_financ_mcmv)
                             <div class="h-10 rounded-xl flex items-center justify-between px-3 text-xs font-extrabold"
                                  style="background:#ECFDF5;border:1px solid #A7F3D0;color:#047857;">
                                 <span>Financiamento</span>

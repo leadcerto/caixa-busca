@@ -315,9 +315,10 @@ class CaixaCsvParserService
 
         $idGrupo = $valorAvaliacao > 0 ? $this->resolveGrupo($valorAvaliacao) : null;
 
-        // Coluna CSV "Financiamento" = aceita financiamento SBPE (banco), não FGTS.
-        // Mantemos aceita_fgts preenchido para compatibilidade com filtro de busca existente.
-        $aceitaFgts = $this->parseAceitaFgts($data['financiamento'] ?? '');
+        // Coluna CSV "Financiamento" = aceita financiamento SBPE (crédito bancário), não FGTS.
+        // FGTS é uma modalidade de pagamento separada — lida da coluna "fgts" quando presente no CSV.
+        $aceitaFinancSbpe = $this->parseAceitaFgts($data['financiamento'] ?? '') === 'sim';
+        $aceitaFgts       = $this->parseAceitaFgts($data['fgts'] ?? '');
 
         // Dados textuais necessários para gerar SEO dentro da transação
         $nomeBairro = $location['bairro'];
@@ -325,7 +326,8 @@ class CaixaCsvParserService
         DB::transaction(function () use (
             $idCaixa, $preco, $valorAvaliacao, $desconto, $data, $attrs,
             $idEstado, $idMunicipio, $idBairro, $idSubBairro,
-            $idTipoImovel, $idModalidade, $idImobiliaria, $idGrupo, $aceitaFgts,
+            $idTipoImovel, $idModalidade, $idImobiliaria, $idGrupo,
+            $aceitaFgts, $aceitaFinancSbpe,
             $nomeTipo, $nomeBairro, $nomeCidade, $uf, $link
         ) {
             // Campos fixos sempre atualizados
@@ -340,10 +342,8 @@ class CaixaCsvParserService
                 'link_edital'        => $link ?: null,
                 'foto_fachada_url'   => "https://venda-imoveis.caixa.gov.br/fotos/F" . str_pad($idCaixa, 13, '0', STR_PAD_LEFT) . "21.jpg",
                 'aceita_fgts'            => $aceitaFgts,
-                'aceita_financ_sbpe'     => ($aceitaFgts === 'sim'),
+                'aceita_financ_sbpe'     => $aceitaFinancSbpe,
                 'status'             => 'ativo',
-                // updated_at só avança — importações de CSVs antigos não regridem a data
-                'updated_at'         => DB::raw("GREATEST(COALESCE(updated_at, '1970-01-01 00:00:00'), '{$this->dataGeracao}')"),
             ];
 
             // FKs opcionais: só atualiza se foram resolvidas (não sobrescreve valores existentes com null)
@@ -362,6 +362,14 @@ class CaixaCsvParserService
                 ['numero_original' => $idCaixa],
                 array_merge($campos, $fks)
             );
+
+            // updated_at só avança — importações de CSVs antigos não regridem a data.
+            // Feito via query builder direto para evitar que Eloquent tente fazer
+            // cast do DB::raw() como datetime (o que quebra com preg_match).
+            Imovel::where('id', $imovel->id)->update([
+                'updated_at' => DB::raw("MAX(COALESCE(updated_at, '1970-01-01 00:00:00'), '{$this->dataGeracao}')"),
+            ]);
+            $imovel->refresh();
 
             // Gera slug e SEO apenas se ainda não existem (preserva URL em reimportações)
             if (!$imovel->slug) {

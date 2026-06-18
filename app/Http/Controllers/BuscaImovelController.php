@@ -121,10 +121,10 @@ class BuscaImovelController extends Controller
 
         if ($filtroEspecial === 'financiamento') {
             $query->where(function ($q) {
-                $q->where('imoveis.aceita_fgts', 'sim')
+                $q->where('imoveis.aceita_financ_sbpe', true)
                   ->orWhere('imoveis.aceita_financ_mcmv', true);
             });
-            $financiamentos = ['fgts'];
+            $financiamentos = ['sbpe'];
         } elseif ($filtroEspecial === 'desconto70') {
             $query->where('h.desconto_percentual', '>=', 70);
         } else {
@@ -134,7 +134,7 @@ class BuscaImovelController extends Controller
                 $query->where('imoveis.aceita_fgts', 'sim');
             }
             if (in_array('sbpe', $financiamentos)) {
-                $query->where('imoveis.aceita_fgts', 'sim');
+                $query->where('imoveis.aceita_financ_sbpe', true);
             }
             if (in_array('mcmv', $financiamentos)) {
                 $query->where('imoveis.aceita_financ_mcmv', true);

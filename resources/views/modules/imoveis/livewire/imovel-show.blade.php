@@ -16,15 +16,11 @@
     $tipoNome = $imovel->tipoImovel?->nome ?? 'Imóvel';
     $cepFormatado = $imovel->cep ? preg_replace('/(\d{5})(\d{3})/', '$1-$2', $imovel->cep) : 'Não informado';
 
-    $aceitaFgts = ($imovel->aceita_fgts === 'sim');
-    // CSV 'financiamento' = SBPE. Os dados estão em aceita_fgts por mapeamento histórico.
-    // SBPE: usa aceita_financ_sbpe se explícito, senão cai em aceita_fgts (que é o dado real do CSV).
-    $aceitaFinanciamentoSbpe = $imovel->aceita_financ_sbpe !== null
-        ? (bool) $imovel->aceita_financ_sbpe
-        : $aceitaFgts;
-    // MCMV: não há dado no CSV — só exibe verde se explicitamente definido no banco.
+    $aceitaFgts              = ($imovel->aceita_fgts === 'sim');
+    $aceitaFinanciamentoSbpe = (bool) $imovel->aceita_financ_sbpe;
     $aceitaFinanciamentoMcmv = (bool) $imovel->aceita_financ_mcmv;
-    $aceitaFinanciamento = ($aceitaFinanciamentoSbpe || $aceitaFinanciamentoMcmv || $aceitaFgts);
+    // Financiamento = SBPE + MCMV. FGTS é modalidade de pagamento distinta.
+    $aceitaFinanciamento = ($aceitaFinanciamentoSbpe || $aceitaFinanciamentoMcmv);
 
     // Morar calculations
     $morarRegistro = $valorAvaliacao * 0.05; 
