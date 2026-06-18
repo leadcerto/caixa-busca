@@ -261,7 +261,7 @@ $schemaBreadcrumb = [
                             </div>
                             <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 text-center col-span-2">
                                 <span class="text-[9px] uppercase font-black text-gray-500 block mb-1">Averbação dos leilões negativos</span>
-                                <span class="text-sm font-black text-emerald-600 font-extrabold">Sim (Confirmada e Averbada no RGI)</span>
+                                <span class="text-sm font-black text-emerald-700 font-extrabold">Sim (Confirmada e Averbada no RGI)</span>
                             </div>
                         </div>
 
@@ -393,7 +393,7 @@ $schemaBreadcrumb = [
                         <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm bg-emerald-50 border-emerald-200">
                             <div>
                                 <span class="font-extrabold text-sm text-emerald-700 block">Recursos Próprios: Sim</span>
-                                <span class="text-xs text-emerald-600/80">Permitido para todos os imóveis (À vista)</span>
+                                <span class="text-xs text-emerald-700">Permitido para todos os imóveis (À vista)</span>
                             </div>
                             <span class="text-xl">✅</span>
                         </div>
@@ -401,7 +401,7 @@ $schemaBreadcrumb = [
                         <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFgts ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100 opacity-80' }}">
                             <div>
                                 <span class="font-extrabold text-sm {{ $aceitaFgts ? 'text-emerald-700' : 'text-rose-700' }} block">Aceita FGTS: {{ $aceitaFgts ? 'Sim' : 'Não' }}</span>
-                                <span class="text-xs {{ $aceitaFgts ? 'text-emerald-600/80' : 'text-rose-600/80' }}">{{ $aceitaFgts ? 'Utilize o saldo acumulado' : 'Não permite FGTS' }}</span>
+                                <span class="text-xs {{ $aceitaFgts ? 'text-emerald-700' : 'text-rose-700' }}">{{ $aceitaFgts ? 'Utilize o saldo acumulado' : 'Não permite FGTS' }}</span>
                             </div>
                             <span class="text-xl">{{ $aceitaFgts ? '✅' : '❌' }}</span>
                         </div>
@@ -409,7 +409,7 @@ $schemaBreadcrumb = [
                         <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFinanciamentoMcmv ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100 opacity-80' }}">
                             <div>
                                 <span class="font-extrabold text-sm {{ $aceitaFinanciamentoMcmv ? 'text-emerald-700' : 'text-rose-700' }} block">Aceita Financiamento MCMV: {{ $aceitaFinanciamentoMcmv ? 'Sim' : 'Não' }}</span>
-                                <span class="text-xs {{ $aceitaFinanciamentoMcmv ? 'text-emerald-600/80' : 'text-rose-600/80' }}">{{ $aceitaFinanciamentoMcmv ? 'Permite taxas Minha Casa Minha Vida' : 'Não permite MCMV' }}</span>
+                                <span class="text-xs {{ $aceitaFinanciamentoMcmv ? 'text-emerald-700' : 'text-rose-700' }}">{{ $aceitaFinanciamentoMcmv ? 'Permite taxas Minha Casa Minha Vida' : 'Não permite MCMV' }}</span>
                             </div>
                             <span class="text-xl">{{ $aceitaFinanciamentoMcmv ? '✅' : '❌' }}</span>
                         </div>
@@ -417,7 +417,7 @@ $schemaBreadcrumb = [
                         <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFinanciamentoSbpe ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100 opacity-80' }}">
                             <div>
                                 <span class="font-extrabold text-sm {{ $aceitaFinanciamentoSbpe ? 'text-emerald-700' : 'text-rose-700' }} block">Aceita Financiamento SBPE: {{ $aceitaFinanciamentoSbpe ? 'Sim' : 'Não' }}</span>
-                                <span class="text-xs {{ $aceitaFinanciamentoSbpe ? 'text-emerald-600/80' : 'text-rose-600/80' }}">{{ $aceitaFinanciamentoSbpe ? 'Permite carta de crédito SBPE' : 'Não permite SBPE' }}</span>
+                                <span class="text-xs {{ $aceitaFinanciamentoSbpe ? 'text-emerald-700' : 'text-rose-700' }}">{{ $aceitaFinanciamentoSbpe ? 'Permite carta de crédito SBPE' : 'Não permite SBPE' }}</span>
                             </div>
                             <span class="text-xl">{{ $aceitaFinanciamentoSbpe ? '✅' : '❌' }}</span>
                         </div>
