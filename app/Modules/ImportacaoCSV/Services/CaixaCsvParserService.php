@@ -368,7 +368,7 @@ class CaixaCsvParserService
             // Feito via query builder direto para evitar que Eloquent tente fazer
             // cast do DB::raw() como datetime (o que quebra com preg_match).
             Imovel::where('id', $imovel->id)->update([
-                'updated_at' => DB::raw("MAX(COALESCE(updated_at, '1970-01-01 00:00:00'), '{$this->dataGeracao}')"),
+                'updated_at' => DB::raw("GREATEST(COALESCE(updated_at, '1970-01-01 00:00:00'), '{$this->dataGeracao}')"),
             ]);
             $imovel->refresh();
 
