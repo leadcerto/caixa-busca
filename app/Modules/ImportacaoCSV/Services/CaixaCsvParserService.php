@@ -379,27 +379,22 @@ class CaixaCsvParserService
                 ));
             }
 
-            // Registra no histórico: uma entrada por data de referência, somente se o preço difere
+            // Registra no histórico: uma entrada por data de referência do CSV.
+            // Sempre cria — mesmo sem mudança de preço — para provar que o imóvel foi verificado.
             $historicoNestaData = ImovelHistorico::where('id_imovel', $imovel->id)
                 ->where('data_referencia', $this->dataGeracao)
                 ->first();
 
             if (!$historicoNestaData) {
-                $ultimoHistorico = ImovelHistorico::where('id_imovel', $imovel->id)
-                    ->orderBy('data_referencia', 'desc')
-                    ->first();
-
-                if (!$ultimoHistorico || (float) $ultimoHistorico->valor_venda !== $preco) {
-                    ImovelHistorico::create([
-                        'id_imovel'           => $imovel->id,
-                        'id_modalidade'       => $idModalidade,
-                        'data_referencia'     => $this->dataGeracao,
-                        'valor_avaliacao'     => $valorAvaliacao,
-                        'valor_venda'         => $preco,
-                        'desconto_percentual' => $desconto,
-                        'desconto_valor'      => $valorAvaliacao - $preco,
-                    ]);
-                }
+                ImovelHistorico::create([
+                    'id_imovel'           => $imovel->id,
+                    'id_modalidade'       => $idModalidade,
+                    'data_referencia'     => $this->dataGeracao,
+                    'valor_avaliacao'     => $valorAvaliacao,
+                    'valor_venda'         => $preco,
+                    'desconto_percentual' => $desconto,
+                    'desconto_valor'      => $valorAvaliacao - $preco,
+                ]);
             }
         });
     }

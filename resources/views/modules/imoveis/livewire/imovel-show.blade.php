@@ -994,36 +994,73 @@ $schemaFaq = [
                     </div>
                 </div>
 
-                <!-- Histórico de Atualizações de Valores (Todos começam 100% FECHADOS!) -->
+                <!-- Histórico de Atualizações -->
+                @php
+                    $todoHistorico = $imovel->historico->sortByDesc('data_referencia')->values();
+                    $ultimaAtualizacao = $todoHistorico->first();
+                    $atualizacoesAnteriores = $todoHistorico->skip(1)->values();
+                    $totalAtualizacoes = $todoHistorico->count();
+                @endphp
                 <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg border border-gray-100 space-y-6"
                      x-data="{ openHistorico: false }">
                     <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
                         <span class="bg-[#005CA9] w-2.5 h-6 mr-3 rounded-full"></span>
                         📅 Histórico de Atualizações
                     </h2>
-                    
+
                     <p class="text-xs font-black text-[#005CA9] tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
                     </p>
 
-                    <button @click="openHistorico = !openHistorico"
-                            class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-850 text-sm rounded-2xl border border-gray-200">
-                        <span>Visualizar Lista Completa de Atualizações</span>
-                        <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openHistorico ? 'rotate-180' : ''">▼</span>
-                    </button>
+                    {{-- Última atualização — sempre visível --}}
+                    @if($ultimaAtualizacao)
+                        <div class="p-5 rounded-2xl border border-[#005CA9]/30 bg-blue-50/40 space-y-3 text-xs">
+                            <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                                <span class="font-extrabold text-[#005CA9]">✅ Última Atualização</span>
+                                <span class="text-gray-500">{{ $ultimaAtualizacao->data_referencia->format('d/m/Y') }}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-gray-500">Modalidade:</p>
+                                    <p class="font-bold text-gray-900">{{ $ultimaAtualizacao->modalidade?->nome ?? 'Venda Direta Online' }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500">Avaliação CAIXA:</p>
+                                    <p class="font-bold text-gray-900">R$ {{ number_format($ultimaAtualizacao->valor_avaliacao, 2, ',', '.') }}</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 pt-1">
+                                <div>
+                                    <p class="text-gray-500">Preço de Venda:</p>
+                                    <p class="font-bold text-[#005CA9]">R$ {{ number_format($ultimaAtualizacao->valor_venda, 2, ',', '.') }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500">Economia:</p>
+                                    <p class="font-bold text-emerald-700">R$ {{ number_format($ultimaAtualizacao->desconto_valor, 2, ',', '.') }} ({{ number_format($ultimaAtualizacao->desconto_percentual, 0) }}% OFF)</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
-                    <div x-show="openHistorico" x-collapse class="space-y-4 pt-2">
-                        @if($imovel->historico->isNotEmpty())
-                            @foreach($imovel->historico as $idx => $hist)
+                    {{-- Histórico anterior — colapsável --}}
+                    @if($atualizacoesAnteriores->isNotEmpty())
+                        <button @click="openHistorico = !openHistorico"
+                                class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100/80 text-left transition font-bold text-gray-800 text-sm rounded-2xl border border-gray-200">
+                            <span>Ver histórico completo ({{ $atualizacoesAnteriores->count() }} atualização{{ $atualizacoesAnteriores->count() > 1 ? 'ões anteriores' : ' anterior' }})</span>
+                            <span class="text-[#005CA9] text-xs transition-transform duration-300" :class="openHistorico ? 'rotate-180' : ''">▼</span>
+                        </button>
+
+                        <div x-show="openHistorico" x-collapse class="space-y-3 pt-1">
+                            @foreach($atualizacoesAnteriores as $idx => $hist)
                                 <div class="p-5 rounded-2xl border border-gray-200 bg-gray-50 space-y-3 text-xs">
                                     <div class="flex justify-between items-center border-b border-gray-200 pb-2">
-                                        <span class="font-extrabold text-gray-900">Atualização #{{ $idx + 1 }}</span>
-                                        <span class="text-gray-500">Data: {{ $hist->created_at->format('d/m/Y') }}</span>
+                                        <span class="font-extrabold text-gray-700">Atualização #{{ $totalAtualizacoes - $idx - 1 }}</span>
+                                        <span class="text-gray-500">{{ $hist->data_referencia->format('d/m/Y') }}</span>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
                                             <p class="text-gray-500">Modalidade:</p>
-                                            <p class="font-bold text-gray-900">{{ $hist->modalidade?->nome ?? 'Venda Direta Especial' }}</p>
+                                            <p class="font-bold text-gray-900">{{ $hist->modalidade?->nome ?? 'Venda Direta Online' }}</p>
                                         </div>
                                         <div>
                                             <p class="text-gray-500">Avaliação CAIXA:</p>
@@ -1037,17 +1074,13 @@ $schemaFaq = [
                                         </div>
                                         <div>
                                             <p class="text-gray-500">Economia:</p>
-                                            <p class="font-bold text-emerald-605 font-extrabold text-emerald-650">R$ {{ number_format($hist->desconto_valor, 2, ',', '.') }} ({{ number_format($hist->desconto_percentual, 0) }}% OFF)</p>
+                                            <p class="font-bold text-emerald-700">R$ {{ number_format($hist->desconto_valor, 2, ',', '.') }} ({{ number_format($hist->desconto_percentual, 0) }}% OFF)</p>
                                         </div>
                                     </div>
                                 </div>
                             @endforeach
-                        @else
-                            <div class="p-5 rounded-2xl border border-gray-200 bg-gray-50 text-center text-gray-500 text-xs">
-                                Nenhuma alteração anterior de preço registrada. Valor atualizado e estável.
-                            </div>
-                        @endif
-                    </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Imobiliária Credenciada Responsável pelo Atendimento -->
