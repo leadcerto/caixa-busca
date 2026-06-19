@@ -204,9 +204,7 @@ class ImovelShow extends Component
         $descontoValor = $this->imovel->ultimoHistorico?->desconto_valor ?? 0;
         $descontoFmt   = 'R$ ' . number_format($descontoValor, 2, ',', '.');
 
-        $metaTitle = $descontoValor > 0
-            ? "Lucro imediato de {$descontoFmt} | Saiba Mais"
-            : "{$tipo} em {$municipio} | Imóveis da Caixa";
+        $metaTitle = "{$tipo} à venda em {$bairro}, {$municipio} - {$uf} | Imóveis da Caixa";
 
         $metaDesc = "{$tipo} à venda em {$bairro}, {$municipio} - {$uf}"
             . ($descontoValor > 0 ? " com desconto de {$descontoFmt}" : '')
