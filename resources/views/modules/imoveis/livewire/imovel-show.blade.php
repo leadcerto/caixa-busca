@@ -198,13 +198,10 @@ $schemaFaq = [
 
     <!-- Hero Header Banner Section -->
     <div class="py-8 px-6 text-center text-white relative overflow-hidden border-b border-gray-100 shadow-md" style="background-color: #005CA9;">
-        <div class="max-w-3xl mx-auto space-y-3 relative z-10">
+        <div class="max-w-3xl mx-auto relative z-10">
             <h1 class="text-base md:text-lg font-bold tracking-tight leading-snug text-white">
                 {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
             </h1>
-            <p class="text-lg md:text-2xl text-white font-black max-w-2xl mx-auto">
-                Lucro imediato de <span class="text-yellow-300 underline decoration-wavy decoration-orange-400">R$ {{ number_format($valorLucro, 2, ',', '.') }}</span>
-            </p>
         </div>
     </div>
 
