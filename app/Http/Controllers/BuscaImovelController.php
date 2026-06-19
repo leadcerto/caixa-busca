@@ -8,6 +8,8 @@ use App\Models\Imovel;
 use App\Models\Municipio;
 use App\Models\TipoImovel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class BuscaImovelController extends Controller
@@ -57,49 +59,49 @@ class BuscaImovelController extends Controller
         ?string $bairro,
         ?string $filtroEspecial = null,
     ) {
-        // ── 1. Resolve entidades a partir dos slugs da URL ────────────────────
+        // ── 1. Resolve entidades a partir dos slugs da URL (com cache 1h) ────
         $tipoObj = null;
         if ($tipo) {
-            $tipoObj = TipoImovel::where('ativo', true)
-                ->get(['id', 'nome'])
-                ->first(fn ($t) => Str::slug($t->nome) === $tipo);
-
+            $tipos = collect(Cache::remember('dropdown_tipos_imoveis', 86400, fn () =>
+                TipoImovel::where('ativo', true)->get(['id', 'nome'])->toArray()
+            ))->map(fn ($t) => (object) $t);
+            $tipoObj = $tipos->first(fn ($t) => Str::slug($t->nome) === $tipo);
             if (! $tipoObj) abort(404);
         }
 
-        $estadoObj = Estado::where('uf', strtoupper($estado))->first();
-        if (! $estadoObj) abort(404);
+        $estadoObj = (object) (Cache::remember("estado_uf_{$estado}", 86400, fn () =>
+            Estado::where('uf', strtoupper($estado))->first()?->toArray()
+        ) ?? abort(404));
 
         $municipioObj = null;
         if ($cidade) {
-            $municipioObj = Municipio::where('id_estado', $estadoObj->id)
-                ->get(['id', 'nome'])
-                ->first(fn ($m) => Str::slug($m->nome) === $cidade);
-
+            $municipios = collect(Cache::remember("municipios_estado_{$estadoObj->id}", 3600, fn () =>
+                Municipio::where('id_estado', $estadoObj->id)->get(['id', 'nome'])->toArray()
+            ))->map(fn ($m) => (object) $m);
+            $municipioObj = $municipios->first(fn ($m) => Str::slug($m->nome) === $cidade);
             if (! $municipioObj) abort(404);
         }
 
         $bairroObj = null;
         if ($bairro && $municipioObj) {
-            $bairroObj = Bairro::where('id_municipio', $municipioObj->id)
-                ->get(['id', 'nome'])
-                ->first(fn ($b) => Str::slug($b->nome) === $bairro);
-
+            $bairros = collect(Cache::remember("bairros_municipio_{$municipioObj->id}", 3600, fn () =>
+                Bairro::where('id_municipio', $municipioObj->id)->get(['id', 'nome'])->toArray()
+            ))->map(fn ($b) => (object) $b);
+            $bairroObj = $bairros->first(fn ($b) => Str::slug($b->nome) === $bairro);
             if (! $bairroObj) abort(404);
         }
 
         // ── 2. Monta query base com JOIN no último histórico ──────────────────
         $query = Imovel::query()
             ->select('imoveis.*')
-            ->join('imoveis_historico as h', function ($join) {
-                $join->on('h.id_imovel', '=', 'imoveis.id')
-                    ->whereRaw('h.id = (
-                        SELECT id FROM imoveis_historico
-                        WHERE id_imovel = imoveis.id
-                        ORDER BY created_at DESC, id DESC
-                        LIMIT 1
-                    )');
-            })
+            ->joinSub(
+                DB::table('imoveis_historico')
+                    ->select('id_imovel', DB::raw('MAX(id) as latest_id'))
+                    ->groupBy('id_imovel'),
+                'latest_ids',
+                'latest_ids.id_imovel', '=', 'imoveis.id'
+            )
+            ->join('imoveis_historico as h', 'h.id', '=', 'latest_ids.latest_id')
             ->where('imoveis.status', 'ativo')
             ->where('imoveis.id_estado', $estadoObj->id)
             ->with(['municipio', 'bairro', 'ultimoHistorico', 'tipoImovel']);

@@ -8,6 +8,7 @@ use App\Models\Imovel;
 use App\Models\Municipio;
 use App\Models\TipoImovel;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -177,19 +178,25 @@ class ImovelSearch extends Component
 
         $municipios = collect([]);
         if ($this->id_estado) {
-            $municipios = Municipio::where('id_estado', $this->id_estado)
-                ->orderBy('nome')
-                ->selectRaw('id, UPPER(nome) as nome')
-                ->get();
+            $municipios = collect(Cache::remember("municipios_estado_{$this->id_estado}", 3600, fn () =>
+                Municipio::where('id_estado', $this->id_estado)
+                    ->orderBy('nome')
+                    ->selectRaw('id, UPPER(nome) as nome')
+                    ->get()
+                    ->toArray()
+            ))->map(fn ($e) => (object) $e)->values();
         }
 
         $bairros = collect([]);
         if ($this->id_municipio) {
-            $bairros = Bairro::where('id_municipio', $this->id_municipio)
-                ->whereHas('imoveis', fn ($q) => $q->where('status', 'ativo'))
-                ->orderBy('nome')
-                ->selectRaw('id, UPPER(nome) as nome')
-                ->get();
+            $bairros = collect(Cache::remember("bairros_municipio_{$this->id_municipio}", 3600, fn () =>
+                Bairro::where('id_municipio', $this->id_municipio)
+                    ->whereHas('imoveis', fn ($q) => $q->where('status', 'ativo'))
+                    ->orderBy('nome')
+                    ->selectRaw('id, UPPER(nome) as nome')
+                    ->get()
+                    ->toArray()
+            ))->map(fn ($e) => (object) $e)->values();
         }
 
         $imoveis = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12, 1);
@@ -197,15 +204,14 @@ class ImovelSearch extends Component
         if ($this->show_results) {
             $query = Imovel::query()
                 ->select('imoveis.*')
-                ->join('imoveis_historico as latest_h', function ($join) {
-                    $join->on('latest_h.id_imovel', '=', 'imoveis.id')
-                        ->whereRaw('latest_h.id = (
-                            SELECT id FROM imoveis_historico
-                            WHERE id_imovel = imoveis.id
-                            ORDER BY created_at DESC, id DESC
-                            LIMIT 1
-                        )');
-                })
+                ->joinSub(
+                    DB::table('imoveis_historico')
+                        ->select('id_imovel', DB::raw('MAX(id) as latest_id'))
+                        ->groupBy('id_imovel'),
+                    'latest_ids',
+                    'latest_ids.id_imovel', '=', 'imoveis.id'
+                )
+                ->join('imoveis_historico as latest_h', 'latest_h.id', '=', 'latest_ids.latest_id')
                 ->where('imoveis.status', 'ativo');
 
             if ($this->busca_numero) {
