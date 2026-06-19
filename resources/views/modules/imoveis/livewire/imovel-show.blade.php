@@ -631,7 +631,7 @@ $schemaFaq = [
                                 <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl space-y-3">
                                     <h5 class="font-extrabold text-[#005CA9] text-[10px] uppercase">📌 COMPRA FINANCIADA (caso este imóvel aceite financiamento):</h5>
                                     <p class="text-gray-700"><strong>FINANCIAMENTO:</strong> Se este imóvel estivesse sendo vendido no mercado comum você teria que dar uma entrada de <strong class="text-gray-900">R$ {{ number_format($entradaNormal, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 20% entrada tradicional) mas como é um imóvel da Caixa, o valor de entrada fica em apenas <strong class="text-emerald-700 font-bold">R$ {{ number_format($entradaCaixa, 2, ',', '.') }}</strong> (R$ {{ number_format($valorVenda, 2, ',', '.') }} x 5% entrada Caixa). É uma redução de entrada de <strong class="text-emerald-700 font-black">R$ {{ number_format($reducaoEntrada, 2, ',', '.') }}</strong>!</p>
-                                    <p class="text-gray-700">No Financiamento tradicional você pagaria uma prestação de <strong class="text-gray-400 line-through">R$ {{ number_format($prestacaoTradicional, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 0.8%); Mas por ser um Imóvel da Caixa você vai pagar uma prestação no valor de <strong class="text-emerald-700 font-bold">R$ {{ number_format($prestacaoCaixa, 2, ',', '.') }} /mês</strong> (R$ {{ number_format($valorVenda, 2, ',', '.') }} x 0.8% da prestação).</p>
+                                    <p class="text-gray-700">No Financiamento tradicional você pagaria uma prestação de <strong class="text-gray-600 line-through">R$ {{ number_format($prestacaoTradicional, 2, ',', '.') }}</strong> (R$ {{ number_format($valorAvaliacao, 2, ',', '.') }} x 0.8%); Mas por ser um Imóvel da Caixa você vai pagar uma prestação no valor de <strong class="text-emerald-700 font-bold">R$ {{ number_format($prestacaoCaixa, 2, ',', '.') }} /mês</strong> (R$ {{ number_format($valorVenda, 2, ',', '.') }} x 0.8% da prestação).</p>
                                 </div>
                                 @endif
                             </div>
@@ -1046,11 +1046,11 @@ $schemaFaq = [
                             <div class="grid grid-cols-3 gap-3 pt-2 border-t border-gray-200">
                                 <div class="text-center">
                                     <p class="text-gray-700 mb-1">FGTS</p>
-                                    <span class="font-bold {{ $uFgts ? 'text-emerald-700' : 'text-red-500' }}">{{ $uFgts ? '✔ Sim' : '✘ Não' }}</span>
+                                    <span class="font-bold {{ $uFgts ? 'text-emerald-700' : 'text-red-700' }}">{{ $uFgts ? '✔ Sim' : '✘ Não' }}</span>
                                 </div>
                                 <div class="text-center">
                                     <p class="text-gray-700 mb-1">Financ. SBPE</p>
-                                    <span class="font-bold {{ $uSbpe ? 'text-emerald-700' : 'text-red-500' }}">{{ $uSbpe ? '✔ Sim' : ($uSbpe === null ? '— N/inf.' : '✘ Não') }}</span>
+                                    <span class="font-bold {{ $uSbpe ? 'text-emerald-700' : 'text-red-700' }}">{{ $uSbpe ? '✔ Sim' : ($uSbpe === null ? '— N/inf.' : '✘ Não') }}</span>
                                 </div>
                                 <div class="text-center">
                                     <p class="text-gray-700 mb-1">MCMV</p>
@@ -1102,11 +1102,11 @@ $schemaFaq = [
                                     <div class="grid grid-cols-3 gap-3 pt-2 border-t border-gray-200">
                                         <div class="text-center">
                                             <p class="text-gray-700 mb-1">FGTS</p>
-                                            <span class="font-bold {{ $hFgts ? 'text-emerald-700' : 'text-red-500' }}">{{ $hFgts ? '✔ Sim' : '✘ Não' }}</span>
+                                            <span class="font-bold {{ $hFgts ? 'text-emerald-700' : 'text-red-700' }}">{{ $hFgts ? '✔ Sim' : '✘ Não' }}</span>
                                         </div>
                                         <div class="text-center">
                                             <p class="text-gray-700 mb-1">Financ. SBPE</p>
-                                            <span class="font-bold {{ $hSbpe ? 'text-emerald-700' : 'text-red-500' }}">{{ $hSbpe ? '✔ Sim' : ($hSbpe === null ? '— N/inf.' : '✘ Não') }}</span>
+                                            <span class="font-bold {{ $hSbpe ? 'text-emerald-700' : 'text-red-700' }}">{{ $hSbpe ? '✔ Sim' : ($hSbpe === null ? '— N/inf.' : '✘ Não') }}</span>
                                         </div>
                                         <div class="text-center">
                                             <p class="text-gray-700 mb-1">MCMV</p>
