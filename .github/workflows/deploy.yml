@@ -15,24 +15,35 @@ jobs:
 
     steps:
       - name: Wait for GitHub to propagate commit
-        run: sleep 15
+        run: sleep 30
 
-      - name: Trigger Coolify redeploy
+      - name: Trigger Coolify redeploy (with retry)
         run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
-            -X GET \
-            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
-            "http://148.230.74.237:8000/api/v1/deploy?uuid=qvwxmlvmu1zlwzcclxp2e8bu&force=true")
+          EXPECTED_SHA="${{ github.sha }}"
+          echo "SHA esperado: $EXPECTED_SHA"
 
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | head -1)
+          for ATTEMPT in 1 2 3; do
+            echo "Tentativa $ATTEMPT..."
 
-          echo "HTTP Status: $HTTP_CODE"
-          echo "Response: $BODY"
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -X GET \
+              -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
+              "http://148.230.74.237:8000/api/v1/deploy?uuid=qvwxmlvmu1zlwzcclxp2e8bu&force=true")
 
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "❌ Deploy falhou com status $HTTP_CODE"
-            exit 1
-          fi
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | head -1)
 
-          echo "✅ Deploy disparado no Coolify!"
+            echo "HTTP Status: $HTTP_CODE"
+            echo "Response: $BODY"
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Deploy disparado no Coolify! (tentativa $ATTEMPT)"
+              exit 0
+            fi
+
+            echo "⚠️ Status $HTTP_CODE — aguardando 15s antes de tentar novamente..."
+            sleep 15
+          done
+
+          echo "❌ Deploy falhou após 3 tentativas"
+          exit 1
