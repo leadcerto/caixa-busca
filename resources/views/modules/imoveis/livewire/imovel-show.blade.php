@@ -197,12 +197,10 @@ $schemaFaq = [
      x-data="{ activeTab: null }">
 
     <!-- Hero Header Banner Section -->
-    <div class="py-8 px-6 text-center text-white relative overflow-hidden border-b border-gray-100 shadow-md" style="background-color: #005CA9;">
-        <div class="max-w-3xl mx-auto relative z-10">
-            <h1 class="text-base md:text-lg font-bold tracking-tight leading-snug text-white">
-                {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
-            </h1>
-        </div>
+    <div class="py-2 px-4 text-center text-white relative overflow-hidden border-b border-gray-100 shadow-md" style="background-color: #005CA9;">
+        <h1 class="text-sm font-semibold leading-none text-white whitespace-nowrap overflow-hidden text-ellipsis">
+            {{ $tipoNome }} à venda em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
+        </h1>
     </div>
 
     <!-- Main Content Container -->
