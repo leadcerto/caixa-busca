@@ -503,7 +503,7 @@ $schemaFaq = [
                         Hoje este Imóvel da Caixa está avaliado pela equipe técnica da CAIXA pelo preço de mercado de <strong class="text-gray-900">R$ {{ number_format($valorAvaliacao, 2, ',', '.') }}</strong> e está sendo vendido hoje pelo valor de <strong class="text-gray-900">R$ {{ number_format($valorVenda, 2, ',', '.') }}</strong> o que é uma <strong class="text-emerald-700 font-extrabold">grande oportunidade</strong> para o comprador que vai economizar o valor de <strong class="text-emerald-650 font-black">R$ {{ number_format($valorLucro, 2, ',', '.') }}</strong>. Este percentual de <strong class="text-red-600 font-black">{{ number_format($descontoPct, 0) }}%</strong> de desconto na compra deste imóvel só é possível, porque <strong class="text-orange-700">ESTE IMÓVEL NÃO ESTÁ EM LEILÃO</strong>, este imóvel está sendo vendido hoje nas modalidades de venda da CAIXA e por isso o banco consegue oferecer descontos que não seriam possíveis caso este imóvel ainda estivesse “preso” à Lei de Alienação Fiduciária.
                     </p>
                     
-                    <p class="text-xs text-orange-700 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                    <p class="text-xs text-orange-700 font-black uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
                     </p>
 
@@ -707,7 +707,7 @@ $schemaFaq = [
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
                     </p>
 
-                    <p class="text-xs text-orange-700 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                    <p class="text-xs text-orange-700 font-black uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
                     </p>
 
@@ -860,7 +860,7 @@ $schemaFaq = [
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
                     </p>
 
-                    <p class="text-xs text-orange-700 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                    <p class="text-xs text-orange-700 font-black uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
                     </p>
 
@@ -962,7 +962,7 @@ $schemaFaq = [
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
                     </p>
 
-                    <p class="text-xs text-orange-700 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                    <p class="text-xs text-orange-700 font-black uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
                     </p>
 
