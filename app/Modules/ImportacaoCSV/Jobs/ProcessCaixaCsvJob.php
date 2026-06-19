@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Services\GooglePingService;
+use App\Services\IndexNowService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -48,7 +48,7 @@ class ProcessCaixaCsvJob implements ShouldQueue
         try {
             $service->process($this->filePath);
             Log::info("CaixaCsvJob: Processamento finalizado com sucesso.");
-            GooglePingService::pingSitemap();
+            IndexNowService::submitUrls($service->getUpdatedUrls());
         } catch (\Exception $e) {
             Log::error("CaixaCsvJob: Falha crítica: " . $e->getMessage());
             Cache::put(CaixaCsvParserService::PROGRESS_CACHE_KEY, [

@@ -74,6 +74,14 @@ class CaixaCsvParserService
     // Grupos carregados uma única vez no início do processo
     private array $grupos = [];
 
+    // URLs dos imóveis processados com sucesso (para IndexNow)
+    private array $updatedUrls = [];
+
+    public function getUpdatedUrls(): array
+    {
+        return $this->updatedUrls;
+    }
+
     /**
      * Chave de cache usada para expor o progresso em tempo real ao dashboard.
      */
@@ -397,6 +405,10 @@ class CaixaCsvParserService
                     'aceita_financ_sbpe'  => $aceitaFinancSbpe,
                     'aceita_financ_mcmv'  => false, // CSV Caixa não tem coluna MCMV
                 ]);
+            }
+
+            if ($imovel->slug) {
+                $this->updatedUrls[] = 'https://venda.imoveisdacaixa.com.br/' . $imovel->slug;
             }
         });
     }
