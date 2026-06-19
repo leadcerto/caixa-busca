@@ -249,7 +249,7 @@ $schemaFaq = [
                     <p class="font-bold text-sm" style="color: #111827;">
                         <strong>Por Apenas:</strong> R$ {{ number_format($valorVenda, 2, ',', '.') }}
                     </p>
-                    <p class="font-bold text-sm pt-1" style="color: #6B7280;">
+                    <p class="font-bold text-sm pt-1" style="color: #4B5563;">
                         ({{ number_format($descontoPct, 0) }}% OFF) por tempo limitado!
                     </p>
                 </div>
@@ -451,26 +451,26 @@ $schemaFaq = [
                             <span class="text-xl">✅</span>
                         </div>
 
-                        <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFgts ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100 opacity-80' }}">
+                        <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFgts ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100' }}">
                             <div>
-                                <span class="font-extrabold text-sm {{ $aceitaFgts ? 'text-emerald-700' : 'text-rose-700' }} block">Aceita FGTS: {{ $aceitaFgts ? 'Sim' : 'Não' }}</span>
-                                <span class="text-xs {{ $aceitaFgts ? 'text-emerald-700' : 'text-rose-700' }}">{{ $aceitaFgts ? 'Utilize o saldo acumulado' : 'Não permite FGTS' }}</span>
+                                <span class="font-extrabold text-sm {{ $aceitaFgts ? 'text-emerald-700' : 'text-rose-800' }} block">Aceita FGTS: {{ $aceitaFgts ? 'Sim' : 'Não' }}</span>
+                                <span class="text-xs {{ $aceitaFgts ? 'text-emerald-700' : 'text-rose-800' }}">{{ $aceitaFgts ? 'Utilize o saldo acumulado' : 'Não permite FGTS' }}</span>
                             </div>
                             <span class="text-xl">{{ $aceitaFgts ? '✅' : '❌' }}</span>
                         </div>
 
-                        <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFinanciamentoMcmv ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100 opacity-80' }}">
+                        <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFinanciamentoMcmv ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100' }}">
                             <div>
-                                <span class="font-extrabold text-sm {{ $aceitaFinanciamentoMcmv ? 'text-emerald-700' : 'text-rose-700' }} block">Aceita Financiamento MCMV: {{ $aceitaFinanciamentoMcmv ? 'Sim' : 'Não' }}</span>
-                                <span class="text-xs {{ $aceitaFinanciamentoMcmv ? 'text-emerald-700' : 'text-rose-700' }}">{{ $aceitaFinanciamentoMcmv ? 'Permite taxas Minha Casa Minha Vida' : 'Não permite MCMV' }}</span>
+                                <span class="font-extrabold text-sm {{ $aceitaFinanciamentoMcmv ? 'text-emerald-700' : 'text-rose-800' }} block">Aceita Financiamento MCMV: {{ $aceitaFinanciamentoMcmv ? 'Sim' : 'Não' }}</span>
+                                <span class="text-xs {{ $aceitaFinanciamentoMcmv ? 'text-emerald-700' : 'text-rose-800' }}">{{ $aceitaFinanciamentoMcmv ? 'Permite taxas Minha Casa Minha Vida' : 'Não permite MCMV' }}</span>
                             </div>
                             <span class="text-xl">{{ $aceitaFinanciamentoMcmv ? '✅' : '❌' }}</span>
                         </div>
 
-                        <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFinanciamentoSbpe ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100 opacity-80' }}">
+                        <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm {{ $aceitaFinanciamentoSbpe ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-100' }}">
                             <div>
-                                <span class="font-extrabold text-sm {{ $aceitaFinanciamentoSbpe ? 'text-emerald-700' : 'text-rose-700' }} block">Aceita Financiamento SBPE: {{ $aceitaFinanciamentoSbpe ? 'Sim' : 'Não' }}</span>
-                                <span class="text-xs {{ $aceitaFinanciamentoSbpe ? 'text-emerald-700' : 'text-rose-700' }}">{{ $aceitaFinanciamentoSbpe ? 'Permite carta de crédito SBPE' : 'Não permite SBPE' }}</span>
+                                <span class="font-extrabold text-sm {{ $aceitaFinanciamentoSbpe ? 'text-emerald-700' : 'text-rose-800' }} block">Aceita Financiamento SBPE: {{ $aceitaFinanciamentoSbpe ? 'Sim' : 'Não' }}</span>
+                                <span class="text-xs {{ $aceitaFinanciamentoSbpe ? 'text-emerald-700' : 'text-rose-800' }}">{{ $aceitaFinanciamentoSbpe ? 'Permite carta de crédito SBPE' : 'Não permite SBPE' }}</span>
                             </div>
                             <span class="text-xl">{{ $aceitaFinanciamentoSbpe ? '✅' : '❌' }}</span>
                         </div>
@@ -483,7 +483,7 @@ $schemaFaq = [
                             <li><strong>Condomínio:</strong> Sob responsabilidade do comprador, até o limite de 10% em relação ao valor de avaliação do imóvel. A CAIXA realizará o pagamento apenas do valor que exceder o limite de 10% do valor de avaliação.</li>
                             <li><strong>Tributos (IPTU/Taxas):</strong> Sob responsabilidade do comprador a partir da data de assinatura.</li>
                         </ul>
-                        <p class="font-semibold text-orange-600">Existe área não averbada (caso informada na descrição original).</p>
+                        <p class="font-semibold text-orange-700">Existe área não averbada (caso informada na descrição original).</p>
                     </div>
                 </div>
 
@@ -495,15 +495,15 @@ $schemaFaq = [
                         📈 Análise da Oportunidade
                     </h2>
                     
-                    <p class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
+                    <p class="text-xs font-black text-orange-700 tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
                     </p>
 
                     <p class="text-gray-650 leading-relaxed text-justify text-sm">
-                        Hoje este Imóvel da Caixa está avaliado pela equipe técnica da CAIXA pelo preço de mercado de <strong class="text-gray-900">R$ {{ number_format($valorAvaliacao, 2, ',', '.') }}</strong> e está sendo vendido hoje pelo valor de <strong class="text-gray-900">R$ {{ number_format($valorVenda, 2, ',', '.') }}</strong> o que é uma <strong class="text-emerald-600 font-extrabold">grande oportunidade</strong> para o comprador que vai economizar o valor de <strong class="text-emerald-650 font-black">R$ {{ number_format($valorLucro, 2, ',', '.') }}</strong>. Este percentual de <strong class="text-red-600 font-black">{{ number_format($descontoPct, 0) }}%</strong> de desconto na compra deste imóvel só é possível, porque <strong class="text-orange-600">ESTE IMÓVEL NÃO ESTÁ EM LEILÃO</strong>, este imóvel está sendo vendido hoje nas modalidades de venda da CAIXA e por isso o banco consegue oferecer descontos que não seriam possíveis caso este imóvel ainda estivesse “preso” à Lei de Alienação Fiduciária.
+                        Hoje este Imóvel da Caixa está avaliado pela equipe técnica da CAIXA pelo preço de mercado de <strong class="text-gray-900">R$ {{ number_format($valorAvaliacao, 2, ',', '.') }}</strong> e está sendo vendido hoje pelo valor de <strong class="text-gray-900">R$ {{ number_format($valorVenda, 2, ',', '.') }}</strong> o que é uma <strong class="text-emerald-700 font-extrabold">grande oportunidade</strong> para o comprador que vai economizar o valor de <strong class="text-emerald-650 font-black">R$ {{ number_format($valorLucro, 2, ',', '.') }}</strong>. Este percentual de <strong class="text-red-600 font-black">{{ number_format($descontoPct, 0) }}%</strong> de desconto na compra deste imóvel só é possível, porque <strong class="text-orange-700">ESTE IMÓVEL NÃO ESTÁ EM LEILÃO</strong>, este imóvel está sendo vendido hoje nas modalidades de venda da CAIXA e por isso o banco consegue oferecer descontos que não seriam possíveis caso este imóvel ainda estivesse “preso” à Lei de Alienação Fiduciária.
                     </p>
                     
-                    <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                    <p class="text-xs text-orange-700 font-black animate-pulse uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
                     </p>
 
@@ -517,7 +517,7 @@ $schemaFaq = [
                             </button>
                             <div x-show="openOportunidade === 1" x-collapse class="px-6 py-5 bg-white border-t border-gray-100 text-xs text-gray-600 space-y-3 leading-relaxed">
                                 <p>Os Imóveis Caixa são comercializados na sua grande maioria em diferentes modalidades de venda, porém as mais conhecidas são as modalidades de Leilão. O ouro está nas modalidades que a Caixa vende após o leilão onde ela consegue oferecer os maiores descontos e o comprador ainda está livre do pagamento da comissão do leiloeiro e a Caixa ainda pode pagar grande parte das dívidas de condomínio caso existam.</p>
-                                <p>As Vantagens de comprar um Imóvel Caixa nas modalidades de Venda Direta ou Venda Direta Online são muitas e começamos com a economia de não ter que pagar a comissão do leiloeiro que neste caso seria de <strong class="text-emerald-600">R$ {{ number_format($valorVenda * 0.05, 2, ',', '.') }}</strong> e o não pagamento de comissão de corretagem, esses honorários seriam de <strong class="text-emerald-600">R$ {{ number_format($valorVenda * 0.05, 2, ',', '.') }}</strong> mas hoje, nestas modalidades de venda, o comprador não vai pagar nada.</p>
+                                <p>As Vantagens de comprar um Imóvel Caixa nas modalidades de Venda Direta ou Venda Direta Online são muitas e começamos com a economia de não ter que pagar a comissão do leiloeiro que neste caso seria de <strong class="text-emerald-700">R$ {{ number_format($valorVenda * 0.05, 2, ',', '.') }}</strong> e o não pagamento de comissão de corretagem, esses honorários seriam de <strong class="text-emerald-700">R$ {{ number_format($valorVenda * 0.05, 2, ',', '.') }}</strong> mas hoje, nestas modalidades de venda, o comprador não vai pagar nada.</p>
                             </div>
                         </div>
 
@@ -703,11 +703,11 @@ $schemaFaq = [
                         💼 Nossos Serviços
                     </h2>
                     
-                    <p class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
+                    <p class="text-xs font-black text-orange-700 tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
                     </p>
 
-                    <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                    <p class="text-xs text-orange-700 font-black animate-pulse uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
                     </p>
 
@@ -780,7 +780,7 @@ $schemaFaq = [
                                 <h5 class="font-extrabold text-gray-900 pt-2">🎯 Por que fazer este treinamento?</h5>
                                 <p>Você não precisa ter centenas de milhares de reais para lucrar com leilões. O seu maior ativo será o <strong>conhecimento técnico</strong>. Você aprenderá a rentabilizar o capital de terceiros, construindo a sua própria carteira de clientes, estruturando o seu próprio negócio de assessoria e ganhando honorários ou participação expressiva nos lucros de cada operação validada por você.</p>
                                 
-                                <p class="font-bold text-orange-600">“Consultores em Leilões de Imóveis – uma nova profissão altamente rentável.”</p>
+                                <p class="font-bold text-orange-700">“Consultores em Leilões de Imóveis – uma nova profissão altamente rentável.”</p>
 
                                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 italic text-gray-700">
                                     “Eu não estou te vendendo apenas um cursinho sobre leilões. Eu estou te entregando o modelo de negócios da minha empresa pronto para você replicar. Você vai sair daqui sabendo como captar o investidor, como achar o imóvel e como colocar dinheiro no bolso fazendo o trabalho que nós fazemos hoje, com total independência.”
@@ -842,7 +842,7 @@ $schemaFaq = [
                                 <h5 class="font-extrabold text-gray-900 pt-2">💙 Por que este treinamento é gratuito?</h5>
                                 <p>Acreditamos que o conhecimento sobre leilões pode mudar a vida de muitas famílias. Nosso objetivo com este treinamento básico é democratizar o acesso a essas informações. Queremos tirar os seus medos e te mostrar que é possível, sim, comprar a sua casa própria pagando muito mais barato.</p>
                                 <p>Você não precisa de milhares de reais para começar a aprender. O conhecimento está aqui, à sua disposição, sem custo nenhum.</p>
-                                <p class="text-orange-600 font-extrabold">Nos chame no WhatsApp para fazer a sua inscrição gratuita!</p>
+                                <p class="text-orange-700 font-extrabold">Nos chame no WhatsApp para fazer a sua inscrição gratuita!</p>
                             </div>
                         </div>
                     </div>
@@ -860,7 +860,7 @@ $schemaFaq = [
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
                     </p>
 
-                    <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                    <p class="text-xs text-orange-700 font-black animate-pulse uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
                     </p>
 
@@ -958,11 +958,11 @@ $schemaFaq = [
                         ❓ FAQ 2 = Perguntas Frequentes sobre o Bairro
                     </h2>
                     
-                    <p class="text-xs font-black text-orange-600 tracking-widest uppercase mb-2">
+                    <p class="text-xs font-black text-orange-700 tracking-widest uppercase mb-2">
                         {{ $tipoNome }} em {{ $bairroNome }}, {{ $cidadeNome }} - {{ $uf }}
                     </p>
 
-                    <p class="text-xs text-orange-600 font-black animate-pulse uppercase tracking-wider text-center pt-2">
+                    <p class="text-xs text-orange-700 font-black animate-pulse uppercase tracking-wider text-center pt-2">
                         👇 CLIQUE NAS OPÇÕES ABAIXO PARA VISUALIZAR MAIS INFORMAÇÕES
                     </p>
 
@@ -1021,40 +1021,40 @@ $schemaFaq = [
                         <div class="p-5 rounded-2xl border border-[#005CA9]/30 bg-blue-50/40 space-y-3 text-xs">
                             <div class="flex justify-between items-center border-b border-gray-200 pb-2">
                                 <span class="font-extrabold text-[#005CA9]">✅ Última Atualização</span>
-                                <span class="text-gray-500">{{ $ultimaAtualizacao->data_referencia->format('d/m/Y') }}</span>
+                                <span class="text-gray-700">{{ $ultimaAtualizacao->data_referencia->format('d/m/Y') }}</span>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p class="text-gray-500">Modalidade:</p>
+                                    <p class="text-gray-700">Modalidade:</p>
                                     <p class="font-bold text-gray-900">{{ $ultimaAtualizacao->modalidade?->nome ?? 'Venda Direta Online' }}</p>
                                 </div>
                                 <div>
-                                    <p class="text-gray-500">Avaliação CAIXA:</p>
+                                    <p class="text-gray-700">Avaliação CAIXA:</p>
                                     <p class="font-bold text-gray-900">R$ {{ number_format($ultimaAtualizacao->valor_avaliacao, 2, ',', '.') }}</p>
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4 pt-1">
                                 <div>
-                                    <p class="text-gray-500">Preço de Venda:</p>
+                                    <p class="text-gray-700">Preço de Venda:</p>
                                     <p class="font-bold text-[#005CA9]">R$ {{ number_format($ultimaAtualizacao->valor_venda, 2, ',', '.') }}</p>
                                 </div>
                                 <div>
-                                    <p class="text-gray-500">Economia:</p>
+                                    <p class="text-gray-700">Economia:</p>
                                     <p class="font-bold text-emerald-700">R$ {{ number_format($ultimaAtualizacao->desconto_valor, 2, ',', '.') }} ({{ number_format($ultimaAtualizacao->desconto_percentual, 0) }}% OFF)</p>
                                 </div>
                             </div>
                             <div class="grid grid-cols-3 gap-3 pt-2 border-t border-gray-200">
                                 <div class="text-center">
-                                    <p class="text-gray-500 mb-1">FGTS</p>
+                                    <p class="text-gray-700 mb-1">FGTS</p>
                                     <span class="font-bold {{ $uFgts ? 'text-emerald-700' : 'text-red-500' }}">{{ $uFgts ? '✔ Sim' : '✘ Não' }}</span>
                                 </div>
                                 <div class="text-center">
-                                    <p class="text-gray-500 mb-1">Financ. SBPE</p>
+                                    <p class="text-gray-700 mb-1">Financ. SBPE</p>
                                     <span class="font-bold {{ $uSbpe ? 'text-emerald-700' : 'text-red-500' }}">{{ $uSbpe ? '✔ Sim' : ($uSbpe === null ? '— N/inf.' : '✘ Não') }}</span>
                                 </div>
                                 <div class="text-center">
-                                    <p class="text-gray-500 mb-1">MCMV</p>
-                                    <span class="font-bold {{ $ultimaAtualizacao->aceita_financ_mcmv ? 'text-emerald-700' : 'text-gray-400' }}">{{ $ultimaAtualizacao->aceita_financ_mcmv ? '✔ Sim' : '✘ Não' }}</span>
+                                    <p class="text-gray-700 mb-1">MCMV</p>
+                                    <span class="font-bold {{ $ultimaAtualizacao->aceita_financ_mcmv ? 'text-emerald-700' : 'text-red-700' }}">{{ $ultimaAtualizacao->aceita_financ_mcmv ? '✔ Sim' : '✘ Não' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -1077,40 +1077,40 @@ $schemaFaq = [
                                 <div class="p-5 rounded-2xl border border-gray-200 bg-gray-50 space-y-3 text-xs">
                                     <div class="flex justify-between items-center border-b border-gray-200 pb-2">
                                         <span class="font-extrabold text-gray-700">Atualização #{{ $totalAtualizacoes - $idx - 1 }}</span>
-                                        <span class="text-gray-500">{{ $hist->data_referencia->format('d/m/Y') }}</span>
+                                        <span class="text-gray-700">{{ $hist->data_referencia->format('d/m/Y') }}</span>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
-                                            <p class="text-gray-500">Modalidade:</p>
+                                            <p class="text-gray-700">Modalidade:</p>
                                             <p class="font-bold text-gray-900">{{ $hist->modalidade?->nome ?? 'Venda Direta Online' }}</p>
                                         </div>
                                         <div>
-                                            <p class="text-gray-500">Avaliação CAIXA:</p>
+                                            <p class="text-gray-700">Avaliação CAIXA:</p>
                                             <p class="font-bold text-gray-900">R$ {{ number_format($hist->valor_avaliacao, 2, ',', '.') }}</p>
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4 pt-1">
                                         <div>
-                                            <p class="text-gray-500">Preço de Venda:</p>
+                                            <p class="text-gray-700">Preço de Venda:</p>
                                             <p class="font-bold text-[#005CA9]">R$ {{ number_format($hist->valor_venda, 2, ',', '.') }}</p>
                                         </div>
                                         <div>
-                                            <p class="text-gray-500">Economia:</p>
+                                            <p class="text-gray-700">Economia:</p>
                                             <p class="font-bold text-emerald-700">R$ {{ number_format($hist->desconto_valor, 2, ',', '.') }} ({{ number_format($hist->desconto_percentual, 0) }}% OFF)</p>
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-3 gap-3 pt-2 border-t border-gray-200">
                                         <div class="text-center">
-                                            <p class="text-gray-500 mb-1">FGTS</p>
+                                            <p class="text-gray-700 mb-1">FGTS</p>
                                             <span class="font-bold {{ $hFgts ? 'text-emerald-700' : 'text-red-500' }}">{{ $hFgts ? '✔ Sim' : '✘ Não' }}</span>
                                         </div>
                                         <div class="text-center">
-                                            <p class="text-gray-500 mb-1">Financ. SBPE</p>
+                                            <p class="text-gray-700 mb-1">Financ. SBPE</p>
                                             <span class="font-bold {{ $hSbpe ? 'text-emerald-700' : 'text-red-500' }}">{{ $hSbpe ? '✔ Sim' : ($hSbpe === null ? '— N/inf.' : '✘ Não') }}</span>
                                         </div>
                                         <div class="text-center">
-                                            <p class="text-gray-500 mb-1">MCMV</p>
-                                            <span class="font-bold {{ $hist->aceita_financ_mcmv ? 'text-emerald-700' : 'text-gray-400' }}">{{ $hist->aceita_financ_mcmv ? '✔ Sim' : '✘ Não' }}</span>
+                                            <p class="text-gray-700 mb-1">MCMV</p>
+                                            <span class="font-bold {{ $hist->aceita_financ_mcmv ? 'text-emerald-700' : 'text-red-700' }}">{{ $hist->aceita_financ_mcmv ? '✔ Sim' : '✘ Não' }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1265,13 +1265,13 @@ $schemaFaq = [
                             </div>
 
                             <div class="bg-orange-50 rounded-xl p-3 border border-orange-100">
-                                <p class="text-2xl font-black text-orange-600">{{ $stats['formUltimos7Dias'] }}</p>
+                                <p class="text-2xl font-black text-orange-700">{{ $stats['formUltimos7Dias'] }}</p>
                                 <p class="font-bold text-gray-700 mt-0.5">Formulários (7 dias)</p>
                                 <p class="text-gray-500 mt-1 leading-relaxed">Leads captados nos últimos 7 dias via formulário.</p>
                             </div>
 
                             <div class="bg-orange-50 rounded-xl p-3 border border-orange-100">
-                                <p class="text-2xl font-black text-orange-600">{{ $stats['formUltimos30Dias'] }}</p>
+                                <p class="text-2xl font-black text-orange-700">{{ $stats['formUltimos30Dias'] }}</p>
                                 <p class="font-bold text-gray-700 mt-0.5">Formulários (30 dias)</p>
                                 <p class="text-gray-500 mt-1 leading-relaxed">Leads captados nos últimos 30 dias via formulário.</p>
                             </div>
