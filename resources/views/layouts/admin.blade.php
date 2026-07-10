@@ -43,6 +43,17 @@
                 </div>
             </a>
 
+            <a href="{{ route('admin.campanhas') }}"
+               class="flex items-center space-x-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group {{ request()->routeIs('admin.campanhas') ? 'bg-gradient-to-r from-[#005CA9] to-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-400/20 font-bold' : 'text-blue-100/70 hover:text-white hover:bg-white/5' }}">
+                <svg class="w-5 h-5 shrink-0 {{ request()->routeIs('admin.campanhas') ? 'text-white' : 'text-blue-200/50 group-hover:text-blue-200' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <div class="flex flex-col min-w-0">
+                    <span class="truncate">Campanhas</span>
+                    <span class="text-[9px] opacity-70 font-normal truncate">Rastreamento UTM e page views</span>
+                </div>
+            </a>
+
             <a href="{{ route('admin.leads') }}"
                class="flex items-center space-x-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group {{ request()->routeIs('admin.leads') ? 'bg-gradient-to-r from-[#005CA9] to-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-400/20 font-bold' : 'text-blue-100/70 hover:text-white hover:bg-white/5' }}">
                 <svg class="w-5 h-5 shrink-0 {{ request()->routeIs('admin.leads') ? 'text-white' : 'text-blue-200/50 group-hover:text-blue-200' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

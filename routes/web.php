@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Admin\Livewire\AdminDashboard;
+use App\Modules\Admin\Livewire\CampanhaDashboard;
 use App\Modules\Admin\Livewire\AdminLogin;
 use App\Modules\Admin\Livewire\BairrosDossie;
 use App\Modules\Admin\Livewire\IntegracaoCrm;
@@ -384,6 +385,7 @@ Route::post('/admin/logout', function () {
 // Admin — área protegida
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
+    Route::get('/campanhas', CampanhaDashboard::class)->name('campanhas');
     Route::get('/leads', GestaoLeads::class)->name('leads');
     Route::get('/imobiliarias', \App\Modules\Admin\Livewire\GestaoImobiliarias::class)->name('imobiliarias');
     Route::get('/importar', [ImportacaoCsvController::class, 'show'])->name('importar');

@@ -7,6 +7,7 @@ use App\Models\Estado;
 use App\Models\Municipio;
 use App\Models\Imovel;
 use App\Modules\BairrosDossie\Services\ConteudoIaService;
+use App\Services\CampaignTrackingService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -28,6 +29,9 @@ class PaginaBairro extends Component
             ->where('slug', $bairro_slug)
             ->with(['municipio.estado'])
             ->firstOrFail();
+
+        // Registrar acesso para rastreamento de campanhas (UTMs)
+        app(CampaignTrackingService::class)->recordPageView($this->bairro, request());
     }
 
     public function render()
