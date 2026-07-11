@@ -33,6 +33,144 @@
         </div>
     </div>
 
+    {{-- ══════════════════════════════════════════════════════════════════════ --}}
+    {{-- SEÇÃO: CRIAR VITRINE                                                 --}}
+    {{-- ══════════════════════════════════════════════════════════════════════ --}}
+    <div class="bg-gradient-to-br from-[#005CA9] to-blue-700 rounded-2xl shadow-lg shadow-blue-500/20 p-6 text-white">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="text-2xl">🚀</span>
+            <div>
+                <h2 class="text-lg font-black">Criar Vitrine para Anúncios</h2>
+                <p class="text-blue-200 text-xs">Cole a URL de uma busca do site e gere uma landing page limpa para seus anúncios</p>
+            </div>
+        </div>
+
+        {{-- Mensagem de feedback --}}
+        @if ($mensagem)
+            <div class="mb-4 px-4 py-3 rounded-xl text-sm font-semibold
+                {{ $mensagemTipo === 'sucesso' ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-400/30' : 'bg-red-500/20 text-red-100 border border-red-400/30' }}">
+                {{ $mensagem }}
+            </div>
+        @endif
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+                <label class="text-xs font-bold text-blue-200 uppercase tracking-wider mb-1 block">Nome da Campanha</label>
+                <input wire:model="novaVitrineNome"
+                       type="text"
+                       placeholder="Ex: Taquara SBPE Julho"
+                       class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-200/50 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white/40 focus:bg-white/15 transition">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-blue-200 uppercase tracking-wider mb-1 block">URL da Busca</label>
+                <input wire:model="novaVitrineUrl"
+                       type="text"
+                       placeholder="Cole aqui a URL da busca (ex: /imoveis/rj/rio-de-janeiro?...)"
+                       class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-200/50 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white/40 focus:bg-white/15 transition">
+            </div>
+        </div>
+        <div class="mt-4 flex items-center gap-3">
+            <button wire:click="criarVitrine"
+                    wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-2 bg-white text-[#005CA9] font-black text-sm px-6 py-3 rounded-xl hover:bg-blue-50 transition shadow-lg disabled:opacity-50">
+                <span wire:loading.remove wire:target="criarVitrine">✨ Criar Vitrine</span>
+                <span wire:loading wire:target="criarVitrine">⏳ Criando...</span>
+            </button>
+            <p class="text-blue-200/60 text-xs">A URL será gerada automaticamente a partir do nome</p>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════════════════════════════════ --}}
+    {{-- SEÇÃO: VITRINES CADASTRADAS                                          --}}
+    {{-- ══════════════════════════════════════════════════════════════════════ --}}
+    @if ($vitrines->isNotEmpty())
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <h2 class="text-sm font-bold text-slate-700">🎯 Vitrines Cadastradas</h2>
+                <p class="text-xs text-slate-400">Copie os links abaixo para usar nos seus anúncios</p>
+            </div>
+            <span class="bg-[#005CA9] text-white text-xs font-black px-3 py-1 rounded-full">{{ $vitrines->count() }}</span>
+        </div>
+
+        <div class="divide-y divide-slate-50">
+            @foreach ($vitrines as $vit)
+                <div class="px-5 py-4 {{ !$vit->ativa ? 'opacity-50' : '' }}">
+                    {{-- Linha 1: Nome + Status + Ações --}}
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="text-lg">{{ $vit->ativa ? '🟢' : '🔴' }}</span>
+                            <h3 class="font-black text-slate-800 truncate">{{ $vit->nome }}</h3>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button wire:click="toggleVitrine({{ $vit->id }})"
+                                    class="text-xs font-bold px-3 py-1.5 rounded-lg transition
+                                    {{ $vit->ativa ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' }}">
+                                {{ $vit->ativa ? '⏸ Pausar' : '▶ Ativar' }}
+                            </button>
+                            <button wire:click="excluirVitrine({{ $vit->id }})"
+                                    wire:confirm="Tem certeza que deseja excluir esta vitrine?"
+                                    class="text-xs font-bold px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition">
+                                🗑 Excluir
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Linha 2: URL da vitrine --}}
+                    <div class="bg-slate-50 rounded-xl px-4 py-3 mb-3">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Link da Vitrine</p>
+                        <div class="flex items-center gap-2">
+                            <code class="text-xs text-[#005CA9] font-bold break-all flex-1" id="url-vitrine-{{ $vit->id }}">{{ $vit->url() }}</code>
+                            <button onclick="navigator.clipboard.writeText(document.getElementById('url-vitrine-{{ $vit->id }}').textContent);this.textContent='✅';setTimeout(()=>this.textContent='📋',1500)"
+                                    class="text-base shrink-0 hover:scale-110 transition-transform cursor-pointer" title="Copiar">📋</button>
+                        </div>
+                    </div>
+
+                    {{-- Linha 3: Links com UTM por plataforma --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {{-- Facebook --}}
+                        <div class="bg-blue-50 rounded-xl px-3 py-2.5">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-black text-blue-800">📘 Facebook Ads</span>
+                                <button onclick="navigator.clipboard.writeText(document.getElementById('url-fb-{{ $vit->id }}').textContent);this.textContent='✅';setTimeout(()=>this.textContent='📋',1500)"
+                                        class="text-sm hover:scale-110 transition-transform cursor-pointer" title="Copiar">📋</button>
+                            </div>
+                            <code class="text-[10px] text-blue-600 break-all leading-tight block" id="url-fb-{{ $vit->id }}">{{ $vit->urlComUtm('facebook', 'cpc') }}</code>
+                        </div>
+
+                        {{-- Instagram --}}
+                        <div class="bg-pink-50 rounded-xl px-3 py-2.5">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-black text-pink-800">📸 Instagram</span>
+                                <button onclick="navigator.clipboard.writeText(document.getElementById('url-ig-{{ $vit->id }}').textContent);this.textContent='✅';setTimeout(()=>this.textContent='📋',1500)"
+                                        class="text-sm hover:scale-110 transition-transform cursor-pointer" title="Copiar">📋</button>
+                            </div>
+                            <code class="text-[10px] text-pink-600 break-all leading-tight block" id="url-ig-{{ $vit->id }}">{{ $vit->urlComUtm('instagram', 'social') }}</code>
+                        </div>
+
+                        {{-- Google --}}
+                        <div class="bg-emerald-50 rounded-xl px-3 py-2.5">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-black text-emerald-800">🔍 Google Ads</span>
+                                <button onclick="navigator.clipboard.writeText(document.getElementById('url-gg-{{ $vit->id }}').textContent);this.textContent='✅';setTimeout(()=>this.textContent='📋',1500)"
+                                        class="text-sm hover:scale-110 transition-transform cursor-pointer" title="Copiar">📋</button>
+                            </div>
+                            <code class="text-[10px] text-emerald-600 break-all leading-tight block" id="url-gg-{{ $vit->id }}">{{ $vit->urlComUtm('google', 'cpc') }}</code>
+                        </div>
+                    </div>
+
+                    {{-- Linha 4: Info --}}
+                    <div class="flex items-center gap-4 mt-3 text-[10px] text-slate-400">
+                        <span>Criada em {{ $vit->created_at->format('d/m/Y H:i') }}</span>
+                        <span>•</span>
+                        <span>Filtros: {{ collect($vit->filtros)->map(fn($v, $k) => $k . '=' . (is_array($v) ? implode(',', $v) : $v))->implode(' | ') }}</span>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- Cards de Métricas --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 

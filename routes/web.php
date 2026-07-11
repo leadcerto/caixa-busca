@@ -23,6 +23,9 @@ Route::get('/', ImovelSearch::class)->name('imoveis.index');
 Route::get('/buscar', fn() => redirect()->route('imoveis.index'));
 Route::get('/bairros/{uf}/{municipio_slug}/{bairro_slug}', PaginaBairro::class)->name('bairro.show');
 
+// Vitrines — landing pages minimalistas para campanhas de anúncios
+Route::get('/vitrine/{slug}', [\App\Http\Controllers\VitrineController::class, 'show'])->name('vitrine.show');
+
 // Busca com URL amigável — SEO + tráfego pago
 // Landing pages filtradas para campanhas (devem vir ANTES das rotas genéricas)
 Route::get('/imoveis/{estado}/{cidade}/{bairro}/financiamento',
